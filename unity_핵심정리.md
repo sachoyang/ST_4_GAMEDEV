@@ -18,7 +18,7 @@
 | 5 | `3dTO2d` | 2026-03-24 | 🚫 제외 (학생 코드 없음, Unity 공식 StarterAssets 패키지만 있음) |
 | 6 | `St3` | 2026-03-30 | ✅ 완료 (Study1~7 폴더별로 분할 진행 — 아래 세부 표 참고) |
 | 7 | `3D_ST1` | 2026-04-07 | ✅ 완료 |
-| 8 | `TempleRun` | 2026-04-13 | ⏳ 대기 |
+| 8 | `TempleRun` | 2026-04-13 | ✅ 완료 |
 | 9 | `zombieStudy` | 2026-04-14 | ⏳ 대기 |
 | 10 | `VRstudy` | 2026-05-11 | ⏳ 대기 |
 | 11 | `ARstudy` | 2026-05-13 | ⏳ 대기 |
@@ -1834,3 +1834,178 @@ St3 전체(60개 스크립트, 6676줄, 5단계)를 관통해서 반복적으로
 
 1. **`WakeupRagdoll`의 5초 고정 타이머** (6-4번 항목) — 실제 게임이라면 사망 이벤트나 특정 조건에 연동해야 할 부분이 학습용 고정 지연으로 대체되어 있음. 실전 적용 시 이벤트 기반으로 트리거하도록 교체 필요.
 2. **`CharCtrl.Damage`가 코루틴을 쓰지만 실제로 시간차 로직이 없음** (6-5번 항목) — `CreateBloodEffect`가 `IEnumerator`인데 내부에 `yield return null` 하나뿐이라 사실상 코루틴으로 만들 실익이 없어 보임 — 일반 메서드로 바꿔도 동일하게 동작할 가능성이 높음.
+
+---
+
+# 7. TempleRun (2026-04-13)
+
+> `C:\Study\Unity\TempleRun\Assets\04. Scripts` — 학생 코드는 `csBridge.cs`(다리 생성 매니저, 131줄)와 `csPlayer.cs`(플레이어 컨트롤, 226줄) 2개뿐인 "무한 러너(엔드리스 러너)" 소품 프로젝트. `Assets/unity-chan!` 폴더는 UTJ(Unity Technologies Japan)의 공식 무료 캐릭터 에셋(스프링본 물리, 카메라컨트롤러, 스플래시스크린 등 예제 스크립트 포함)이라 3D_ST1의 Standard Assets와 같은 이유로 정리에서 제외했다.
+> **원본 강의자료 `Ch4.TempleRun.pdf`를 학생 코드와 대조**해서 정리했다. PDF는 강사가 배포한 기본 튜토리얼 코드(다리/교차로 프리팹 제작, `csBridge`/`csPlayer` 스크립트 초안)를 담고 있는데, 학생의 실제 코드는 여기서 몇 군데를 직접 변형했다 — 그 차이 자체가 좋은 정리 포인트라 아래 각 항목에 "PDF 원본과 비교" 형태로 반영했다.
+
+## 7-1. 두 대의 카메라로 스테이지/배경 합성 — Standard Assets `SmoothFollow`
+
+- **한 줄 정의**: 메인 카메라는 Unity 공식 Standard Assets의 `SmoothFollow.cs`(Utility 패키지)를 그대로 붙여 플레이어를 부드럽게 뒤쫓게 하고, `MaskCamera`라는 두 번째 카메라를 `Depth Only`로 겹쳐서 다리 스테이지 뒤에 출렁이는 바다(`WaterProDaytime`)만 별도로 그리는 2-카메라 합성 기법.
+- **왜 중요한가**: `04. Scripts` 폴더에 카메라 관련 스크립트가 전혀 없는데도 실제로는 카메라가 플레이어를 따라간다 — PDF를 보기 전까지는 "카메라 추적 코드가 어디 있는지" 의문이었는데, 확인해보니 학생이 직접 짠 게 아니라 Unity 공식 유틸리티 스크립트를 그대로 갖다 붙인 것이었다. "모든 기능을 직접 구현할 필요는 없다"는 실무적 판단(바퀴를 다시 만들지 않기)을 보여주는 사례.
+- **내 코드에서 어떻게 썼는지**: `Assets/Standard Assets/Utility/SmoothFollow.cs`를 `Main Camera`에 연결, `Target = Player`, `Height/Rotation Damping = 8`로 세팅(PDF 22p). 별도로 `MaskCamera`를 만들어 `Clear Flags = Depth Only`, `Depth = 0`(메인 카메라보다 낮은 우선순위)으로 설정하고 바다만 그리게 했다(PDF 36p). 씬 파일(`scGame.unity`)에서 `MaskCamera`/`WaterProDaytime` 오브젝트로 확인됨.
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - 카메라를 두 대 쓰면서 왜 `AudioListener`는 하나만 남겨야 하는가? (씬에 `AudioListener`가 2개 이상이면 Unity가 경고를 내고, 오디오가 어느 카메라 기준으로 들려야 할지 모호해짐 — PDF도 "메인카메라에 Audio Listener가 있으므로 체크를 해제한다. 둘다 사용하면 에러가 발생한다"고 명시하며 `MaskCamera` 쪽 `AudioListener`를 꺼두라고 안내함)
+  - `Depth Only`로 카메라를 겹치는 것과 `Culling Mask`로 레이어를 나누는 것의 차이는? (`Depth Only`는 "이 카메라는 색상 버퍼를 지우지 않고 깊이 정보만 갱신하며 그린다"는 렌더링 순서 제어이고, 실제로 무엇을 그릴지는 `Culling Mask`가 결정 — 두 설정을 조합해 "배경은 먼저, 스테이지는 나중에" 같은 레이어링을 만든다)
+- **최신 동향**: `SmoothFollow` 같은 Standard Assets 유틸리티는 여전히 참고용으로 쓰이지만, Unity 공식 패키지 매니저의 `Cinemachine`이 카메라 추적/전환의 사실상 표준으로 자리잡았다 — 댐핑, 충돌 회피, 여러 타겟 전환 등을 코드 없이 훨씬 정교하게 처리할 수 있어 신규 프로젝트라면 `SmoothFollow` 대신 `Cinemachine`을 우선 검토하는 것이 일반적이다.
+
+## 7-2. 엔드리스 러너 스트리밍 생성/삭제 패턴
+
+- **한 줄 정의**: 무한히 이어지는 길을 실제로 무한 생성하는 대신, 플레이어 앞쪽 구간만 일정 개수(여기서는 10개)씩 미리 만들어두고 지나간 이전 구간은 통째로 삭제하는 "앞은 생성, 뒤는 삭제"하는 스트리밍 구조.
+- **왜 중요한가**: 러너/인피니티 계열 게임의 핵심 아이디어이자, "메모리에 무한히 쌓이지 않게" 콘텐츠를 흐르게 만드는 일반적인 패턴(오브젝트 풀링의 사촌 격)이라 면접에서 자주 나오는 소재.
+- **내 코드에서 어떻게 썼는지**: `csBridge.cs:39-52`
+  ```csharp
+  void MakeBridge(string sDir)
+  {
+      DeleteOldBridge();   // Player가 지나간 이전 구간 삭제
+      CalcRotation(sDir);  // 새 진행 방향 계산
+      MakeNewBridge();     // 새 방향으로 다리 10개 생성
+  }
+  void DeleteOldBridge()
+  {
+      Destroy(oldBridge);              // 예전 다리(2턴 전) 삭제
+      oldBridge = newBridge;           // 방금까지 쓰던 다리를 "다음에 지울 대상"으로 이관
+      newBridge = new GameObject("StartBridge");   // 새 구간을 담을 부모 오브젝트 새로 생성
+  }
+  ```
+  `MakeBridge`는 `Start()`에서 최초 1회, 이후 플레이어가 교차로에서 회전할 때마다(`csPlayer.RotateHuman` → `SendMessage`) 호출된다.
+- **PDF 원본과 비교**: 다리 프리팹 5종(기본/바닥없음/우측없음/좌측없음/장애물)과 교차로를 에디터에서 직접 조립하는 과정 전체가 PDF 2~18p에 좌표값까지 상세히 나와 있다 — `csBridge.cs`의 로직(10개씩 생성, 홀수 인덱스는 장애물, 짝수 인덱스는 50% 확률로 동전)은 PDF 23~27p의 원본 코드와 로직상 동일하며, 학생이 이 부분은 튜토리얼을 그대로 따랐음을 확인했다.
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - 매번 `Destroy`/`Instantiate`로 오브젝트를 새로 만들고 없애는데, 왜 오브젝트 풀링을 안 썼는가? (다리 세그먼트가 회전 시마다 10개씩만 생기고 없어지는 소규모 트래픽이라 풀링 없이도 문제가 없음 — 스폰 빈도가 훨씬 높은 총알/이펙트 등에서는 풀링이 필요해진다는 것과 대비하기 좋은 포인트)
+  - 부모-자식(`newBridge`/`childBridge`) 구조로 묶는 이유는? (개별 `Destroy` 호출 없이 부모 하나만 `Destroy`하면 자식 다리 10개가 한꺼번에 정리되기 때문 — Unity에서 오브젝트를 "그룹"으로 다루는 가장 기본적인 방법)
+- **최신 동향**: `Instantiate`/`Destroy` 기반의 스트리밍 생성 자체는 지금도 유효한 기본기이지만, 실무에서는 `ObjectPool<T>`(Unity 2021+ 내장 API)로 재사용 풀을 관리하는 방식이 표준으로 자리잡았다 — 이 프로젝트 규모에서는 과할 수 있지만, "생성 빈도가 늘면 풀링으로 넘어간다"는 판단 기준으로 알아두면 됨.
+
+## 7-3. Raycast 기반 접지/벽 판정
+
+- **한 줄 정의**: 매 프레임 캐릭터 위치에서 아래/좌/우로 짧은 광선을 쏘아(`Physics.Raycast`) 충돌한 오브젝트의 태그를 확인함으로써 "바닥에 있는가", "왼쪽/오른쪽으로 이동 가능한가"를 판정하는 방식.
+- **왜 중요한가**: `CharacterController.isGrounded`(3D_ST1의 6-2번)처럼 컴포넌트가 알아서 판정해주지 않는 상황에서, 개발자가 직접 물리 질의로 상태를 판정하는 대표적인 방법. Raycast의 인자 순서(기준점/방향/결과/거리)를 정확히 설명할 수 있는지가 면접 단골 질문.
+- **내 코드에서 어떻게 썼는지**: `csPlayer.cs:48-77`
+  ```csharp
+  isGround = true;
+  if (Physics.Raycast(transform.position, Vector3.down, out hit, 2f))
+  {
+      if (hit.transform.tag == "Bridge") isGround = true;
+  }
+  canLeft = true;
+  if (Physics.Raycast(transform.position, Vector3.left, out hit, 0.7f))
+  {
+      if (hit.transform.tag == "Guard") canLeft = false;   // 좌측에 가드레일이 있으면 좌 이동 금지
+  }
+  ```
+- **PDF 원본과 비교**: PDF의 원본 코드는 태그를 `"BRIDGE"`/`"GUARD"`(전부 대문자)로 비교하는데, 학생의 실제 코드는 `"Bridge"`/`"Guard"`(첫 글자만 대문자)로 비교한다. Unity의 태그 문자열 비교는 대소문자를 구분하므로, 실제로 Unity 에디터의 Tag Manager(`ProjectSettings/TagManager.asset`)에 등록된 태그 이름도 `Bridge`/`Guard`/`Dead`/`Turn`/`Coin`으로 되어있는지 직접 확인했다 — 코드와 정확히 일치했다. 즉 학생이 튜토리얼의 명명 규칙(전부 대문자)을 따르지 않고 태그 이름과 비교 코드를 처음부터 끝까지 일관되게 자기 스타일(첫 글자만 대문자)로 바꿔서 만들었다는 뜻. 만약 태그 이름과 코드 문자열의 대소문자가 어긋났다면 `Physics.Raycast`는 성공해도 `if (hit.transform.tag == "Bridge")`가 조용히 항상 실패하는, 눈에 잘 안 띄는 버그가 됐을 자리였다.
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - `isGround`는 왜 항상 `true`로 초기화한 뒤 조건이 맞을 때 또 `true`를 대입하는가? (이 코드는 사실상 "바닥이 아니어도 항상 true"가 되는 논리적 허점이 있음 — `Raycast`가 실패했거나 태그가 `Bridge`가 아닌 경우에 `false`로 떨어뜨리는 처리가 빠져있어, 원래 의도(공중에 있으면 점프 불가)가 코드상 완전히 보장되지 않는다. 참고로 PDF의 원본 코드도 이 부분은 동일한 구조라 튜토리얼 자체의 허점이 그대로 이어진 것으로 보인다.)
+  - 태그 이름의 대소문자가 코드와 어긋나면 왜 컴파일 에러가 아니라 조용히 실패하는가? (태그는 문자열이라 컴파일 타임에는 존재 여부나 철자를 검사하지 않음 — 런타임에 `tag == "Bridge"` 비교가 그냥 `false`를 반환할 뿐이라, "왜 접지 판정이 안 되지?"처럼 원인을 한참 찾아야 하는 버그로 이어지기 쉽다)
+  - `Debug.DrawRay`는 왜 별도로 호출하는가? (`Physics.Raycast` 자체는 아무것도 그리지 않으므로, 씬 뷰에서 광선의 경로를 눈으로 확인하려면 `Debug.DrawRay`를 따로 그려야 함 — 로직과 시각화 호출이 분리되어 있다는 점)
+- **최신 동향**: `Physics.Raycast` API는 지금도 3D 물리 질의의 표준으로 변화 없이 쓰인다.
+
+## 7-4. 문자열 기반 컴포넌트 통신의 반복된 위험성 — `SendMessage` / `StartCoroutine(string)`
+
+- **한 줄 정의**: 메서드를 직접 참조하지 않고 문자열 이름으로 호출하는 두 가지 API — `gameObject.SendMessage("메서드명", …)`와 `StartCoroutine("메서드명")` — 를 이 프로젝트에서 나란히 사용하고 있다.
+- **왜 중요한가**: St3(6번, `unity_핵심정리.md` St3 종합 요약)에서 이미 정리한 "문자열 기반 API의 반복된 위험성" 테마가 여기서도 그대로 재현된다 — 오타가 나도 컴파일은 통과하고 런타임에만 조용히 실패하며, IDE의 "이름 바꾸기(rename)" 리팩토링 기능이 이 문자열까지 따라가지 못한다는 공통 약점.
+- **내 코드에서 어떻게 썼는지**: `csPlayer.cs:172` / `csPlayer.cs:115,135`
+  ```csharp
+  // 컴포넌트 간 통신: manager는 csBridge가 붙은 다른 오브젝트
+  manager.SendMessage("MakeBridge", sDir, SendMessageOptions.DontRequireReceiver);
+
+  // 코루틴 시작도 문자열로
+  StartCoroutine("JumpHuman");
+  ```
+- **PDF 원본과 비교**: 두 API 모두 PDF의 원본 코드에 그대로 나온다(32~35p, 34p) — 즉 이건 학생이 만든 설계 선택이 아니라 강사가 배포한 튜토리얼의 기본 패턴을 그대로 따른 것이다. "학생이 잘 몰라서 위험한 API를 썼다"가 아니라 "실무에서도 흔히 볼 수 있는 교육용 예제 코드의 전형적인 습관을 그대로 물려받았다"는 쪽에 가깝다는 걸 짚어두면 면접에서 더 정확하게 설명할 수 있다.
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - `SendMessage` 대신 쓸 수 있는 더 안전한 대안은? (매니저의 참조를 직접 들고 있다면 `manager.GetComponent<csBridge>().MakeBridge(sDir)`처럼 강타입으로 직접 호출 — 컴파일 타임에 오류를 잡을 수 있음. 서로 다른 시스템 간 느슨한 결합이 꼭 필요하면 `UnityEvent`나 C# 이벤트가 요즘 더 선호되는 대안)
+  - `StartCoroutine("JumpHuman")`처럼 문자열로 호출하면 얻는 것과 잃는 것은? (얻는 것: `StopCoroutine("JumpHuman")`처럼 이름으로 특정 코루틴을 멈출 수 있음. 잃는 것: 매개변수를 강타입으로 못 넘기고, 리네이밍에 안전하지 않으며, 리플렉션 기반이라 `StartCoroutine(JumpHuman())` 방식보다 약간의 오버헤드가 있음 — 단, 최신 Unity에서는 이 성능 차이가 실질적으로는 미미하다는 게 중론)
+- **최신 동향 (웹서칭 결과)**: 두 API 모두 지금도 제거되지 않고 남아있지만, Unity 공식 권장은 오래전부터 강타입 직접 호출/이벤트를 우선시하고, `StartCoroutine`도 `IEnumerator`를 직접 넘기는 오버로드를 권장한다. 문자열 오버로드는 "이름으로 멈춰야 할 때"처럼 꼭 필요한 경우에만 쓰라는 것이 일반적인 가이드다. ([Unity Coroutine 가이드](https://gamedevbeginner.com/coroutines-in-unity-when-and-how-to-use-them/))
+
+## 7-5. 모바일/데스크탑 입력 분기
+
+- **한 줄 정의**: `Application.platform`으로 실행 플랫폼을 확인해 모바일(가속도계 기울기 + 터치 스와이프)과 데스크탑(키보드 축 입력)으로 입력 처리 코드를 완전히 분기하는 패턴.
+- **왜 중요한가**: 하나의 게임을 여러 플랫폼에 배포할 때 "입력 방식이 근본적으로 다르다"는 문제를 코드 레벨에서 어떻게 다루는지 보여주는 실전 사례.
+- **내 코드에서 어떻게 썼는지**: `csPlayer.cs:82-127`
+  ```csharp
+  if (Application.platform == RuntimePlatform.Android ||
+      Application.platform == RuntimePlatform.IPhonePlayer)
+      CheckMobile();
+  else
+      CheckKeyboard();
+
+  // 모바일: 기기 기울기로 좌우 이동, 스와이프로 점프/회전
+  float x = Input.acceleration.x;
+  if (x < -0.2f) dirX = -0.6f;
+  ...
+  if (tmp.phase == TouchPhase.Moved && touchEnd.y - touchStart.y > 100)
+      StartCoroutine("JumpHuman");   // 위로 스와이프 = 점프
+  ```
+- **PDF 원본과 비교**: 입력 분기 로직 자체는 PDF(29~35p)와 동일하지만, 전진 속도 값이 다르다 — PDF 원본은 `speedForward = 2`인데 학생의 실제 코드는 `speedForward = 10`으로 5배 올라가 있다. 학생이 직접 플레이해보고 원본 튜토리얼 속도가 너무 느리다고 판단해 체감 난이도/속도감을 조정한 흔적으로 보인다 — 튜토리얼을 그대로 베끼지 않고 실제로 플레이테스트를 거쳐 값을 튜닝했다는 근거.
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - 굳이 `if/else`로 완전히 다른 함수를 타게 나눈 이유는? (입력 소스 자체가 다르므로(`Input.acceleration` vs `Input.GetAxis`) 하나의 함수 안에서 억지로 합치면 조건문이 뒤섞여 가독성이 떨어짐 — 플랫폼별 책임을 함수 단위로 분리)
+  - 요즘이라면 이 코드를 어떻게 개선하겠는가? (Unity의 신규 Input System 패키지는 액션 기반으로 "Jump"라는 하나의 액션에 키보드 스페이스바와 터치 제스처를 동시에 바인딩할 수 있어 이런 플랫폼 분기 자체를 줄일 수 있음 — 다만 이 프로젝트는 구 Input Manager 시절 코드)
+- **최신 동향 (웹서칭 결과)**: 레거시 `Input` 클래스(구 Input Manager)는 여전히 동작하지만, Unity는 새 프로젝트에 `Input System` 패키지 사용을 권장한다 — 여러 플랫폼의 입력을 액션(Action) 단위로 추상화해 이런 수동 플랫폼 분기를 줄여주는 방향으로 발전했다. `mfc_핵심정리.md`/`winapi_핵심정리.md`에서 다룬 "레거시 기술의 유지보수 맥락"과 같은 종류의 지식이다.
+
+## 7-6. 레거시 `Animation`에서 Mecanim `Animator`로 — 튜토리얼을 넘어선 직접 업그레이드
+
+- **한 줄 정의**: `Animator.SetInteger`/`SetTrigger`로 애니메이터 컨트롤러의 파라미터 값만 바꿔주면, 실제 어떤 애니메이션을 재생할지/언제 전환할지는 Animator Controller의 상태 머신(Transition 조건)이 알아서 처리하는 방식.
+- **왜 중요한가**: 3D_ST1(6-3번)에서 다룬 레거시 `Animation.CrossFade`/`PlayQueued`(코드가 직접 "이 클립을 재생해라"고 명령)와 정반대 철학 — 코드는 "상태"만 알려주고 "그 상태에서 뭘 재생할지"는 애니메이터 컨트롤러(디자인 데이터)의 책임이라는 역할 분리를 보여주는 좋은 대비 사례. 게다가 이 프로젝트는 그 전환 과정 자체가 코드에 흔적으로 남아있어서 더 의미가 있다.
+- **PDF 원본과 비교(중요)**: PDF의 원본 코드는 레거시 `Animation` 컴포넌트를 쓴다 — `anim = GetComponent<Animation>();`, 점프 시 `anim.Play("jump_pose")`, 착지 시 `anim.Play("run")`, 사망 시 `anim.Play("idle")`(PDF 28p, 32p, 34p). 튜토리얼이 기본으로 쓰는 캐릭터는 유니티의 구버전 예제 모델인 `PrototypeCharacter.unitypackage`(레거시 `Animation` 기반, idle/run/walk/jump_pose 클립만 있음)였다. 그런데 학생의 실제 최종 코드는 `Animator anim;` + `SetInteger("Jump0", ...)`/`SetTrigger("Obstacle")`로 완전히 바뀌어 있고, 옛 `anim.Play(...)` 호출들은 `//anim.Play("jump_pose");`처럼 주석으로만 남아있다. 그리고 씬 파일(`scGame.unity`)을 확인해보면 실제 캐릭터가 `PrototypeCharacter`가 아니라 `unitychan`(Mecanim 리깅이 된 유니티쨩 에셋)으로 교체되어 있다 — 즉 **학생이 튜토리얼의 기본 캐릭터/애니메이션 시스템을 그대로 쓰지 않고, 스스로 유니티쨩 에셋(Mecanim)으로 캐릭터를 바꾸면서 애니메이션 제어 코드도 레거시 `Animation`에서 `Animator`로 직접 업그레이드**했다는 뜻이다. 지워지지 않고 남은 주석이 그 개조 과정의 증거로 남아있는 셈.
+- **내 코드에서 어떻게 썼는지**: `csPlayer.cs:146-156`, `176-184`
+  ```csharp
+  IEnumerator JumpHuman()
+  {
+      canJump = false;
+      gameObject.GetComponent<Rigidbody>().AddForce(Vector3.up * jumpPower);
+      anim.SetInteger("Jump0", 1);   // "점프 상태"라고만 알려줌 — 실제 재생은 Animator Controller가 결정
+      //anim.Play("jump_pose");      // PDF 원본(레거시 Animation) 코드의 흔적
+      yield return new WaitForSeconds(1.5f);
+      anim.SetInteger("Jump0", 0);
+      canJump = true;
+  }
+  void OnCollisionEnter(Collision col)
+  {
+      if (col.transform.tag == "Dead")
+      {
+          isDead = true;
+          anim.SetTrigger("Obstacle");   // 트리거는 "1회성 이벤트"를 알릴 때 (Bool과 달리 자동으로 소비됨)
+      }
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - `SetInteger`와 `SetTrigger`를 각각 언제 쓰는가? (`SetInteger`/`SetBool`은 "지속되는 상태"(점프 중이다/아니다)를 표현할 때, `SetTrigger`는 "한 번 일어나는 사건"(장애물에 부딪혔다)을 표현할 때 — Trigger는 한 번 소비되면 자동으로 꺼진다는 점이 Bool과 다름)
+  - 왜 캐릭터와 애니메이션 시스템을 굳이 바꿨을까? (튜토리얼의 `PrototypeCharacter`는 이름 그대로 "프로토타입"용 임시 모델이라 완성도가 낮음 — 이미 다른 프로젝트에서 다뤄본 유니티쨩 에셋으로 교체하면서, 그 에셋이 Mecanim 기반이라 자연스럽게 `Animator` 제어 방식도 함께 바뀐 것으로 추정된다)
+  - 옛 코드를 지우지 않고 주석으로 남겨둔 것을 어떻게 평가할 수 있는가? (실무에서는 지저분한 습관으로 볼 수도 있지만, 학습 기록의 관점에서는 "무엇을 바꿨는지"를 스스로 추적할 수 있는 단서가 되어 오히려 유용함 — 다만 최종 제출/배포용 코드라면 정리하는 것이 맞다)
+- **최신 동향**: `Animator`/Animator Controller 기반 파라미터 제어는 지금도 Unity 애니메이션의 표준 방식으로 변화 없이 쓰인다.
+
+## 7-7. `OnGUI` 레거시 즉시모드 UI
+
+- **한 줄 정의**: `OnGUI()` 콜백 안에서 매 프레임 `GUI.Label`/`GUI.Button` 같은 즉시모드(Immediate Mode) API를 직접 호출해 점수 표시와 재시작/종료 버튼을 그리는, uGUI(Canvas 기반) 이전 세대의 UI 구현 방식.
+- **왜 중요한가**: 지금까지의 프로젝트 대부분이 Canvas/uGUI를 썼는데, 여기서 그 이전 세대인 `OnGUI` 기반 UI를 직접 접함 — 오래된 코드베이스를 유지보수할 때 마주칠 수 있는 시스템이라는 점에서 3D_ST1의 레거시 `Animation`(6-3번)과 같은 성격의 지식.
+- **내 코드에서 어떻게 썼는지**: `csPlayer.cs:208-225`
+  ```csharp
+  void OnGUI()
+  {
+      string str = "<size=20><color=#000000>score: ##</color></size>";
+      GUI.Label(new Rect(10, 10, 300, 80), str.Replace("##", "" + (int)score));
+      if (!isDead) return;
+      if (GUI.Button(new Rect(w - 60, h - 50, 120, 50), "Play Game"))
+      {
+          SceneManager.LoadScene("scGame");
+          //Application.LoadLevel("Main");   // 예전에 쓰던 API가 주석으로 남아있음
+      }
+  }
+  ```
+  이 주석에 남은 `Application.LoadLevel`은 ST_2(3번) 정리에서 이미 다룬 `Application.loadedLevel`→`SceneManager.LoadScene` 마이그레이션과 같은 계열의 흔적이 또 한 번 발견된 것.
+- **PDF 원본과 비교**: PDF 원본은 `SceneManager.LoadScene("Main")`/`Application.LoadLevel("Main")`으로 씬 이름이 `"Main"`이다(34p). 학생의 실제 코드는 씬을 `"scGame"`으로 바꿔 불렀지만, 주석으로 남긴 옛 `Application.LoadLevel(...)` 줄은 `"Main"`이라는 원래 씬 이름 그대로 남아있다 — 즉 이 주석은 이미 이름이 바뀐 지금 기준으로는 실행해도 어차피 틀린 씬을 찾게 되는, 정리 안 된 채 남은 죽은 코드라는 것까지 PDF 대조로 정확히 짚을 수 있다.
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - `OnGUI`는 언제 지금도 실무에서 쓰이는가? (플레이어가 직접 상호작용하는 인게임 UI로는 더 이상 권장되지 않지만, 에디터 확장 UI나 디버그 오버레이용으로는 지금도 널리 쓰인다 — St3-C/D(5번)에서 다룬 `EditorWindow`/`[CustomEditor]`도 내부적으로 IMGUI 계열)
+  - `OnGUI`가 매 프레임(그것도 이벤트당 여러 번) 호출된다는 것이 왜 성능상 유의할 점인가? (Layout/Repaint 등 이벤트마다 반복 호출되므로, 이 안에서 무거운 연산을 하면 uGUI 대비 비효율적 — 이 코드처럼 문자열 조작(`Replace`)을 매 프레임 하는 것도 실무에서는 지양할 부분)
+- **최신 동향 (웹서칭 결과)**: `OnGUI`(IMGUI)는 지금도 완전히 제거되지 않았지만, Unity 공식 문서가 "일반적인 인게임 UI용으로는 의도된 것이 아니며 주로 에디터 툴/디버그용"이라고 명시한다. 실사용 UI는 uGUI(Canvas 기반, 여전히 유지보수됨) 또는 최신 권장인 UI Toolkit으로 만드는 것이 표준이다. ([Unity Manual: IMGUI](https://docs.unity3d.com/6000.2/Documentation/Manual/GUIScriptingGuide.html), [Unity Manual: UI systems 비교](https://docs.unity3d.com/6000.0/Documentation/Manual/UI-system-compare.html))
+
+---
+
+**TempleRun에서 확인한, 고쳐볼 만한 부분**
+
+1. **`CheckMove`의 `isGround` 판정 로직 허점** (7-3번 항목) — `isGround = true`로 초기화한 뒤 `Raycast`가 `Bridge` 태그를 맞혀도 다시 `true`를 대입할 뿐, 실패 시 `false`로 떨어뜨리는 분기가 없어 사실상 항상 `true`가 된다. 공중에 있어도 점프가 가능해지는 버그로 이어질 수 있음 — `else isGround = false;` 보강 필요. PDF 원본 코드에도 같은 구조가 있어 튜토리얼 자체의 허점이 그대로 이어진 것으로 보인다.
+2. **`OnGUI`에서 매 프레임 문자열 `Replace` 호출** (7-7번 항목) — 점수가 바뀌지 않는 프레임에도 매번 문자열을 새로 만들어 `Replace`하고 있어 불필요한 GC 할당이 반복됨. 점수가 실제로 바뀔 때만 문자열을 갱신하도록 캐싱하면 개선 가능.
+3. **주석으로 남은 `Application.LoadLevel("Main")`이 실제로는 틀린 씬 이름** (7-7번 항목) — 씬을 `"scGame"`으로 리네임한 뒤에도 주석 속 옛 코드는 `"Main"`을 그대로 참조하고 있어, 나중에 실수로 주석을 해제하면 존재하지 않는 씬을 찾다 실패하는 죽은 코드로 남아있음. 정리 대상.
