@@ -19,11 +19,11 @@
 | 6 | `St3` | 2026-03-30 | ✅ 완료 (Study1~7 폴더별로 분할 진행 — 아래 세부 표 참고) |
 | 7 | `3D_ST1` | 2026-04-07 | ✅ 완료 |
 | 8 | `TempleRun` | 2026-04-13 | ✅ 완료 |
-| 9 | `zombieStudy` | 2026-04-14 | ⏳ 대기 |
-| 10 | `VRstudy` | 2026-05-11 | ⏳ 대기 |
-| 11 | `ARstudy` | 2026-05-13 | ⏳ 대기 |
-| 12 | `ModelURP` | 2026-05-15 | ⏳ 대기 |
-| 13 | `VR_meta` | 2026-05-19 | ⏳ 대기 |
+| 9 | `zombieStudy` | 2026-04-14 | ✅ 완료 |
+| 10 | `VRstudy` | 2026-05-11 | ✅ 완료 |
+| 11 | `ARstudy` | 2026-05-13 | ✅ 완료 |
+| 12 | `ModelURP` | 2026-05-15 | 🚫 제외 (학생 코드 없음, `TutorialInfo/Scripts`는 Unity URP 템플릿 보일러플레이트뿐 — 3D 모델(Glavenus/Nergigante)을 URP에서 렌더링 테스트해본 프로젝트로 추정) |
+| 13 | `VR_meta` | 2026-05-19 | ✅ 완료 |
 | 14 | `UnityDll` | 2026-06-10 | ⏳ 대기 |
 | 15 | `URPassets3D` | 2026-06-23 | ⏳ 대기 |
 | 16 | `FSM` | 2026-06-24 | ⏳ 대기 |
@@ -2009,3 +2009,703 @@ St3 전체(60개 스크립트, 6676줄, 5단계)를 관통해서 반복적으로
 1. **`CheckMove`의 `isGround` 판정 로직 허점** (7-3번 항목) — `isGround = true`로 초기화한 뒤 `Raycast`가 `Bridge` 태그를 맞혀도 다시 `true`를 대입할 뿐, 실패 시 `false`로 떨어뜨리는 분기가 없어 사실상 항상 `true`가 된다. 공중에 있어도 점프가 가능해지는 버그로 이어질 수 있음 — `else isGround = false;` 보강 필요. PDF 원본 코드에도 같은 구조가 있어 튜토리얼 자체의 허점이 그대로 이어진 것으로 보인다.
 2. **`OnGUI`에서 매 프레임 문자열 `Replace` 호출** (7-7번 항목) — 점수가 바뀌지 않는 프레임에도 매번 문자열을 새로 만들어 `Replace`하고 있어 불필요한 GC 할당이 반복됨. 점수가 실제로 바뀔 때만 문자열을 갱신하도록 캐싱하면 개선 가능.
 3. **주석으로 남은 `Application.LoadLevel("Main")`이 실제로는 틀린 씬 이름** (7-7번 항목) — 씬을 `"scGame"`으로 리네임한 뒤에도 주석 속 옛 코드는 `"Main"`을 그대로 참조하고 있어, 나중에 실수로 주석을 해제하면 존재하지 않는 씬을 찾다 실패하는 죽은 코드로 남아있음. 정리 대상.
+
+---
+
+# 8. zombieStudy (2026-04-14)
+
+> `C:\Study\Unity\zombieStudy\Assets\03. Scripts` — Photon PUN(구버전 Photon Unity Networking Classic)을 이용한 멀티플레이어 좀비 슈팅. 지금까지 정리한 프로젝트 중 처음으로 네트워킹을 다룬다. 스크립트 27개(4844줄, St5·St3에 이어 규모가 큰 편)를 확인했고, 그중 `ParticleSystemMultiplier.cs`/`ExplosionPhysicsForce.cs`는 폴더 위치(`03. Scripts`)와 무관하게 `namespace UnityStandardAssets.Effects`로 선언된 Standard Assets 코드라 제외했다. `MotorcyclePack_`, `Photon Unity Networking`, `PhotonChatApi`, `Standard Assets` 폴더도 전부 서드파티/공식 에셋이라 정리 대상에서 제외.
+> **원본 강의자료 PDF는 없다.** 프로젝트 폴더에 `PhotonNetwork-Documentation.pdf`가 있어서 `00_작업계획.md`에는 "PDF 있음(미확인)"으로 기록해뒀었는데, 실제로 열어보니 이건 강사가 배포한 튜토리얼 자료가 아니라 Photon SDK 자체의 공식 레퍼런스 문서였다 — 대조할 원본이 없으므로 이번 항목은 코드 자체 분석과 주석(학생이 직접 남긴 학습 메모가 매우 상세함)에만 근거한다.
+
+## 8-1. PhotonView 네트워크 오브젝트 소유권 — `pv.isMine` / `pv.ownerId`
+
+- **한 줄 정의**: `PhotonView` 컴포넌트가 붙은 게임오브젝트마다 소유자(owner)가 정해지며, `pv.isMine`으로 "이 오브젝트가 내가 만든/조종하는 것인가"를 판단하고 `pv.ownerId`로 소유자를 식별한다.
+- **왜 중요한가**: 멀티플레이어 게임의 가장 근본적인 질문 — "이 코드가 지금 내 컴퓨터에서 내 캐릭터에 대해 실행되는가, 아니면 다른 사람 캐릭터의 화면 표시만 담당하는가" — 를 가르는 기준. 이 판단이 없으면 모든 클라이언트가 서로의 입력을 중복 처리하는 사고가 난다.
+- **내 코드에서 어떻게 썼는지**: `StageManager.cs:239`
+  ```csharp
+  GameObject player = PhotonNetwork.Instantiate("MainPlayer", playerPos[currRoom.PlayerCount].position,
+                                                  playerPos[currRoom.PlayerCount].rotation, 0, ex);
+  ```
+  `PlayerCtrl.cs:224-244`에서 생성 직후 분기:
+  ```csharp
+  if (pv.isMine)
+  {
+      Camera.main.GetComponent<SmoothFollowCam>().target = camPivot;   // 내 캐릭터만 카메라가 따라감
+  }
+  else
+  {
+      rbody.isKinematic = true;   // 남의 캐릭터는 물리 시뮬레이션 끔 (연산 낭비 방지)
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - 왜 원격 아바타는 `Rigidbody`를 `isKinematic = true`로 꺼두는가? (물리 연산은 무겁다 — 남의 캐릭터는 어차피 네트워크로 받은 위치값을 그대로 보간해서 보여줄 뿐이니, 로컬에서 물리 계산을 또 할 필요가 없다. 접속자가 늘어날수록 이 최적화의 효과가 커진다는 게 코드 주석에도 명시되어 있음)
+  - `PhotonNetwork.Instantiate`와 일반 `Instantiate`의 차이는? (`PhotonNetwork.Instantiate`는 모든 클라이언트에 동일한 오브젝트를 생성하고 `PhotonView`에 소유권을 자동 배정 — 로컬에서만 보이는 `Instantiate`와 달리 네트워크 전체에 동기화됨)
+- **최신 동향 (웹서칭 결과)**: Photon PUN Classic(이 프로젝트가 쓰는 버전, `PhotonNetwork.player`/`PhotonTargets` 같은 API)은 이미 Photon PUN 2로 대체된 지 오래고, Photon PUN 2 역시 2023년 이후 신규 기능 개발이 멈추고 Photon Fusion/Quantum으로 무게중심이 옮겨갔다 — **확인 필요**: `pv.isMine` 기반 소유권 판단이라는 개념 자체는 최신 Photon 제품군에도 (이름은 다르지만) 그대로 이어지지만, 이 프로젝트의 구체적인 API(`PhotonNetwork.player`, `PhotonTargets` 열거형 등)는 실무에서 신규로 쓰기엔 낡은 버전이라는 점은 면접에서 정확히 짚을 필요가 있다.
+
+## 8-2. RPC 원격 함수 호출 — `[PunRPC]` + `pv.RPC(...)`
+
+- **한 줄 정의**: `[PunRPC]`를 붙인 메서드는 `pv.RPC("메서드명", 대상, 인자...)` 호출로 다른 클라이언트에서 원격으로 실행시킬 수 있다 — 이름 문자열 기반의 네트워크 버전 함수 호출.
+- **왜 중요한가**: 위치/회전처럼 매 프레임 흐르는 데이터가 아니라 "총을 쐈다", "데미지를 입었다"처럼 **한 번 일어나는 사건**을 모든 클라이언트에 동일하게 반영하는 표준 수단. `PhotonTargets` 옵션(예: `AllBuffered`)으로 "늦게 접속한 사람에게도 과거 이벤트를 재전송"하는 것까지 제어할 수 있다는 게 핵심.
+- **내 코드에서 어떻게 썼는지**: `BaseCtrl.cs:236-244` (터렛 발사를 자신은 즉시 실행, 남에게는 RPC로 전파)
+  ```csharp
+  ShotStart();                                          // 로컬은 바로 실행
+  pv.RPC("ShotStart", PhotonTargets.Others, null);       // 원격 클라이언트에는 RPC로 같은 함수 호출
+  ```
+  `StageManager.cs:104`처럼 `AllBuffered`로 채팅/접속 로그를 버퍼링해서 늦게 들어온 유저도 지난 로그를 보게 하는 패턴도 있음.
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - `PhotonTargets.All`과 `Others`+로컬 직접 호출을 나눠 쓰는 이유는? (`All`은 자신에게도 네트워크 왕복을 거쳐 실행되므로 약간의 지연이 생길 수 있음 — 자신은 로컬에서 즉시 실행하고 `Others`로만 전파하면 내 입력에 대한 반응이 더 즉각적임)
+  - `AllBuffered`는 왜 필요한가? (일반 RPC는 호출 시점에 접속해 있는 유저에게만 전달됨 — `AllBuffered`는 서버에 로그를 남겨뒀다가 나중에 룸에 들어온 유저에게도 순서대로 재생해줌, 채팅 로그처럼 "과거 이력"이 의미 있는 경우에 사용)
+- **최신 동향**: RPC라는 개념 자체(원격 함수를 이름/ID로 호출)는 지금도 대부분의 네트워크 게임 엔진(Photon Fusion, Mirror, Unity Netcode for GameObjects)에서 형태를 유지하며 핵심 통신 수단으로 쓰인다.
+
+## 8-3. `OnPhotonSerializeView` — 커스텀 상태 동기화
+
+- **한 줄 정의**: `PhotonView`의 Observed Component로 등록된 스크립트는 매 전송 주기마다 `OnPhotonSerializeView(PhotonStream stream, ...)`가 호출되고, `stream.isWriting` 여부로 "내가 보내는 쪽인지 받는 쪽인지"를 구분해 원하는 데이터를 직접 실어보낼 수 있다.
+- **왜 중요한가**: Transform 컴포넌트를 통째로 동기화하는 것과 달리, "정말 필요한 값만" 골라서 보낼 수 있어 대역폭을 절약한다. RPC가 "사건"을 전달한다면, 이건 "상태"를 지속적으로 흘려보내는 별개의 메커니즘이라는 대비가 중요.
+- **내 코드에서 어떻게 썼는지**: `BaseCtrl.cs:401-416` (회전값만 전송, 터렛이라 위치 동기화는 불필요)
+  ```csharp
+  void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+  {
+      if (stream.isWriting) stream.SendNext(head.rotation);          // 보내는 쪽: 박싱
+      else currRot = (Quaternion)stream.ReceiveNext();                // 받는 쪽: 언박싱, 그대로 안 쓰고 변수에 저장
+  }
+  ```
+  `EnemyCtrl.cs:1100-1107`는 위치/회전에 더해 `net_Aim`(상태 애니메이션 코드)까지 세 값을 함께 실어보낸다 — 아래 8-6번과 이어지는 지점.
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - 받은 값을 바로 `transform`에 대입하지 않고 `currRot` 변수에 저장해두는 이유는? (`Update()`에서 `Quaternion.Slerp(head.rotation, currRot, ...)`로 부드럽게 보간하기 위함 — 네트워크로 받은 값을 그대로 스냅하듯 대입하면 원격 오브젝트가 순간이동하듯 뚝뚝 끊겨 보임)
+  - `stream.SendNext`/`ReceiveNext`의 호출 순서가 왜 양쪽에서 똑같아야 하는가? (스트림은 이름이 아니라 순서로 값을 주고받는 단순 큐 구조라, 보내는 순서와 받는 순서가 어긋나면 회전값을 위치값으로 잘못 읽는 등 조용히 깨짐)
+- **최신 동향**: 값 몇 개만 골라 보내는 "델타 동기화" 개념 자체는 지금도 네트워크 게임의 기본기지만, 최신 프레임워크들은 이 수동 직렬화 대신 필드에 어트리뷰트만 붙이면 자동 동기화되는 방식(예: Netcode의 `NetworkVariable<T>`)을 더 권장하는 추세다.
+
+## 8-4. Master Client 권위 서버 패턴 + 페일오버
+
+- **한 줄 정의**: 서버 프로그램 없이 접속자 중 한 명을 `PhotonNetwork.isMasterClient`로 지정해 "권위 있는 판정"(몬스터 스폰, 데미지 확정)을 그 클라이언트에서만 수행하고 결과를 RPC로 전파하는 P2P 기반 유사 서버 구조.
+- **왜 중요한가**: 전용 서버 없이도 "모두가 같은 결과를 보게" 만드는 실전적인 타협책 — 왜 모든 클라이언트가 각자 데미지를 계산하면 안 되는지(네트워크 지연으로 판정이 어긋나거나 조작에 취약해짐), 왜 한 곳만 계산하고 나머지는 결과만 받아야 하는지를 보여주는 좋은 사례.
+- **내 코드에서 어떻게 썼는지**: `EnemyLife.cs:45-54` (마스터만 데미지를 확정하고 RPC로 전체에 전파)
+  ```csharp
+  if (PhotonNetwork.isMasterClient)
+  {
+      int pow = coll.gameObject.GetComponent<BulletCtrl>().power;
+      int id = coll.gameObject.GetComponent<BulletCtrl>().playerId;
+      pv.RPC("Deamage", PhotonTargets.AllBuffered, pow, id);   // 판정은 마스터가, 반영은 전체가
+  }
+  ```
+  `EnemyCtrl.cs:1111-1139`는 마스터가 끊겨 새 마스터로 전환됐을 때(`OnMasterClientSwitched`) 새 마스터가 AI 코루틴(`ModeSet`/`ModeAction`/`TargtSetting`)을 다시 시작해 좀비 AI가 멈추지 않게 하는 페일오버 처리.
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - 마스터 클라이언트는 어떻게 정해지고, 마스터가 나가면 어떻게 되는가? (기본적으로 룸에 가장 먼저 입장한 사람이 마스터가 되고, 나가면 Photon 서버가 자동으로 남은 사람 중 한 명을 새 마스터로 지정 — `OnMasterClientSwitched` 콜백이 그 시점에 호출됨)
+  - 이 구조의 한계는? (마스터도 결국 일반 클라이언트라 마스터의 네트워크 지연/조작 가능성에 판정 전체가 좌우됨 — 진짜 안티치트가 필요한 상용 게임은 전용 데디케이티드 서버가 판정을 맡는 구조로 가야 함)
+- **최신 동향**: "권위 있는 한 곳이 판정하고 나머지는 따른다"는 원칙 자체는 지금도 유효하지만, Master Client(클라이언트 중 하나)가 권위를 갖는 방식은 신뢰성이 떨어져 최근에는 전용 서버(Dedicated Server) 또는 Photon Fusion 같은 서버 권위 모델로 옮겨가는 추세다.
+
+## 8-5. 로컬 vs 리모트 분기의 두 가지 다른 권한 모델
+
+- **한 줄 정의**: 같은 프로젝트 안에서도 "누가 이 로직을 실행하는가"를 판단하는 기준이 오브젝트 종류에 따라 다르다 — 플레이어 아바타는 소유권(`pv.isMine`) 기준, 좀비 AI는 권위 서버(`PhotonNetwork.isMasterClient`) 기준으로 나뉜다.
+- **왜 중요한가**: 8-1번과 8-4번을 나란히 놓고 봐야 보이는 설계 포인트 — "내가 조종하는 것"(플레이어)과 "누구의 소유도 아니고 한 곳에서만 계산되면 되는 것"(적 AI, 스폰되는 몬스터)은 애초에 권한을 나누는 기준 자체가 다르다는 걸 실제 코드로 보여준다. 면접에서 "멀티플레이어 설계 원칙"을 물었을 때 구체적인 근거로 쓸 수 있는 대비.
+- **내 코드에서 어떻게 썼는지**: `PlayerCtrl.cs:296-652`는 `if (pv.isMine) { /* 이동·조준·사격·입력 처리 */ } else { /* Lerp/Slerp 보간만 */ }` 구조인 반면, `EnemyCtrl.cs`의 AI 코루틴들(`ModeSet`/`ModeAction`)은 `PhotonNetwork.isMasterClient`인 클라이언트에서만 시작된다(`OnMasterClientSwitched`, 8-4번 스니펫 참고) — 좀비는 애초에 "누구의 것"도 아니라 소유 개념이 아니라 권위 개념으로 제어된다.
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - 왜 좀비는 `pv.isMine`으로 나누지 않는가? (좀비는 특정 유저가 "조종"하는 게 아니라 AI가 자동으로 움직이는 대상이라, "내 것인가"라는 질문 자체가 성립하지 않음 — 대신 "지금 누가 계산을 책임질 것인가"라는 권위의 질문으로 바뀜)
+  - 이 두 기준을 헷갈리면 어떤 문제가 생기는가? (예를 들어 좀비 AI를 `pv.isMine`으로 체크하면, 좀비의 `PhotonView` 소유자가 우연히 나가버렸을 때 그 좀비를 계산할 사람이 아무도 없어지는 사고가 날 수 있음 — 마스터 기준이면 마스터가 바뀌어도 항상 누군가는 계산을 이어받는다는 8-4번의 페일오버가 성립)
+- **최신 동향**: 소유권 기반 제어와 권위 기반 제어를 용도에 맞게 구분해서 쓰는 설계는 지금도 네트워크 게임 아키텍처의 기본 원칙이다.
+
+## 8-6. 코루틴 기반 우선순위 상태머신(FSM) — `ModeSet` / `ModeAction`
+
+- **한 줄 정의**: 좀비의 상태(`MODE_STATE` enum: HIT/ATTACK/TRACE/SURPRISE/MOVE/SLEEP/IDLE)를 판정하는 코루틴(`ModeSet`)과 그 상태에 따라 실제 행동하는 코루틴(`ModeAction`)을 분리한, `Animator`의 State Machine이 아니라 직접 짠 FSM.
+- **왜 중요한가**: 지금까지 봐온 FSM들(St3-A의 델리게이트/이벤트 기반, `FSM` 프로젝트 예정)과 달리 상태 전이가 `if-else` 사슬의 **작성 순서 자체가 우선순위**라는 점이 특징 — "더 급한 조건을 위에 둔다"는 설계를 코드로 직접 확인할 수 있다.
+- **내 코드에서 어떻게 썼는지**: `EnemyCtrl.cs:414-457`
+  ```csharp
+  IEnumerator ModeSet()
+  {
+      while (!isDie)
+      {
+          yield return new WaitForSeconds(0.2f);
+          float dist = Vector3.Distance(myTr.position, traceTarget.position);
+          // 순서 중요 (주석 원문) — 위에서부터 먼저 맞는 조건이 이김
+          if (isHit) enemyMode = MODE_STATE.HIT;
+          else if (dist <= attackDist) enemyMode = MODE_STATE.ATTACK;
+          else if (traceAttack) enemyMode = MODE_STATE.TRACE;
+          else if (dist <= traceDist) enemyMode = MODE_STATE.TRACE;
+          else if (dist <= findDist) enemyMode = MODE_STATE.SURPRISE;
+          else if (hungry) enemyMode = MODE_STATE.MOVE;
+          else if (sleep) enemyMode = MODE_STATE.SLEEP;
+          else enemyMode = MODE_STATE.IDLE;
+      }
+  }
+  ```
+  판정과 행동을 별도 코루틴으로 나눈 덕에 "지금 왜 이 상태인지"(`ModeSet`)와 "이 상태에서 뭘 하는지"(`ModeAction`)를 분리해서 읽을 수 있다.
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - `Animator`의 State Machine을 안 쓰고 이렇게 직접 짠 이유는 뭘까? (`Animator` State Machine은 애니메이션 전이에 최적화돼 있고, 이처럼 "거리/피격/허기" 같은 여러 게임 로직 변수를 조합한 복잡한 판정에는 코드로 직접 짜는 쪽이 더 유연함 — 다만 8-9번에서 보듯 애니메이션 자체는 여전히 레거시 `Animation`으로 재생)
+  - `if-else` 순서 의존형 우선순위 방식의 단점은? (상태가 늘어날수록 순서를 계속 신경 써야 하고, 우선순위 자체를 데이터로 바꾸기 어려움 — 상태가 많아지면 우선순위를 테이블/점수 기반으로 분리하는 설계가 유지보수에 유리해짐)
+- **최신 동향 (웹서칭 결과)**: 소규모 AI에는 이런 코루틴 기반 수동 FSM이 지금도 실용적이지만, 상태가 많아지는 프로젝트에서는 Unity의 Behavior/State Machine 패키지, 혹은 비헤이비어 트리(Behavior Tree) 계열 에셋(Behavior Designer 등)으로 넘어가는 것이 최근 흐름이다. **확인 필요**: 이 프로젝트 규모에서는 직접 짠 FSM으로 충분해 보이므로 어디까지나 "규모가 커지면"이라는 조건부 지식으로 알아두면 됨.
+
+## 8-7. 정수 상태코드를 실어보내는 애니메이션 동기화
+
+- **한 줄 정의**: 좀비의 애니메이션 상태를 문자열이나 enum이 아니라 `net_Aim`이라는 정수(0~16)로 바꿔서 `OnPhotonSerializeView`로 실어보내고, 마스터가 아닌 클라이언트는 이 정수를 폴링해서 `CrossFade`로 재생하는 독자적인 동기화 방식.
+- **왜 중요한가**: RPC로 "애니메이션 재생해"라고 매번 사건을 전달하는 대신, 지속적인 상태값 하나를 흘려보내고 받는 쪽에서 해석하게 만든 설계 — 8-3번(위치/회전 동기화)의 연장선에서 "애니메이션도 결국 상태의 일종"으로 취급한 점이 흥미롭다.
+- **내 코드에서 어떻게 썼는지**: `EnemyCtrl.cs:526` (특정 애니메이션 클립만 개별 배속 조정, 레거시 `Animation` 인덱서 문법)
+  ```csharp
+  _anim[anims.move.name].speed = 1.8f;   // 인덱서로 특정 클립의 AnimationState에 접근
+  ```
+  `EnemyCtrl.cs:1100-1107`에서 `net_Aim`을 `stream.ReceiveNext()`로 함께 수신하고, 원격 클라이언트 전용 `NetAnim()` 코루틴이 이 정수값을 주기적으로 읽어 대응하는 애니메이션을 `CrossFade`.
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - 정수 매핑(0~16)을 쓰면서 생기는 유지보수 위험은? (상태-정수 대응이 코드 두 곳(보내는 쪽 `ModeAction`, 받는 쪽 `NetAnim`)에 매직넘버로 중복 하드코딩돼 있어, 애니메이션 상태를 추가/변경할 때 두 곳을 동시에 고쳐야 하고 하나만 빠뜨리면 원격 화면에서만 조용히 어긋남 — `enum`으로 이름을 붙이면 이런 위험이 줄어듦)
+  - 왜 RPC 대신 상태값 폴링 방식을 골랐을까? (애니메이션은 "지금 어떤 상태인가"라는 지속적인 값이지, "한 번 일어난 사건"이 아니기 때문 — 8-2번 RPC와 이 방식을 상황에 맞게 구분해서 쓴 것으로 볼 수 있다)
+- **최신 동향**: 상태를 값으로 흘려보내고 받는 쪽에서 애니메이션으로 해석하는 방식 자체는 유효하지만, 매직넘버 대신 명시적인 enum이나 Animator의 `NetworkAnimator`류(각 네트워크 프레임워크가 제공하는 애니메이터 동기화 컴포넌트)를 쓰는 게 최신 권장 방식이다.
+
+## 8-8. Raycast 기반 터렛 자동조준 + 최단거리 타겟팅
+
+- **한 줄 정의**: 터렛(`BaseCtrl`)이 주기적으로(`sqrMagnitude` 비교) 가장 가까운 적을 찾아 자동으로 회전·조준하고, `Physics.Raycast`로 조준선이 실제로 적에 닿았는지 확인한 뒤에만 발사하는 락온 시스템.
+- **왜 중요한가**: 거리 비교에 `Vector3.Distance`(제곱근 연산 포함) 대신 `sqrMagnitude`(제곱근 생략)를 쓰는 최적화 관례를 실제 코드로 확인할 수 있고, "가장 가까운 대상 찾기"라는 게임에서 흔한 패턴을 반복 스캔 코루틴으로 구현한 예.
+- **내 코드에서 어떻게 썼는지**: `BaseCtrl.cs:276-297` (`TargtSetting`), `EnemyCtrl.cs:741-763` (`TargtSetting`, 같은 이름의 유사 패턴이 터렛과 좀비 양쪽에 반복 등장)
+  ```csharp
+  // EnemyCtrl.cs:754-761 — 가장 가까운 플레이어를 sqrMagnitude로 스캔
+  dist1 = (playerTarget.position - myTr.position).sqrMagnitude;
+  foreach (GameObject _players in players)
+  {
+      if ((_players.transform.position - myTr.position).sqrMagnitude < dist1)
+      {
+          playerTarget = _players.transform;
+          dist1 = (playerTarget.position - myTr.position).sqrMagnitude;
+      }
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - `sqrMagnitude`가 `Distance`보다 빠른 이유는? (`Distance`는 내부적으로 제곱합을 구한 뒤 `Sqrt`(제곱근)까지 계산하는데, 제곱근 연산이 상대적으로 비쌈 — 단순히 "누가 더 가까운가"만 비교할 때는 제곱근을 생략한 `sqrMagnitude`끼리 비교해도 대소관계가 똑같이 유지되므로 결과는 같고 연산은 더 가벼움)
+  - 같은 이름의 `TargtSetting` 코루틴이 `BaseCtrl`과 `EnemyCtrl` 양쪽에 따로 존재하는 건 중복 아닌가? (터렛은 "가장 가까운 적", 좀비는 "가장 가까운 플레이어+베이스"로 대상 태그가 달라 완전히 같은 코드는 아니지만, 구조가 거의 동일해 공통 유틸리티 함수로 뽑아낼 여지가 있는 중복으로 볼 수 있다)
+- **최신 동향**: 거리 비교에 `sqrMagnitude`를 쓰는 관례, `Physics.Raycast` 기반 조준 확인 모두 지금도 변화 없이 쓰이는 기본기다.
+
+## 8-9. 레거시 `Animation` — 인덱서로 개별 클립 제어
+
+- **한 줄 정의**: 좀비는 (플레이어의 `Animator`와 달리) 구식 `Animation` 컴포넌트에 클립들을 묶은 `Anim` 클래스(`[System.Serializable]`)를 붙여 관리하고, `_anim[클립이름].speed`처럼 인덱서 문법으로 재생 중인 특정 클립의 속성만 따로 조정한다.
+- **왜 중요한가**: 3D_ST1(6-3번)에서 이미 레거시 `Animation`을 다뤘지만, 거기선 `CrossFade`/`PlayQueued` 위주였다면 여기서는 **재생 중인 개별 클립의 배속을 실시간으로 조절**하는(`AnimationState` 접근) 좀 더 세밀한 사용 예 — "이동 애니메이션은 그대로 두고 속도만 1.8배로" 같은 튜닝이 가능함을 보여준다.
+- **내 코드에서 어떻게 썼는지**: `EnemyCtrl.cs:20-37`(클립 묶음 클래스), `EnemyCtrl.cs:526`
+  ```csharp
+  [System.Serializable]
+  public class Anim { public AnimationClip idle, move, attack, hit, die /* ... */; }   // 인스펙터에 노출되는 클립 묶음
+
+  _anim[anims.move.name].speed = 1.8f;   // 재생 속도만 개별 조정 (클립 자체는 그대로)
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - 좀비는 왜 플레이어처럼 `Animator`를 안 쓰고 굳이 레거시 `Animation`을 썼을까? (좀비 모델/에셋이 애초에 Mecanim으로 리깅되지 않은 레거시 에셋이었을 가능성이 높음 — TempleRun(7-6번)에서 본 것과 반대로, 여기서는 업그레이드를 하지 않고 원래 시스템을 그대로 쓴 사례로 대비하기 좋음)
+  - `_anim[이름].speed`처럼 인덱서로 접근하면 무엇을 얻는가? (`Animation` 컴포넌트에 연결된 특정 클립의 재생 상태(`AnimationState`)에 직접 접근해서 `speed`/`weight`/`time` 등을 그 클립에만 적용할 수 있음 — 전체 애니메이션 시스템이 아니라 "지금 이 클립 하나"를 다루는 세밀한 제어)
+- **최신 동향**: 3D_ST1(6-3번)과 같은 결론 — 레거시 `Animation`은 제거되지 않았지만 신규 프로젝트에는 `Animator` 사용이 공식 권장이다.
+
+## 8-10. AssetBundle 다운로드 — `WWW` → `UnityWebRequestAssetBundle` 마이그레이션 (4번째 사례)
+
+- **한 줄 정의**: 서버(또는 로컬 파일 경로)에 있는 애셋 번들을 `UnityWebRequestAssetBundle.GetAssetBundle(url, version, crc)`로 비동기 다운로드/캐싱하는 최신 API — `Opening.cs`와 `BundleLoad.cs` 둘 다 옛 `WWW` 기반 코드를 통째로 주석(`#region 과거 버전`)으로 남겨두고 그 아래에 새 코드를 작성해 두었다.
+- **왜 중요한가**: `unity_핵심정리.md`에서 이미 St3-C(5번, `WWW`→`UnityWebRequest`)와 ST_2(`Application.loadedLevel`)에서 다룬 "오래된 학습 자료로 공부하며 API 변화에 직접 부딪힌" 테마의 반복 — 이번엔 무려 두 개의 스크립트(`Opening.cs`, `BundleLoad.cs`)에서 동시에 같은 마이그레이션 흔적이 발견돼 "여러 프로젝트/시점에 걸쳐 반복 학습한 API 변화"라는 걸 더 뚜렷하게 보여준다.
+- **내 코드에서 어떻게 썼는지**: `BundleLoad.cs:35-51`
+  ```csharp
+  using (UnityWebRequest request = UnityWebRequestAssetBundle.GetAssetBundle(bundleURL, version, 0))
+  {
+      yield return request.SendWebRequest();
+  #if UNITY_2020_1_OR_NEWER
+      if (request.result != UnityWebRequest.Result.Success)
+  #else
+      if (request.isNetworkError || request.isHttpError)
+  #endif
+      { Debug.LogError("fail :( " + request.error); yield break; }
+
+      AssetBundle bundle = DownloadHandlerAssetBundle.GetContent(request);
+  }
+  ```
+  옛 코드는 `WWW www = WWW.LoadFromCacheOrDownload(url, version); yield return www; AssetBundle bundle = www.assetBundle;` 형태로 파일 하단 주석에 그대로 남아있다.
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - `#if UNITY_2020_1_OR_NEWER`로 에러 체크 코드가 갈라진 이유는? (`isNetworkError`/`isHttpError` 프로퍼티가 Unity 2020.1부터 `UnityWebRequest.Result` enum으로 통합되며 Deprecated됨 — 여러 Unity 버전을 오가며 작업한 흔적이자, 위 8-11번 전처리기 지시자의 실전 활용 사례이기도 함)
+  - `bundle.Unload(false)`는 왜 꼭 호출해야 하는가? (호출하지 않으면 같은 번들을 다시 로드하려 할 때 "이미 로드됨" 충돌이 나거나 메모리에 중복 유지됨 — `false`는 이미 인스턴스화된 오브젝트는 유지하고 번들 원본 데이터만 해제하라는 옵션)
+- **최신 동향 (웹서칭 결과)**: `UnityWebRequestAssetBundle` 자체도 현재는 유지보수 모드고, Unity는 신규 프로젝트에 Addressables 패키지 사용을 공식 권장한다 — AssetBundle 직접 관리(URL 하드코딩, 수동 캐싱)는 여전히 동작하지만 점점 더 저수준/레거시 취급을 받는다는 점까지 짚어두면 좋다.
+
+## 8-11. 전처리기 지시자 — 플랫폼별 조건부 컴파일
+
+- **한 줄 정의**: `#define`으로 심볼을 정의하고 `#if CBT_MODE` / `#if UNITY_EDITOR` / `#if UNITY_ANDROID` / `#if UNITY_IPHONE` 같은 조건으로 특정 플랫폼/모드에서만 컴파일되는 코드 블록을 나누는 C# 전처리기 문법.
+- **왜 중요한가**: 8-10번의 `#if UNITY_2020_1_OR_NEWER`처럼 Unity 버전 분기에도 쓰이지만, 여기서는 원래 목적인 **플랫폼별 분기**(에디터/안드로이드/iOS)를 직접 실습한 코드가 있다 — TempleRun(7-5번)의 `Application.platform` 런타임 분기와 달리, 이건 **컴파일 시점**에 아예 다른 코드로 나뉜다는 차이가 핵심 비교 포인트.
+- **내 코드에서 어떻게 썼는지**: `DestructionRay.cs:1-2, 134-165`
+  ```csharp
+  #define CBT_MODE
+  //#define RELEASE_MODE
+  ...
+  #if CBT_MODE
+      Debug.DrawRay(ray.origin, ray.direction * 150.0f, Color.green);   // 개발용: 초록 레이 시각화
+  #elif RELEASE_MODE
+      Debug.DrawRay(ray.origin, ray.direction * 100.0f, Color.red);     // 배포용: 다른 색/거리
+  #endif
+
+  #if UNITY_EDITOR
+      if (Input.GetMouseButtonDown(0)) { /* 마우스 클릭으로 파괴 오브젝트 Raycast */ }
+  #endif
+  #if UNITY_ANDROID
+      if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began) { /* 터치로 동일 로직 */ }
+  #endif
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - 런타임 `if (Application.platform == ...)` 분기(TempleRun 7-5번)와 컴파일 타임 `#if` 분기의 차이는? (런타임 분기는 모든 플랫폼의 코드가 다 빌드에 포함되고 실행 시점에 조건만 검사하는 반면, `#if`로 걸러진 코드는 해당 플랫폼이 아니면 **컴파일 자체가 안 돼서 빌드에 포함되지 않음** — 빌드 용량과 보안(다른 플랫폼 전용 코드 노출 방지) 측면에서 차이가 생김)
+  - `#define`을 스크립트 최상단에 직접 쓰는 방식과 `Player Settings → Scripting Define Symbols`에 등록하는 방식의 차이는? (스크립트 안 `#define`은 그 파일에만 적용되는 로컬 심볼, `Scripting Define Symbols`는 프로젝트 전체 스크립트에 전역으로 적용됨 — 이 코드 상단 주석에 학생이 직접 두 방식의 차이와 설정 파일(`csc.rsp` 등 버전별 이름 변천사)까지 정리해둠)
+- **최신 동향**: 조건부 컴파일 지시자와 Unity 플랫폼 심볼(`UNITY_ANDROID`, `UNITY_EDITOR` 등) 체계는 지금도 변화 없이 표준으로 쓰인다.
+
+## 8-12. `SendMessage` + `object[]`로 다중 인자 우회 전달
+
+- **한 줄 정의**: Unity의 `SendMessage`/`gameObject.SendMessage`는 인자를 하나만 받을 수 있는데, 그 하나의 인자 자리에 `object[]` 배열을 넣어서 사실상 여러 값을 함께 전달하는 우회 패턴.
+- **왜 중요한가**: St3(종합 요약)와 TempleRun(7-4번)에서 반복 확인한 "문자열/이름 기반 API의 위험성" 테마가 여기서는 한 단계 더 나아간 형태로 등장한다 — 단순히 오타에 취약한 정도가 아니라, `object[]`를 풀어 쓸 때 인덱스와 타입을 손으로 맞춰야 해서(`(int)_params[1]`처럼) 컴파일 타임 안전성이 전혀 없는 채로 여러 값을 주고받는다.
+- **내 코드에서 어떻게 썼는지**: `ExplosionObject.cs:96-97` (보내는 쪽), `EnemyLife.cs:96-128` (받는 쪽)
+  ```csharp
+  // 보내는 쪽 — 여러 값을 배열 하나에 욱여넣어 전달
+  rbody.gameObject.SendMessage("OnCollisionBarrel", myTr.position, SendMessageOptions.DontRequireReceiver);
+
+  // 받는 쪽 — 인덱스와 타입을 수동으로 맞춰 꺼냄
+  void OnCollision(object[] _params)
+  {
+      Vector3 hItPos = (Vector3)_params[0];
+      int dam = (int)_params[1];
+      int id = (_params.Length > 2) ? (int)_params[2] : -1;   // 인자가 없을 수도 있다는 걸 방어적으로 체크
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - 왜 애초에 강타입 메서드 직접 호출을 안 썼을까? (`SendMessage`는 서로 다른 컴포넌트 타입인지 몰라도, 심지어 컴포넌트가 없어도(`DontRequireReceiver`) 안전하게 호출할 수 있어 느슨한 결합을 원할 때 편의성이 있음 — 다만 여러 값 전달까지 필요해지는 순간 이렇게 배열로 우회해야 해서 원래의 편의성이 오히려 안전성 저하로 이어짐)
+  - 더 나은 대안은? (커스텀 이벤트/델리게이트로 강타입 다중 인자를 정의하거나, 컴포넌트 참조를 직접 들고 있다면 `GetComponent<T>().메서드(a, b, c)`로 직접 호출 — `_params.Length > 2` 방어 코드가 필요하다는 것 자체가 이미 이 설계의 약점을 드러냄)
+- **최신 동향**: 앞선 St3/TempleRun 항목과 같은 결론 — 여전히 동작은 하지만 공식적으로는 강타입 이벤트/직접 호출이 권장되며, `object[]` 우회는 그중에서도 가장 취약한 축에 속한다.
+
+---
+
+**zombieStudy에서 확인한, 고쳐볼 만한 부분**
+
+1. **`EnemyCtrl.BarrelDie`에서 `net_Aim` 미설정** — 일반 사망 처리(`Die()`)는 `net_Aim = 16`으로 죽음 애니메이션 코드를 세팅해 원격 클라이언트에도 전파하는데, 드럼통 폭발로 죽는 경로(`BarrelDie`)는 이 세팅이 빠져있어 원격 클라이언트 화면에서는 죽음 애니메이션 없이 오브젝트가 그냥 사라지는 것처럼 보일 수 있다.
+2. **`PlayerCtrl.cs:850-871`의 체력바 이중 갱신 충돌** — `hpBar.fillAmount`(현재/최대 생명력 비율, 감소 방향)와 `lifeBar.fillAmount += damage/100f`(증가 방향)를 동시에 갱신하고 있어 의미가 서로 반대 — 리팩터링 과정에서 한쪽을 정리하지 못하고 남은 것으로 보인다.
+3. **원격 클라이언트의 불필요한 AI 연산** — `EnemyCtrl.Update()`에서 마스터 여부와 무관하게 매 프레임 `randAnim`/`hungry`/`isHit` 등 AI 상태 변수를 계산하는 코드가 조기 리턴 없이 남아있어(345줄 부근 조기 리턴이 주석 처리됨), 실제 행동은 마스터만 하지만 상태 계산 자체는 원격 클라이언트에서도 매번 반복돼 연산이 낭비된다.
+4. **`net_Aim` 매직넘버 하드코딩** (8-7번 항목) — 상태-정수 매핑이 `enum` 없이 코드 두 곳(전송부/수신부)에 중복 하드코딩돼 있어, 애니메이션 상태 추가/변경 시 한쪽만 고치면 원격 화면에서만 조용히 어긋나는 사고로 이어지기 쉽다.
+5. **`jumpSpeed` 네이밍과 실제 동작 불일치** — 이름은 "점프"를 암시하지만 실제로는 특정 트리거 존 진입 시 `NavMeshAgent` 속도에 더해지는 부스터 값일 뿐 수직 점프 동작은 없음 — 네이밍만 보고 동작을 오해하기 쉬운 사례.
+6. **`PlayerCtrl.Update()`가 약 370줄짜리 God 메서드** — 이동/레이캐스트/조준/사격/애니메이션/플랫폼별 입력 처리가 하나의 함수 안에 모두 들어있어, `pv.isMine` 분기(8-5번)까지 겹치며 가독성과 테스트 용이성이 크게 떨어진다. 책임별로 메서드를 나눌 여지가 큼.
+
+---
+
+# 9. VRstudy (2026-05-11)
+
+> `C:\Study\Unity\VRstudy\Assets` — Google Cardboard(스마트폰 거치형 VR) 기반 소규모 실습. 학생 코드는 6개 파일, 총 378줄(`Event.cs`, `PlanesMaker.cs`, `VRBtn.cs` + `Zombie/CardboardPlayerController.cs`, `EditorCameraPrototyper.cs`, `GateController.cs`, `ZombieAI.cs`)로 지금까지 중 가장 작은 축에 속한다. `AwesomeCartoonPlanes/Scripts/Plane.cs`는 파일 안에 "PLEASE NOTE! THIS SCRIPT IS FOR DEMO PURPOSES ONLY"라고 명시된 에셋 팩 자체의 데모 스크립트라 제외했고, `Decrepit Dungeon LITE`는 모델/환경 에셋뿐 스크립트가 없으며, `Samples/Google Cardboard XR Plugin`은 구글 공식 플러그인의 "Hello Cardboard" 샘플이라 제외했다.
+> **원본 강의자료 PDF는 없다.** (Photon과 마찬가지로 패키지 캐시 안의 `Worksheet.pdf`는 Unity 코드 커버리지 툴의 튜토리얼일 뿐 이 프로젝트와 무관.)
+
+## 9-1. VR 시선(Gaze) 기반 포인터 이벤트
+
+- **한 줄 정의**: 컨트롤러 없이 헤드셋의 시선 방향으로 쏘는 레이가 오브젝트에 닿았을 때 `OnPointerEnter`/`OnPointerExit`가 호출되는, Cardboard VR의 가장 기본적인 입력 방식.
+- **왜 중요한가**: 마우스/터치가 아니라 "고개를 돌려서 쳐다보는 것" 자체가 유일한 입력 수단인 VR에서, 어떻게 "선택"이라는 행위를 시뮬레이션하는지 보여주는 출발점. 이후 개념들(9-2, 9-3)이 전부 이 이벤트 위에 만들어진다.
+- **내 코드에서 어떻게 썼는지**: `Event.cs:5-13` (시선 진입/이탈에 반응하는 가장 단순한 형태, 마우스 오버 콜백과 나란히 실험)
+  ```csharp
+  void OnPointerEnter() { Debug.Log("IN"); }
+  void OnPointerExit() { Debug.Log("OUT"); }
+  // 발동조건-박스콜라이더 존재
+  void OnMouseEnter() { Debug.Log("mouseIn"); }   // 에디터에서 마우스로도 같은 개념을 테스트
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - `OnPointerEnter`는 Unity의 표준 uGUI 이벤트 인터페이스(`IPointerEnterHandler`)와 이름이 같은데 여기선 왜 그냥 `void` 메서드로만 선언했을까? (Cardboard 플러그인/포인터 시스템이 리플렉션이나 `SendMessage` 기반으로 이 이름의 메서드를 호출하도록 되어 있을 가능성이 높음 — `IPointerEnterHandler`를 구현하지 않고도 이름만 맞으면 호출되는 구조라면, zombieStudy(8-12번)에서 본 문자열 기반 API의 위험성과 같은 계열의 약점을 가짐)
+  - `OnMouseEnter`가 동작하려면 무엇이 필요한가? (콜라이더가 있어야 하며, 이 프로젝트에서는 VR 시선 입력과 데스크탑 마우스 입력을 나란히 실험해본 흔적으로 보인다)
+- **최신 동향**: Google Cardboard 자체는 2024년에 공식 단종(개발 중단)됐지만, "시선/레이 기반으로 오브젝트에 진입·이탈 이벤트를 쏜다"는 개념은 XR Interaction Toolkit의 `Ray Interactor`에도 그대로 이어지는 VR/AR 상호작용의 기본 문법이다.
+
+## 9-2. 응시 시간(Dwell Time) 게이지 UI
+
+- **한 줄 정의**: 클릭 버튼이 없는 VR에서 "일정 시간 동안 계속 쳐다보면 확인된 것으로 처리"하는 대체 확인 방식 — 진행 상태를 게이지/스크롤바로 시각화해서 사용자가 얼마나 더 쳐다봐야 하는지 알려준다.
+- **왜 중요한가**: VR UX의 핵심 문제(입력 수단의 부재)를 코드로 어떻게 해결하는지 보여주는 대표 사례. 같은 아이디어가 UI 버튼(`VRBtn.cs`)과 실제 게임 오브젝트(`GateController.cs`, 문 열기) 두 군데에 서로 다르게 적용되어 있어 비교하기 좋다.
+- **내 코드에서 어떻게 썼는지**: `VRBtn.cs:37-46` (게이지를 채우는 코루틴)
+  ```csharp
+  IEnumerator TimeToAction()
+  {
+      for (float value = 0.0f; value < 1.0f; value += 0.01f)
+      {
+          obj_scrollbar_.size = value;         // 스크롤바 크기로 진행률 시각화
+          yield return new WaitForEndOfFrame();
+      }
+      obj_scrollbar_.size = 1.0f;
+      Debug.Log("버튼 동작 처리");               // 실제로는 여기에 원하는 기능을 넣으면 됨
+  }
+  public void OnPointerExit() { obj_scrollbar_.size = 0; StopAllCoroutines(); }   // 시선이 벗어나면 즉시 리셋
+  ```
+  `GateController.cs:15-32`는 같은 아이디어를 코루틴 대신 `Update()`의 누적 타이머(`gazeTimer`)로 구현 — 목표 시간(`requiredTime`)에 도달하면 그제서야 문 여는 코루틴(`OpenGate`)을 시작한다.
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - `VRBtn`은 코루틴으로, `GateController`는 `Update()` 누적 변수로 같은 "응시 시간 재기"를 구현했는데 어느 쪽이 더 나은가? (코루틴 방식은 `yield return new WaitForEndOfFrame()`로 프레임마다 값을 갱신하는 흐름이 直관적이고 `StopAllCoroutines()`로 즉시 중단이 간단함. 누적 변수 방식은 `Update()` 안에서 다른 로직과 같이 관리하기 쉽고 오브젝트당 코루틴 인스턴스를 따로 안 만들어도 됨 — 정답은 없지만 "왜 두 가지 방식으로 짰는가"를 설명할 수 있어야 함)
+  - 시선을 뗐다가 다시 쳐다보면 처음부터 다시 세는 게 맞는가? (두 스크립트 모두 `OnPointerExit`/`else` 분기에서 타이머·게이지를 0으로 리셋 — "의도치 않게 스쳐 지나간 시선"에 반응하지 않도록 하는 의도적 설계)
+- **최신 동향**: 컨트롤러가 없는 저사양 VR(Cardboard류)에서는 여전히 표준적인 확인 방식이고, 컨트롤러가 있는 최신 VR 기기에서도 손이 자유롭지 않은 상황(운전 시뮬레이션 등)의 보조 입력으로 남아있다.
+
+## 9-3. 오브젝트 재활용(풀링) 패턴
+
+- **한 줄 정의**: 화면을 지나간 오브젝트를 `Destroy`하고 다시 `Instantiate`하는 대신, 같은 오브젝트의 위치만 초기화해서 계속 재사용하는 방식.
+- **왜 중요한가**: `TempleRun`(7-2번)에서는 "다리 세그먼트는 트래픽이 적어 풀링 없이도 괜찮다"고 짚었는데, 여기서는 정반대로 **저사양 모바일에서 실제로 풀링을 구현한** 사례 — 두 프로젝트를 나란히 보면 "언제 풀링이 필요하고 언제는 생략해도 되는가"에 대한 실전 판단 기준이 뚜렷해진다.
+- **내 코드에서 어떻게 썼는지**: `PlanesMaker.cs:75-90`
+  ```csharp
+  for (int i = 0; i < transform.childCount; i++)
+  {
+      Transform child_plane = transform.GetChild(i);
+      child_plane.Translate(new Vector3(0, 0, 0.1f));
+      if (child_plane.localPosition.z < -5.0f)   // 카메라 뒤로 지나가면
+      {
+          // Destroy 대신 위치만 초기화해서 재사용
+          child_plane.transform.localPosition = new Vector3(Random.Range(-2.0f, 2.0f), Random.Range(0.5f, 3.0f), 30.0f);
+      }
+  }
+  ```
+  코드 하단 주석에 학생이 직접 "게임 오브젝트의 생성과 소멸은 부담스러운 작업", "메모리 풀 공부"라고 이유를 남겨둠 — 왜 이 방식을 택했는지 스스로 정리한 흔적.
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - 왜 하필 VR/모바일 프로젝트에서 이걸 직접 겪었을까? (모바일은 데스크탑보다 메모리/GC 여유가 훨씬 적어서, `Instantiate`/`Destroy` 반복이 유발하는 가비지 컬렉션 부담이 프레임 드랍으로 바로 체감됨 — 코드 주석에도 "저사양 스마트폰에서 서서히 느려지는 걸 확인할 수 있다"고 직접 관찰한 내용이 적혀있음)
+  - 이 코드는 Unity 내장 `ObjectPool<T>`을 쓰지 않고 직접 구현했는데, 그 이유는? (여기서는 "같은 트랜스폼의 자식들을 순회하며 위치만 되돌리는" 아주 단순한 구조라 별도 풀 관리 클래스 없이도 충분 — 오브젝트 종류가 늘어나거나 활성화/비활성화 상태 관리가 복잡해지면 `ObjectPool<T>`로 옮겨갈 이유가 생김)
+- **최신 동향 (웹서칭 결과)**: 오브젝트 풀링 자체는 지금도 표준 최적화 기법이며, Unity 2021+부터는 `UnityEngine.Pool.ObjectPool<T>`이 엔진에 내장되어 이런 수동 구현 대신 표준 API를 쓰는 것이 권장된다.
+
+## 9-4. 시선 방향 기반 이동 + 멀미 방지 정지각
+
+- **한 줄 정의**: 별도의 이동 입력 없이 "카메라(헤드셋)가 보는 방향으로 자동 전진"하되, 고개를 너무 위/아래로 꺾으면(`stopThreshold` 초과) 이동을 멈추는 VR 특유의 이동 방식.
+- **왜 중요한가**: 컨트롤러 조이스틱 없이 고개만으로 이동해야 하는 Cardboard류 VR의 전형적인 로코모션(locomotion) 기법이자, VR 멀미(motion sickness)를 줄이기 위한 실전 설계가 코드에 그대로 반영된 사례.
+- **내 코드에서 어떻게 썼는지**: `CardboardPlayerController.cs:30-64`
+  ```csharp
+  float cameraPitch = _mainCamera.transform.eulerAngles.x;
+  if (cameraPitch > 180) cameraPitch -= 360;   // 오일러 각을 -180~180 범위로 보정
+
+  Vector3 move = Vector3.zero;
+  if (cameraPitch < stopThreshold)             // 너무 위/아래를 보고 있지 않을 때만
+  {
+      move = _mainCamera.transform.forward;
+      move.y = 0; move.Normalize(); move *= moveSpeed;   // 수평 성분만 남겨서 이동
+  }
+
+  // 중력은 CharacterController가 대신 안 해주므로 직접 누적 (zombieStudy 등에서 반복된 패턴)
+  _verticalVelocity = _characterController.isGrounded ? -2.0f : _verticalVelocity - gravity * Time.deltaTime;
+  _characterController.Move(new Vector3(move.x, _verticalVelocity, move.z) * Time.deltaTime);
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - `cameraPitch`를 -180~180으로 보정하는 이유는? (Unity의 `eulerAngles`는 항상 0~360 범위로 반환되는데, 이 범위 그대로는 "위로 15도"와 "아래로 15도"를 숫자로 구분하기 까다로움(345도 vs 15도) — 보정 후에는 -15도/+15도처럼 부호로 방향을 직관적으로 비교할 수 있게 됨)
+  - 땅에 닿아 있을 때 `_verticalVelocity`를 0이 아니라 `-2.0f`로 유지하는 이유는? (0으로 두면 계단이나 경사면 이음매에서 캐릭터가 순간적으로 뜨는 미세한 틈이 생길 수 있어, 살짝 마이너스 값으로 항상 바닥에 눌러붙는 느낌을 유지 — 코드 주석에도 "계단 밀착용"이라고 명시)
+  - 왜 이동을 "버튼"이 아니라 "고개 각도"로 멈추게 했을까? (Cardboard에는 이동 입력 버튼이 따로 없는 경우가 많아, 위/아래를 보는 것 자체를 "정지 신호"로 재활용한 것 — 다만 사용자가 단지 하늘/바닥을 구경하고 싶을 때도 멈춰버리는 부작용이 있을 수 있다는 점은 실제 UX 설계에서 고려할 지점)
+- **최신 동향**: 헤드 방향 기반 자동 전진은 Cardboard 세대의 대표적인 로코모션이었지만, 컨트롤러가 있는 최신 VR(Quest 등)에서는 조이스틱 이동이나 텔레포트 이동이 멀미 완화 측면에서 더 선호된다 — **확인 필요**: 이 기법 자체가 완전히 대체됐다기보다, "컨트롤러 유무"라는 하드웨어 조건에 따라 여전히 쓰이는 상황과 아닌 상황이 나뉜다는 점으로 이해하면 됨.
+
+## 9-5. 에디터 전용 프로토타입 입력
+
+- **한 줄 정의**: `#if UNITY_EDITOR`로 감싼 코드 블록 안에서, 실제 VR 헤드셋 없이도 마우스 오른쪽 버튼을 누른 채 드래그하면 카메라가 헤드룩처럼 회전하게 만드는 개발용 전용 입력.
+- **왜 중요한가**: VR 기기를 매번 착용하지 않고도 에디터에서 빠르게 헤드룩 동작을 테스트할 수 있게 해주는 실전 개발 노하우 — zombieStudy(8-11번)의 `#if UNITY_EDITOR`가 "에디터에서만 클릭으로 파괴 테스트"였다면, 여기서는 "기기가 없을 때 기기 동작을 흉내내는" 더 적극적인 활용 사례다.
+- **내 코드에서 어떻게 썼는지**: `EditorCameraPrototyper.cs:9-27`
+  ```csharp
+  #if UNITY_EDITOR
+  if (Input.GetMouseButton(1))   // 마우스 오른쪽 버튼을 누르는 동안
+  {
+      float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
+      float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
+      xRotation = Mathf.Clamp(xRotation - mouseY, -90f, 90f);   // 위아래 각도 제한(목이 꺾이지 않게)
+      yRotation += mouseX;
+      transform.localRotation = Quaternion.Euler(xRotation, yRotation, 0f);
+  }
+  #endif
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - 이 스크립트는 실제 빌드(안드로이드/iOS)에는 왜 포함되지 않아도 되는가? (`#if UNITY_EDITOR`로 감싸져 있어 에디터 밖에서는 아예 컴파일되지 않음 — 실기기에서는 헤드셋 자체의 자이로/자세 센서가 카메라 회전을 담당하므로 이 스크립트의 역할이 필요 없어짐)
+  - `Mathf.Clamp(xRotation, -90f, 90f)`가 없다면 어떤 문제가 생기는가? (위아래 회전 제한이 없으면 마우스를 계속 아래로 끌 때 카메라가 뒤집혀서(짐벌락처럼) 화면이 위아래로 뒤집히는 부자연스러운 상태가 됨 — 실제 사람 목이 꺾일 수 있는 각도로 제한하는 것과 같은 이치)
+- **최신 동향**: "타깃 하드웨어 없이 에디터에서 대체 입력으로 개발 흐름을 유지한다"는 원칙은 지금도 유효하며, 최신 XR Interaction Toolkit에는 이를 공식적으로 지원하는 `XR Device Simulator`(에디터에서 키보드/마우스로 VR 컨트롤러·헤드셋 움직임을 흉내내는 공식 툴)까지 제공된다 — 이 프로젝트의 수동 구현이 하려던 일을 이제는 Unity가 공식 도구로 지원하는 셈.
+
+## 9-6. 거리 기반 애니메이터 블렌딩 — 상태머신 없는 미니멀 AI
+
+- **한 줄 정의**: `NavMeshAgent`로 플레이어를 추적하면서, 이산적인 상태(Idle/Walk/Run 등)를 나누는 대신 목표까지 남은 거리(`remainingDistance`)를 그대로 `Animator`의 float 파라미터에 흘려보내 애니메이션 블렌드트리가 알아서 걷기/뛰기 속도를 연속적으로 보간하게 만드는 방식.
+- **왜 중요한가**: zombieStudy(8-6번)에서 본 `ModeSet`/`ModeAction` 기반의 여러 단계짜리 우선순위 FSM과 정반대의 극단 — 여기서는 좀비 AI 전체가 36줄이며 상태 전이 로직이 아예 없다. "얼마나 정교한 AI가 필요한가"는 게임 성격에 따라 완전히 다르다는 걸 두 프로젝트를 나란히 보면 명확히 알 수 있다.
+- **내 코드에서 어떻게 썼는지**: `ZombieAI.cs:22-36`
+  ```csharp
+  _agent.SetDestination(_target.position);
+  // pathPending 중엔 remainingDistance가 부정확할 수 있어 직선거리로 대체
+  float distance = _agent.pathPending ? Vector3.Distance(transform.position, _target.position) : _agent.remainingDistance;
+  _animator.SetFloat("dis", distance);   // 상태 enum이 아니라 연속값 하나만 넘김
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - `_agent.pathPending`을 체크하는 이유는? (`NavMeshAgent`가 새 목적지로 경로를 다시 계산하는 동안에는 `remainingDistance`가 이전 경로 기준의 오래된 값이거나 부정확할 수 있어, 그 사이엔 단순 직선 거리로 임시 대체 — 이 방어 코드 하나가 "NavMesh 경로 계산은 비동기/지연이 있다"는 것을 이해하고 있다는 증거)
+  - 이렇게 상태를 값 하나로 단순화하면 잃는 것은? (피격/공격/수면 같은 별도 행동을 표현할 수 없음 — zombieStudy의 좀비처럼 여러 행동 분기가 필요하면 이 방식만으로는 부족해지고 8-6번 같은 FSM이 필요해진다는 것이 두 프로젝트의 대비로 드러남)
+- **최신 동향**: `NavMeshAgent` + `Animator` 파라미터 연동은 지금도 표준적인 3D 추적 AI 구현 방식이며, 거리/속도 같은 연속값을 블렌드트리에 흘려보내 부드러운 애니메이션 전환을 만드는 기법도 변화 없이 널리 쓰인다.
+
+## 9-7. 플랫폼별 절전모드 방지
+
+- **한 줄 정의**: `#if UNITY_ANDROID`/`#elif UNITY_IOS` 전처리기 분기로 두 플랫폼 모두에서 `Screen.sleepTimeout = SleepTimeout.NeverSleep`을 설정해, VR 체험 도중 화면이 꺼지지 않게 하는 처리.
+- **왜 중요한가**: zombieStudy(8-11번)에서 다룬 조건부 컴파일의 실사용 예 하나가 더 늘어난 것 — 여기서는 안드로이드/iOS 양쪽에 "같은 코드"를 각각 다른 조건 블록에 중복으로 넣어야 했다는 점이 흥미로운 디테일이다.
+- **내 코드에서 어떻게 썼는지**: `PlanesMaker.cs:20-26`
+  ```csharp
+  #if UNITY_ANDROID
+      Screen.sleepTimeout = SleepTimeout.NeverSleep;
+  #elif UNITY_IOS
+      // iPhoneSettings.screenCanDarken = false; 사라짐 (옛 API, 주석으로 남음)
+      Screen.sleepTimeout = SleepTimeout.NeverSleep;
+  #endif
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - 두 분기의 실행 코드가 완전히 동일한데 왜 굳이 나눠 썼을까? (`Screen.sleepTimeout`은 현재 크로스플랫폼 API라 사실 `#if`로 나눌 필요가 없다 — 주석에 남은 옛 `iPhoneSettings.screenCanDarken`(iOS 전용, 지금은 제거된 API)의 흔적으로 볼 때, 예전에는 플랫폼마다 다른 API를 써야 했던 시절의 코드 구조가 API가 통합된 뒤에도 습관처럼 남은 것으로 보인다)
+  - VR 체험에서 화면 꺼짐 방지가 왜 특히 중요한가? (일반 앱과 달리 화면이 곧 디스플레이 자체라 꺼지는 순간 체험이 완전히 중단됨 — 배터리 절약을 위한 OS의 기본 동작을 게임이 명시적으로 막아야 하는 대표 사례)
+- **최신 동향**: `Screen.sleepTimeout` API 자체는 지금도 변화 없이 표준이며, 이미 크로스플랫폼으로 동작하므로 최신 코드라면 플랫폼 분기 없이 한 줄로 충분하다.
+
+---
+
+**VRstudy에서 확인한, 고쳐볼 만한 부분**
+
+1. **`OnPointerEnter`/`OnPointerExit`가 표준 인터페이스 없이 이름만으로 호출되는 구조로 추정됨** (9-1번 항목) — `IPointerEnterHandler`를 구현하지 않고 이름만 일치시킨 메서드로 보이며, 이 경우 zombieStudy(8-12번)와 같은 계열의 "이름 기반 호출"의 위험(오타/리네이밍에 취약)을 안고 있다. Cardboard 포인터 시스템의 실제 호출 방식을 프로젝트 설정에서 재확인해볼 필요가 있음.
+2. **`PlanesMaker.cs`의 플랫폼 분기 코드 중복** (9-7번 항목) — `UNITY_ANDROID`/`UNITY_IOS` 두 분기의 실행 코드가 완전히 동일해서, `Screen.sleepTimeout` 자체가 이미 크로스플랫폼 API인 지금은 `#if` 분기 없이 한 줄로 줄일 수 있다.
+
+---
+
+# 10. ARstudy (2026-05-13)
+
+> `C:\Study\Unity\ARstudy\Assets` — Vuforia Engine 기반 AR 실습. 다른 프로젝트와 달리 이 하나의 프로젝트 안에 **시기가 다른 두 세대의 코드가 공존**한다: (구) Vuforia Image Target으로 카드를 인식해 싸우는 턴제 카드 배틀 게임(`ARCardBattle.cs`, `TrackingObject.cs`, `Finder.cs`, 레거시 `OnGUI`/구 Input 사용), (신) Ground Plane 인식 + New Input System + GPS를 쓰는 훨씬 최신 스타일의 몬스터 캐치 미니게임(`AutoGroundPlacer.cs`, `ARGravityController.cs`, `CatchBall.cs`, `UpdateGPSLocation.cs`). 여기에 Vuforia 없이 웹캠+자이로스코프만으로 만든 원시적 AR 실험(`TestWebCam.cs`)까지 포함되어 있어, 한 프로젝트로 "AR을 손수 만들어보기 → SDK로 이미지 인식 AR → SDK로 평면 인식 AR"이라는 학습 진행 순서를 통째로 볼 수 있다.
+> 제외: `Fantasy Monster(wizard) Demo/Environment/Scripts/CamCTRLDemo.cs`·`MoveCTRLDemo.cs`(에셋 팩 자체의 데모 스크립트, 한글 주석 없음), `GameManager.cs`(빈 스텁), `Editor/Migration/AddVuforiaEnginePackage.cs`(Vuforia가 자동 생성한 마이그레이션 도우미 스크립트).
+> **원본 강의자료 PDF는 없다.** (`Library` 안의 PDF들은 Vuforia 에뮬레이터 안내서/Unity 패키지 워크시트일 뿐 이 프로젝트와 무관 — zombieStudy·VRstudy와 같은 패턴.)
+
+## 10-1. Vuforia Image Target 기반 AR 카드 배틀
+
+- **한 줄 정의**: 카드에 인쇄된 이미지(진달래/사신)를 Vuforia가 인식하면 그 위치에 3D 캐릭터를 띄우고, 두 카드가 모두 인식되면 주사위로 선공을 정한 뒤 턴제로 공격을 주고받는 AR 카드 게임.
+- **왜 중요한가**: "카메라로 이미지를 비추면 그 위에 3D 오브젝트가 나타난다"는 AR의 가장 직관적인 활용 사례이자, 인식된 대상(카드) 두 개의 상태를 동시에 조합해 게임 로직(전투 시작 조건)을 만드는 실전 예제.
+- **내 코드에서 어떻게 썼는지**: `ARCardBattle.cs:58-71` (양쪽 카드가 모두 인식되고 대기 상태일 때만 전투 시작 버튼 노출)
+  ```csharp
+  if (obj_dal_.is_detected_ && obj_sasin_.is_detected_ && game_state_ == eGameState.Ready)
+  {
+      if (GUI.Button(new Rect(640, 200, 250, 100), "Start Battle", gui_style_btn))
+      {
+          game_state_ = eGameState.Battle;
+          StartCoroutine(RollTheDices());   // 주사위로 선공 결정 후 전투 코루틴 시작
+      }
+  }
+  ```
+  `TrackingObject.cs:28-31`이 각 카드의 인식 상태(`is_detected_`)를 Vuforia 콜백(`OnTrackableStateChanged`)으로 갱신해주는 역할을 한다.
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - 코드 하단(`ARCardBattle.cs:205-226`)에 남아있는 "미션" 주석은 무엇인가? (강사가 낸 과제 요구사항 — 게임판/카드 구분/아이템 카드/승패 조건 등 4가지 조건 — 이 그대로 코드 주석에 남아있음. 별도 PDF는 없지만 이 주석 자체가 원본 과제 명세를 대신 확인할 수 있는 자료다)
+  - 게임판 없이 카드 두 장만으로 시작한 것을 어떻게 볼 수 있는가? (미션 주석의 요구사항(카드 3장씩, 게임판, 아이템 카드)에 비해 실제 구현은 카드 2장의 최소 버전 — 기본 골격(인식→전투)을 먼저 완성하고 이후 요구사항을 확장해나가는 전형적인 개발 순서로 볼 수 있음)
+- **최신 동향**: 이미지 인식 기반 AR 콘텐츠(마커리스가 아닌 이미지 마커 방식)는 지금도 Vuforia/ARCore/ARKit 모두가 지원하는 기본 트래킹 방식이며, 카드/포스터/패키지 위에 AR 콘텐츠를 얹는 마케팅·교육용 앱에 여전히 널리 쓰인다.
+
+## 10-2. Vuforia 타겟 인식 콜백 — `OnTargetFound` / `OnTargetLost` / `OnContentPlaced`
+
+- **한 줄 정의**: Vuforia의 `ObserverBehaviour`(또는 이벤트 핸들러)가 타겟을 인식/분실할 때마다 등록된 콜백 메서드를 호출해주는 이벤트 훅.
+- **왜 중요한가**: AR 앱의 UI/로직 대부분이 "지금 타겟이 보이는가 아닌가"에 반응해야 하는데, 그 반응 지점을 매 프레임 폴링이 아니라 이벤트 콜백으로 처리하는 표준 패턴을 보여준다.
+- **내 코드에서 어떻게 썼는지**: `Finder.cs:10-32`
+  ```csharp
+  public void OnTargetFound() { txt.text = "Found"; }
+  public void OnTargetLost()  { txt.text = "Lost"; }
+  public void OnContentPlaced()
+  {
+      // 배치될 때마다 글자색을 빨강/흰색으로 토글 — 배치가 실제로 일어났음을 시각적으로 확인하기 위한 디버그용 처리로 보임
+      txt.color = changeColor ? Color.white : Color.red;
+      changeColor = !changeColor;
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - 왜 매 프레임 `if (타겟이 보이는가)`로 검사하지 않고 콜백을 쓰는가? (콜백은 상태가 "바뀌는 순간"에만 호출되므로, 매 프레임 검사보다 효율적이고 "지금 막 인식됐다/놓쳤다"는 이벤트 자체를 정확히 잡아낼 수 있음 — VRstudy(9-1번)의 `OnPointerEnter`/`Exit`와 같은 이벤트 기반 설계 철학)
+  - `OnContentPlaced`는 `OnTargetFound`와 어떻게 다른가? (`OnTargetFound`는 "타겟 이미지 자체를 인식했다"는 뜻이고, `OnContentPlaced`는 그 위에 실제로 콘텐츠(3D 오브젝트)가 배치 완료됐다는 별도 단계 — Ground Plane처럼 배치에 추가 처리가 필요한 경우 이 둘이 다른 시점에 호출될 수 있음)
+- **최신 동향**: Vuforia Engine(현재 버전)은 `ObserverBehaviour` + `DefaultObserverEventHandler` 조합으로 이 콜백들을 표준화해서 제공한다 — 개념 자체는 Vuforia 초기 버전부터 지금까지 유지.
+
+## 10-3. Ground Plane 자동/수동 배치 — `PlaneFinderBehaviour` + UnityEvent
+
+- **한 줄 정의**: 카메라로 바닥을 스캔해 평면을 인식하면(`PlaneFinderBehaviour`), 그 위치에 자동으로 오브젝트를 배치하거나, 버튼을 눌러 마지막 인식 위치에 수동으로 배치하는 Ground Plane AR 패턴 — 이벤트 등록/해제를 `OnEnable`/`OnDisable`에서 짝을 맞춰 처리한다.
+- **왜 중요한가**: 이미지 마커(10-1, 10-2번) 없이 "아무 평평한 바닥"에 콘텐츠를 놓는, 마커리스 AR로 넘어가는 지점 — Pokémon GO류 게임의 핵심 기술과 같은 갈래. `AddListener`/`RemoveListener`를 `OnEnable`/`OnDisable`에서 정확히 짝지어 호출하는 메모리 누수 방지 습관도 눈여겨볼 지점.
+- **내 코드에서 어떻게 썼는지**: `AutoGroundPlacer.cs:26-49, 88-115`
+  ```csharp
+  void OnEnable()
+  {
+      planeFinder.OnInteractiveHitTest.AddListener(OnHitTest);   // 터치로 평면 탐지
+      planeFinder.OnAutomaticHitTest.AddListener(OnHitTest);     // 자동으로 평면 탐지
+  }
+  void OnDisable()   // 반드시 짝을 맞춰 해제
+  {
+      planeFinder.OnInteractiveHitTest.RemoveListener(OnHitTest);
+      planeFinder.OnAutomaticHitTest.RemoveListener(OnHitTest);
+  }
+  private void OnHitTest(HitTestResult result)
+  {
+      if (enableAutoPlacement && !autoPlaced && prefabToPlace != null)
+      {
+          Instantiate(prefabToPlace, result.Position, result.Rotation);   // 인식된 평면 좌표/회전 그대로 사용
+          autoPlaced = true;
+      }
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - `OnEnable`/`OnDisable`에 리스너 등록·해제를 넣는 이유는? (오브젝트가 비활성화되거나 파괴될 때 이벤트 리스너가 계속 남아있으면, 이미 없어진 오브젝트의 메서드를 호출하려다 에러가 나거나 메모리가 정리되지 않는 문제로 이어짐 — `Start`/`OnDestroy` 대신 `OnEnable`/`OnDisable`을 쓰면 오브젝트가 껐다 켜졌다 하는 경우에도 항상 짝이 맞음)
+  - 코드 주석에 남은 "Plane Indicator가 사라진 상태를 직접 Lost 처리한다"는 대목은 무슨 뜻인가? (Vuforia가 제공하는 공식 Target Lost 이벤트가 "바닥을 못 찾음"이 아니라 "앵커/트래킹 자체가 끊김" 기준이라 원하는 타이밍에 항상 맞지 않아서, 평면 표시 오브젝트의 `Renderer.enabled` 여부를 직접 검사해 원하는 시점의 Lost 처리를 보완했다는 뜻 — 프레임워크가 제공하는 이벤트가 내 요구와 정확히 안 맞을 때 직접 상태를 관찰해 보완한 사례)
+- **최신 동향**: Ground Plane(마커리스 평면 인식) AR은 Vuforia뿐 아니라 ARCore/ARKit 모두의 표준 기능이며, 최신 Unity에서는 AR Foundation(`ARPlaneManager`, `ARRaycastManager`)으로 여러 AR SDK를 추상화해 동일한 API로 다루는 방향이 대세다.
+
+## 10-4. 타겟 기울기 → 물리 낙하 트리거
+
+- **한 줄 정의**: AR 타겟(카드)의 위 방향 벡터와 월드 위쪽 벡터의 내적(dot product)을 계산해 타겟이 "얼마나 뒤집혔는지"를 판정하고, 일정 기준(`dropThreshold`) 이상 기울면 그제서야 물리 시뮬레이션을 켜서 오브젝트가 자연스럽게 떨어지게 만드는 연출.
+- **왜 중요한가**: 벡터 내적을 "얼마나 같은 방향을 보는가"의 척도로 활용하는 실전 예 — 두 벡터가 완전히 같은 방향이면 내적이 1, 정반대면 -1이 된다는 성질을 그대로 게임 판정에 응용했다.
+- **내 코드에서 어떻게 썼는지**: `ARGravityController.cs:40-49, 52-67`
+  ```csharp
+  float tilt = Vector3.Dot(initialParent.up, Vector3.up);   // 1(안 뒤집힘) ~ -1(완전히 뒤집힘)
+  if (tilt < dropThreshold) StartPhysics();                 // 기준치 이하로 뒤집히면 낙하 시작
+
+  void StartPhysics() { rb.isKinematic = false; rb.useGravity = true; }
+  void StopPhysics()  { rb.isKinematic = true; rb.useGravity = false; rb.velocity = Vector3.zero; }
+  ```
+  타겟이 인식되지 않는 동안(`mObserver.TargetStatus.Status == Status.NO_POSE`)에는 아예 물리 계산 자체를 꺼둬(`StopPhysics`) 화면 밖에서 오브젝트가 엉뚱하게 낙하하는 것을 방지한다.
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - 왜 `tilt == -1`(완전히 뒤집힘)이 아니라 `dropThreshold = -0.5f` 같은 완만한 기준을 쓰는가? (완전히 뒤집힐 때까지 기다리면 반응이 너무 늦어 보이므로, "이 정도만 기울여도 충분히 뒤집는 제스처로 인정"하도록 여유를 둔 것 — 코드 주석에도 "0.7~0.9 추천"이라고 조정 가능한 값임을 명시)
+  - `rb.isKinematic` 토글과 8-1/9-4번에서 본 것과의 공통점은? (zombieStudy·VRstudy에서 반복된 "평소엔 `isKinematic = true`로 물리 계산을 꺼두다가, 특정 조건에서만 `false`로 바꿔 물리 엔진에 제어권을 넘긴다"는 패턴이 AR에서도 그대로 재사용됨 — 도메인이 달라도 반복되는 Unity 설계 관용구)
+- **최신 동향**: 벡터 내적으로 방향 유사도를 판정하는 기법과 `isKinematic` 온오프 전환 모두 지금도 변화 없이 쓰이는 기본기다.
+
+## 10-5. 레거시 Input Manager → New Input System 마이그레이션
+
+- **한 줄 정의**: 마우스/터치 입력을 각각 다른 API(`Input.mousePosition`, `OnMouseDown`)로 따로 처리하던 예전 방식 대신, `Mouse.current`/`Touchscreen.current`로 통일된 인터페이스를 쓰는 Unity의 New Input System으로 캐치볼 드래그·투척 로직을 새로 작성한 사례 — 옛 버전 전체가 파일 하단에 주석으로 고스란히 남아있다.
+- **왜 중요한가**: `unity_핵심정리.md`에서 반복 확인해온 "API 마이그레이션을 직접 겪은 경험" 테마(St3-C의 WWW, zombieStudy 8-10의 AssetBundle)의 또 다른 사례이자, 이번엔 입력 시스템 자체가 통째로 교체된 가장 큰 규모의 마이그레이션이다.
+- **내 코드에서 어떻게 썼는지**: `CatchBall.cs:37-62` (신), 파일 하단 주석(157-190행)의 구버전과 대조
+  ```csharp
+  // 신버전 — 마우스/터치를 같은 흐름으로 통합 처리
+  if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+      StartDrag(Mouse.current.position.ReadValue());
+  if (Touchscreen.current != null && Touchscreen.current.primaryTouch.press.wasPressedThisFrame)
+      StartDrag(Touchscreen.current.primaryTouch.position.ReadValue());
+
+  // 구버전(주석) — 마우스 전용 콜백에 의존
+  // void OnMouseDown() { catch_ball_distance_ = ...; is_drag_now_ = true; }
+  ```
+  또한 `IsPointerOverUI()`로 UI 버튼 위를 드래그할 때 공이 같이 딸려오지 않도록 막는 방어 코드가 신버전에 새로 추가되어 있다.
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - `OnMouseDown`(구버전)이 New Input System 환경에서 왜 문제가 될 수 있는가? (`OnMouseDown`은 구 Input Manager 기반의 물리 콜백이라 New Input System을 "Only"로 설정하면 아예 호출되지 않거나 불안정해질 수 있음 — 코드 상단 주석에도 "Both 말고 Only New Input System 체크" 같은 실제 트러블슈팅 메모가 남아있어, 두 시스템을 섞어 쓰다 겪은 시행착오가 보인다)
+  - 마우스와 터치를 하나의 `StartDrag`/`EndDrag` 메서드로 합친 설계의 장점은? (입력 소스가 늘어나도(향후 VR 컨트롤러 등) 같은 진입점으로 처리할 수 있어, TempleRun(7-5번)에서 본 "입력 소스별로 완전히 다른 함수로 분기"하는 방식보다 더 통합된 접근 — New Input System이 여러 디바이스를 추상화해주기 때문에 가능해진 설계)
+- **최신 동향 (웹서칭 결과)**: Unity의 레거시 `Input` 클래스(Input Manager)는 여전히 동작하지만, 신규 프로젝트에는 New Input System 패키지 사용이 공식 권장이다 — 이 프로젝트가 정확히 그 권장 방향을 따라 옛 코드를 교체한 실제 사례.
+
+## 10-6. GPS 위치 기반 근접 알림
+
+- **한 줄 정의**: `Input.location`으로 기기의 실시간 위도/경도를 가져와 목표 좌표와의 거리를 구면 삼각법으로 계산하고, 일정 거리(20m) 이내로 들어오면 "근처 매장" 알림을 띄우는 위치 기반 서비스(LBS) 로직.
+- **왜 중요한가**: AR이 카메라 트래킹뿐 아니라 GPS 같은 다른 센서 데이터와 결합될 수 있음을 보여주는 사례 — Pokémon GO류 "위치 기반 AR"의 핵심 요소 중 하나. 위도/경도라는 두 각도값만으로 실제 지표면 거리를 구하는 수학(구면 삼각법)을 코드로 직접 구현한 점도 흥미롭다.
+- **내 코드에서 어떻게 썼는지**: `UpdateGPSLocation.cs:101-117`
+  ```csharp
+  static double GPSDistance(double lat1, double lon1, double lat2, double lon2, DistUnit unit)
+  {
+      double theta = lon1 - lon2;
+      double dist = Math.Sin(Deg2rad(lat1)) * Math.Sin(Deg2rad(lat2))
+                  + Math.Cos(Deg2rad(lat1)) * Math.Cos(Deg2rad(lat2)) * Math.Cos(Deg2rad(theta));
+      dist = Rad2deg(Math.Acos(dist)) * 60 * 1.1515;         // 위도 1분 ≈ 1해리(1.1515마일) 관계 이용
+      return unit == DistUnit.kilometer ? dist * 1.609344 : dist * 1609.344;
+  }
+  ```
+  `Update()`에서 1초마다만 `UpdateGPS()`를 호출해 GPS 폴링 빈도를 제한하는 것도 배터리/연산 절약을 위한 실전 습관.
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - 왜 매 프레임이 아니라 1초마다 GPS를 갱신하는가? (`Input.location`은 실제 GPS 하드웨어를 폴링하는 상대적으로 무거운 작업이고, 위치는 어차피 프레임 단위로 급격히 바뀌지 않으므로 초 단위 갱신으로도 충분 — 배터리 소모와 연산 낭비를 줄이는 절충)
+  - 파일 하단에 남은 "수정 포인트" 주석이 알려주는 것은? (`Input.compass.enabled`를 New Input System 환경에서 제거했다는 것, `Start()`를 반복 호출하지 않도록 단순화했다는 것 등 — 학생이 스스로 무엇을 왜 고쳤는지 정리한 변경 이력이 코드에 남아있어, 겉으로 드러난 리팩터링 흔적 이상으로 "고친 이유"까지 확인 가능한 드문 사례)
+- **최신 동향**: `Input.location` API 자체는 지금도 유효하지만, 정밀한 실내/근접 감지가 필요한 상용 서비스는 GPS 대신 비콘(Bluetooth Beacon)이나 지오펜싱 전용 플랫폼 API를 함께 쓰는 경우가 많다 — 이 프로젝트 규모의 학습 목적에는 GPS 단독 구현으로 충분하다.
+
+## 10-7. 웹캠 + 자이로스코프 기반 DIY AR
+
+- **한 줄 정의**: Vuforia 같은 AR SDK 없이, `WebCamTexture`로 카메라 화면을 배경 텍스처로 띄우고 `Input.gyro`로 기기 회전을 그대로 카메라 오브젝트 회전에 반영해 "카메라를 움직이면 화면 속 시점도 따라 움직이는" 원시적인 AR 감각을 손수 구현한 실험.
+- **왜 중요한가**: SDK가 내부적으로 해주는 일(카메라 피드 합성 + 자세 추정)이 무엇인지 최소 단위로 직접 만들어봄으로써, 이후 Vuforia를 "블랙박스"가 아니라 "이 두 가지를 훨씬 정교하게 자동화해주는 도구"로 이해할 수 있게 해주는 선행 학습으로 보인다. 시점 위치는 못 잡고 회전만 반영한다는 한계까지도 "AR에서 트래킹이 왜 어려운 문제인가"를 체감하게 해주는 지점.
+- **내 코드에서 어떻게 썼는지**: `TestWebCam.cs:15-30, 63-67`
+  ```csharp
+  tex_web = new WebCamTexture(temp_devices[0].name);
+  tex_web.Play();
+  target.GetComponent<Renderer>().material.mainTexture = tex_web;   // 웹캠 화면을 그대로 배경 텍스처로 사용
+
+  Input.gyro.enabled = true;
+  void Update()
+  {
+      // 자이로스코프의 자세(attitude) 값을 그대로 카메라 회전에 반영 (좌표계 보정을 위해 z, w 부호 반전)
+      Quaternion cameraRotation = new Quaternion(Input.gyro.attitude.x, Input.gyro.attitude.y,
+                                                   -Input.gyro.attitude.z, -Input.gyro.attitude.w);
+      this.transform.localRotation = cameraRotation;
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - `Input.gyro.attitude`의 z, w 값에 마이너스를 붙이는 이유는? (기기 자이로스코프의 좌표계(오른손 좌표계, iOS 기준)와 Unity의 좌표계(왼손 좌표계)가 서로 달라서, 그대로 대입하면 회전이 뒤틀리게 나옴 — 축 부호를 조정해 Unity 좌표계에 맞게 보정하는 관용적인 변환)
+  - 이 방식이 Vuforia 같은 정식 AR SDK와 근본적으로 다른 점은? (여기서는 "회전"만 추적하고 "위치 이동"은 전혀 추적하지 못함 — SDK 기반 AR은 카메라 영상에서 특징점을 분석해 위치까지 추정하는(SLAM 등) 훨씬 복잡한 컴퓨터 비전 처리를 거치는데, 이 실험은 그 앞단계인 "회전만"으로도 그럴듯한 몰입감을 만들 수 있다는 걸 보여주는 최소 구현)
+- **최신 동향**: 자이로스코프 기반 시점 회전은 지금도 유효한 기본 센서 API이며, 실제 AR Foundation/ARCore/ARKit도 내부적으로 IMU(자이로+가속도계) 데이터를 시각 데이터와 융합(Visual-Inertial Odometry)해 트래킹 정확도를 높인다 — 이 실험이 다루는 "자이로 회전"은 그 융합의 절반에 해당하는 요소.
+
+## 10-8. 레거시 `OnGUI` 즉시모드 UI (반복 사례)
+
+- **한 줄 정의**: 카드 배틀 게임의 상태 표시/버튼을 Canvas가 아니라 `OnGUI()` 안에서 `GUI.Button`/`GUI.Label`로 직접 그리는 구버전 UI 구현.
+- **왜 중요한가**: TempleRun(7-7번)에서 이미 다룬 레거시 UI 패턴이 이 프로젝트의 구세대 코드(10-1번)에서도 그대로 나타난다 — 신세대 코드(`AutoGroundPlacer.cs` 등)는 반대로 Canvas 기반 `Text`/`Button`을 쓰고 있어서, **같은 프로젝트 안에서 UI 시스템 세대차까지 대조**할 수 있는 드문 사례.
+- **내 코드에서 어떻게 썼는지**: `ARCardBattle.cs:42-51, 61`
+  ```csharp
+  GUIStyle gui_style_btn = new GUIStyle("Button");
+  gui_style_btn.fontSize = 50;
+  if (GUI.Button(new Rect(640, 200, 250, 100), "Start Battle", gui_style_btn)) { ... }
+  ```
+  반면 신세대 `AutoGroundPlacer.cs`는 `public Text txtLog;`처럼 Canvas 기반 uGUI 컴포넌트를 인스펙터에서 연결해 쓴다 — 같은 학생이 시간이 지나며 UI 작성 방식 자체를 바꾼 흔적.
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - 왜 구세대 코드만 `OnGUI`를 쓰고 신세대는 Canvas를 쓸까? (제작 시점의 차이로 보인다 — 학습 초반에는 즉시모드 UI로 빠르게 프로토타이핑했고, 이후 프로젝트에서는 실무 표준인 Canvas/uGUI로 전환한 것으로 추정. TempleRun(7-7번)과 같은 "학습 초기 vs 이후"의 UI 시스템 성숙도 차이 패턴이 이 프로젝트 하나에서도 재현됨)
+- **최신 동향**: TempleRun(7-7번)과 동일 — `OnGUI`(IMGUI)는 지금도 완전히 제거되지 않았지만 실사용 UI로는 권장되지 않고 uGUI/UI Toolkit이 표준이다.
+
+---
+
+**ARstudy에서 확인한, 고쳐볼 만한 부분**
+
+1. **`ARCardBattle.cs`가 미션 요구사항의 최소 골격만 구현** (10-1번 항목) — 코드 하단에 남은 과제 명세(카드 3장씩, 게임판, 아이템 카드, 승패 조건)에 비해 실제 구현은 카드 2장의 기본 전투 루프뿐이라, 학습 기록 관점에서는 "어디까지 진행됐는지"를 명확히 표시해두면 좋을 것으로 보임.
+2. **`TestWebCam.cs`의 플랫폼별 스케일/회전 보정 코드가 여러 겹 주석 처리된 채 혼재** — "가장 정상적 작동 O/X"라는 주석과 함께 시행착오 버전들이 그대로 남아있어, 실제로 채택된 로직(43-44행)과 실패한 시도들이 한 파일에 뒤섞여 가독성이 떨어짐. 실험이 끝난 지금은 성공한 버전만 남기고 정리할 여지가 있음.
+
+---
+
+# 11. VR_meta (2026-05-19)
+
+> `C:\Study\Unity\VR_meta\Assets\Scripts` — Meta Quest용 VR, XR Interaction Toolkit(XRI) 기반 상호작용 커스터마이징 실습. 학생 코드는 3개 파일, 355줄(`CustomDirectInteractor.cs`, `CustomGrabInteractable.cs`, `LogMessage.cs`)로 작은 규모지만, `CustomDirectInteractor.cs`/`CustomGrabInteractable.cs` 둘 다 **XRI의 구버전 API 전체가 주석으로 나란히 남아있어** 지금까지 다룬 어떤 프로젝트보다도 API 마이그레이션을 촘촘하게(오버라이드 지점 4~5곳) 대조할 수 있다. `LogMessage.cs`(10줄)는 문자열 인자를 받아 `Debug.Log`로 찍어주는 최소 유틸로, VR 헤드셋 안에서는 콘솔 창이 안 보이기 때문에 XRI 이벤트(`UnityEvent`)에 이 함수를 인스펙터에서 연결해 로그를 남기는 디버깅 보조용으로 보인다.
+> **원본 강의자료 PDF는 없다.** (`Assets/TextMesh Pro/Documentation/`의 PDF는 TextMesh Pro 패키지 자체의 사용자 가이드일 뿐 — zombieStudy·ARstudy에 이어 3번째로 "패키지에 딸려온 PDF ≠ 강의자료"인 사례.)
+
+## 11-1. XR Interaction Toolkit API 마이그레이션 — 파라미터 기반 → EventArgs 기반
+
+- **한 줄 정의**: 예전 XRI는 `OnSelectEntered(XRBaseInteractable interactable)`처럼 상호작용 대상을 매개변수로 직접 받았지만, 최신 XRI는 `OnSelectEntered(SelectEnterEventArgs args)`처럼 이벤트 인자 객체(`args.interactableObject`/`args.interactorObject`) 안에 정보를 담아 전달하는 방식으로 API 전체가 바뀌었다.
+- **왜 중요한가**: `unity_핵심정리.md`에서 반복 확인해온 "API 마이그레이션을 직접 겪은 경험" 테마(St3의 `WWW`, zombieStudy의 AssetBundle, ARstudy의 Input System) 중 이 프로젝트가 가장 촘촘한 사례다 — `OnSelectEntered`/`OnSelectExited`/`OnSelectEntering`/`OnActivate`→`OnActivated`/`OnDeactivate`→`OnDeactivated`까지 거의 모든 오버라이드 지점이 구·신 버전 쌍으로 주석에 남아있어, "왜 EventArgs 방식으로 바뀌었는가"를 코드 자체로 설명할 수 있다.
+- **내 코드에서 어떻게 썼는지**: `CustomDirectInteractor.cs:45-49`
+  ```csharp
+  // 구버전: protected override void OnSelectEntered(XRBaseInteractable interactable)
+  protected override void OnSelectEntered(SelectEnterEventArgs args)
+  {
+      base.OnSelectEntered(args);   // XR 내부 상태 처리를 위해 반드시 호출
+      XRBaseInteractable interactable = args.interactableObject as XRBaseInteractable;   // 캐스팅해서 꺼내씀
+      if (interactable == null) return;
+      ...
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - 왜 굳이 객체 하나로 감싸는 방식으로 바꿨을까? (매개변수를 계속 늘리지 않고도 이벤트에 필요한 정보(대상, 손, 추가 메타데이터 등)를 하나의 객체에 자유롭게 추가할 수 있게 되어 API 확장성이 좋아짐 — 이후 XRI 버전이 새 정보를 추가해도 메서드 시그니처 자체는 안 바뀌는 게 핵심 이점)
+  - `base.OnSelectEntered(args)`를 호출하지 않으면 어떻게 되는가? (코드 주석에 "XR 시스템 내부 선택 처리 유지. base를 호출 안하면 내부 상태 처리 일부가 꼬일 수 있다"고 직접 남겨둠 — 오버라이드해서 기능을 "추가"하는 것이지 "대체"하는 게 아니라는 걸 명확히 인지하고 있었다는 증거)
+- **최신 동향 (웹서칭 결과)**: XR Interaction Toolkit은 지금도 활발히 개발 중인 패키지라 마이너 버전마다 API가 조정되는 편이다 — `args` 기반 이벤트 설계는 현재 최신 버전까지도 유지되는 방향이지만, 구체적인 필드명/이벤트 이름은 버전마다 소소하게 달라질 수 있어 **확인 필요**: 실무에 투입 시 프로젝트의 정확한 XRI 버전 문서를 항상 재확인하는 습관이 필요하다.
+
+## 11-2. `XRDirectInteractor` 확장 — 잡은 오브젝트의 정보 토글
+
+- **한 줄 정의**: `XRDirectInteractor`를 상속해 `OnSelectEntered`/`OnSelectExited`를 오버라이드하고, 손이 오브젝트를 잡는 순간 그 오브젝트의 첫 번째 자식(설명 텍스트 등으로 추정)을 활성화하고 놓으면 다시 비활성화하는 커스터마이징.
+- **왜 중요한가**: XRI가 기본 제공하는 상호작용자(Interactor)를 그대로 쓰지 않고 상속으로 확장해서 "이 프로젝트만의 규칙"을 끼워넣는 가장 기본적인 커스터마이징 패턴 — 게임별로 "잡았을 때 무엇을 보여줄지"가 다 다르기 때문에 실전에서 꼭 필요해지는 지점이다.
+- **내 코드에서 어떻게 썼는지**: `CustomDirectInteractor.cs:70-73`
+  ```csharp
+  // 자식 존재 여부를 먼저 확인한 뒤에 접근 (아래 11-2번 이슈 참고)
+  if (interactable.transform.childCount > 0)
+  {
+      interactable.transform.GetChild(0).gameObject.SetActive(true);
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - `interactable.transform.GetChild(0) != null`(구버전, 코드에 주석으로 남음)이 왜 위험한 코드인가? (`GetChild(0)`은 인덱스에 자식이 없으면 `null`을 반환하는 게 아니라 그 자리에서 즉시 예외를 던짐 — "없으면 null" 가정 하에 짠 `!= null` 비교는 자식이 하나도 없는 오브젝트를 잡는 순간 크래시로 이어진다. 학생이 이 문제를 직접 발견하고 `childCount > 0`으로 먼저 개수를 확인하도록 고쳐뒀다는 것이 코드 주석에 명시되어 있음 — 실제로 고쳐진 버그 사례)
+  - 왜 굳이 "0번째 자식"으로 접근하는 방식을 썼을까? (프리팹 구조상 "정보 표시용 오브젝트"가 항상 첫 번째 자식으로 고정되어 있다는 암묵적 규칙에 의존 — 자식 순서가 바뀌면 조용히 엉뚱한 오브젝트를 토글하게 되므로, 이름이나 태그로 찾는 방식이 더 안전할 수 있다는 점은 실무 코드리뷰에서 나올 법한 지적)
+- **최신 동향**: 인터랙터를 상속해 이벤트를 오버라이드하는 확장 방식은 XRI의 공식적으로 권장되는 커스터마이징 경로이며 지금도 변화 없이 유효하다.
+
+## 11-3. `XRGrabInteractable` 확장 — 왼손/오른손 다른 어태치 포인트
+
+- **한 줄 정의**: 잡는 손(Interactor)의 태그(`"Left Hand"`/`"Right Hand"`)를 확인해서, 오브젝트 하나에 미리 만들어둔 두 개의 부착 지점(`left_grab_transform`/`right_grab_transform`) 중 하나로 `attachTransform`을 바꿔주는 양손 대응 그랩 커스터마이징.
+- **왜 중요한가**: 왼손과 오른손이 같은 물건을 쥐는 자세가 다를 수밖에 없는(예: 총, 활, 양손 도구) VR 인터랙션에서 실전적으로 자주 필요한 패턴 — "어느 손이 잡았는가"에 따라 물건 쪽(Interactable)의 설정을 바꾼다는 접근이 핵심이다.
+- **내 코드에서 어떻게 썼는지**: `CustomGrabInteractable.cs:111-143` (`OnSelectEntering`에서 처리, 순서 주석 포함)
+  ```csharp
+  protected override void OnSelectEntering(SelectEnterEventArgs args)
+  {
+      XRBaseInteractor interactor = args.interactorObject as XRBaseInteractor;
+      if (interactor == null) return;
+
+      if (interactor.CompareTag("Left Hand"))  this.attachTransform = left_grab_transform;
+      else if (interactor.CompareTag("Right Hand")) this.attachTransform = right_grab_transform;
+
+      // 중요: attachTransform을 먼저 정한 다음 base를 호출해야
+      // 이번 잡기 동작에서 바로 왼손/오른손 위치가 적용된다.
+      base.OnSelectEntering(args);
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - 어느 손인지 확인할 때 왜 `interactor.name`이 아니라 `CompareTag`를 쓰는가? (코드 주석에 직접 "Tag로 확인 하는것이 더 좋다"고 남아있음 — 오브젝트 이름은 씬마다 다르게 지어질 수 있고 리네이밍에도 취약하지만, 태그는 프로젝트 전역에서 의미가 고정되어 있어 훨씬 안정적인 식별 수단)
+  - `attachTransform`을 사물(Interactable) 쪽에 두 개 만들어두는 설계와, 손(Interactor) 쪽의 `attachTransform`을 바꾸는 설계의 차이는? (주석에서 직접 비교: 손 쪽을 바꾸면 "이 손이 무엇을 잡든" 항상 같은 자세가 되어버려 물건마다 다른 잡는 자세를 표현할 수 없음 — 사물마다 "내가 잡히는 지점"을 스스로 들고 있는 이 설계가 물건 종류가 늘어나도 손 쪽 코드를 안 건드려도 되는 확장성이 있음)
+  - `OnSelectEntering`과 `OnSelectEntered`(11-1번)의 차이는? (`OnSelectEntering`은 실제 선택이 "완료되기 직전"에 호출되고, `OnSelectEntered`는 선택이 "이미 완료된 후" 호출됨 — 그래서 `attachTransform`처럼 선택이 확정되기 전에 미리 세팅해둬야 그 잡기 동작에 바로 반영되는 값은 `Entering` 단계에서 처리해야 함)
+- **최신 동향**: 왼손/오른손을 태그로 구분해 어태치 포인트를 다르게 설정하는 기법은 지금도 XRI 기반 VR 개발의 표준적인 관용구다.
+
+## 11-4. Select vs Activate — XRI의 이중 입력 체계
+
+- **한 줄 정의**: XRI는 "쥐기"(Select, 보통 그립 버튼)와 "쓰기"(Activate, 보통 검지 트리거 버튼)를 서로 다른 이벤트 계열로 분리해서 제공한다 — `OnSelectEntered`/`Exited`가 잡기/놓기를, `OnActivated`/`OnDeactivated`가 쥔 상태에서 트리거를 당기고 떼는 동작을 담당한다.
+- **왜 중요한가**: 현실의 도구 사용을 그대로 반영한 설계 — 총을 손에 쥐는 것(Select)과 방아쇠를 당기는 것(Activate)은 서로 다른 동작이라는 점을 코드 구조 자체가 강제한다. 이 구분을 모르면 "쥐는 순간"과 "쓰는 순간"을 하나의 이벤트에 억지로 욱여넣게 된다.
+- **내 코드에서 어떻게 썼는지**: `CustomGrabInteractable.cs:186-203`
+  ```csharp
+  // 왼손으로 잡아서 트리거(검지) 버튼 눌르면 텍스트 메쉬가 나올거다.
+  // OnActivate/OnDeactivate는 Update처럼 계속 도는 게 아니라, 누르는 순간(Activate)/떼는 순간(Deactivate)에만 호출된다.
+  protected override void OnActivated(ActivateEventArgs args)
+  {
+      base.OnActivated(args);
+      if (this.transform.childCount > 0)
+          this.transform.GetChild(0).gameObject.SetActive(true);   // 총 게임이라면 여기서 총알 발사 로직이 들어갈 자리
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - Activate 이벤트를 받으려면 어떤 조건이 먼저 성립해야 하는가? (먼저 Select 상태(잡고 있는 상태)여야 Activate 입력이 의미를 가짐 — 놓친 물건에 대고 트리거를 당겨도 그 물건의 `OnActivated`는 호출되지 않음, 즉 Activate는 Select에 종속된 부가 입력)
+  - 이 구분이 없다면 어떤 게임에서 문제가 될까? (양손 무기 게임처럼 "쥐는 자세"와 "발사 타이밍"을 독립적으로 제어해야 하는 경우, 하나의 이벤트로 처리하면 트리거를 당기기 전에 이미 무기가 발사된 것처럼 동작하는 등 손맛이 어긋나는 문제가 생길 수 있음)
+- **최신 동향**: Select/Activate의 이중 입력 체계는 XRI의 핵심 설계 철학으로 지금도 유지되며, Meta Quest뿐 아니라 대부분의 VR 컨트롤러(그립+트리거 물리 버튼 구성)와 자연스럽게 맞아떨어져 업계 표준처럼 쓰인다.
+
+---
+
+**VR_meta에서 이미 고쳐져 있던 부분** (참고: 다른 프로젝트와 달리 이번엔 학생이 스스로 발견하고 수정까지 마친 버그라 "고쳐볼 만한 부분" 대신 별도로 기록)
+
+1. **`GetChild(0) != null` → `childCount > 0`** (11-2번 항목) — 구버전 코드는 `transform.GetChild(0) != null`로 자식 존재 여부를 확인하려 했지만, `GetChild(0)`은 인덱스에 자식이 없으면 `null`이 아니라 즉시 예외를 던진다. 자식이 하나도 없는 오브젝트를 잡으면 그 자리에서 크래시가 나는 구조였고, 학생이 이를 `childCount > 0` 사전 검사로 직접 고쳐 `CustomDirectInteractor.cs`/`CustomGrabInteractable.cs` 양쪽 모두에 일관되게 반영했다.
