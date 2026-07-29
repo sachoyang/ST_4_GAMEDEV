@@ -6,6 +6,7 @@
 > **제외한 폴더**: `ChainRiposte`, `DGC`, `PUZZLE`, `SoulsServer`, `assets`, `SuperMarioBros`(개인적으로 별도 진행한 프로젝트).
 > **바탕화면의 `FSM`은 `Study\Unity\FSM`(16번)과 사실상 동일 프로젝트**임을 diff로 확인함 — `Study\Unity\FSM` 쪽이 인코딩이 바르고 `EnemyPatrolState.OnStateExit`가 마저 구현된 더 나중/완성된 버전이라, 16번 항목에서 한 번만 다루고 바탕화면 사본은 별도 처리하지 않는다.
 > **`DressUpAsset`, `JSON`(바탕화면)은 학생이 짠 프로젝트가 아니라 강의 PDF/예제 zip**이다(`DressUpAsset`은 ibatstudio 강의자료로 확인됨). 이 두 항목은 "내 코드"가 아니라 "학습한 개념"으로 명시해서 정리한다.
+> **`다차원배열에디터`(바탕화면)도 학생 코드가 아니라 강사가 완성해서 준 예제**다(`설명서.txt`에 "강사 선물"로 명시, 사용자 확인). "학습한 개념(출처: 강사 예제)"로 정리한다.
 
 ## 프로젝트 목록 (생성일 순)
 
@@ -24,18 +25,19 @@
 | 11 | `ARstudy` | 2026-05-13 | ✅ 완료 |
 | 12 | `ModelURP` | 2026-05-15 | 🚫 제외 (학생 코드 없음, `TutorialInfo/Scripts`는 Unity URP 템플릿 보일러플레이트뿐 — 3D 모델(Glavenus/Nergigante)을 URP에서 렌더링 테스트해본 프로젝트로 추정) |
 | 13 | `VR_meta` | 2026-05-19 | ✅ 완료 |
-| 14 | `UnityDll` | 2026-06-10 | ⏳ 대기 |
-| 15 | `URPassets3D` | 2026-06-23 | ⏳ 대기 |
-| 16 | `FSM` | 2026-06-24 | ⏳ 대기 |
-| 17 | `ShaderST` | 2026-07-07 | ⏳ 대기 |
-| 18 | `Localization` | 2026-07-14 | ⏳ 대기 |
-| 19 | `Crypt` | 2026-07-21 | ⏳ 대기 |
-| 20 | `Art` | 2026-07-23 | ⏳ 대기 |
-| 21 | `Astar`(바탕화면) | 불확실 | ⏳ 대기 |
-| 22 | `St5`(바탕화면) | 불확실 | ⏳ 대기 |
-| 23 | `우선순위HeapSort`(바탕화면) | 불확실 | ⏳ 대기 |
-| 24 | `DressUpAsset`(바탕화면, 강의자료) | 불확실 | ⏳ 대기 |
-| 25 | `JSON`(바탕화면, 강의자료) | 불확실 | ⏳ 대기 |
+| 14 | `UnityDll` | 2026-06-10 | ✅ 완료 |
+| 15 | `URPassets3D` | 2026-06-23 | 🚫 제외 (학생 코드 없음, `Mirza Beig`/`UnityTechnologies ParticlePack`/`TutorialInfo` 전부 서드파티·URP 템플릿, `LeartesStudios`/`Fantasy Skybox`/`SkySeries` 등 무료 3D·환경 에셋을 임포트해서 미리보기해본 프로젝트로 추정, 씬도 기본 샘플 씬 그대로) |
+| 16 | `FSM` | 2026-06-24 | ✅ 완료 |
+| 17 | `ShaderST` | 2026-07-07 | ✅ 완료 |
+| 18 | `Localization` | 2026-07-14 | ✅ 완료 |
+| 19 | `Crypt` | 2026-07-21 | ✅ 완료 |
+| 20 | `Art` | 2026-07-23 | ✅ 완료 |
+| 21 | `Astar`(바탕화면) | 불확실 | ✅ 완료 |
+| 22 | `St5`(바탕화면) | 불확실 | 🔗 별도 정리 안 함(zombieStudy(8번)의 더 이른/작은 스냅샷으로 확인 — zombieStudy 섹션 상단 노트 참고) |
+| 23 | `우선순위HeapSort`(바탕화면) | 불확실 | ✅ 완료 |
+| 24 | `DressUpAsset`(바탕화면, 강의자료) | 불확실 | ✅ 완료 |
+| 25 | `JSON`(바탕화면, 강의자료) | 불확실 | ✅ 완료 |
+| 26 | `다차원배열에디터`(바탕화면, 강사 예제) | 불확실 | ✅ 완료 |
 
 ---
 
@@ -2016,6 +2018,7 @@ St3 전체(60개 스크립트, 6676줄, 5단계)를 관통해서 반복적으로
 
 > `C:\Study\Unity\zombieStudy\Assets\03. Scripts` — Photon PUN(구버전 Photon Unity Networking Classic)을 이용한 멀티플레이어 좀비 슈팅. 지금까지 정리한 프로젝트 중 처음으로 네트워킹을 다룬다. 스크립트 27개(4844줄, St5·St3에 이어 규모가 큰 편)를 확인했고, 그중 `ParticleSystemMultiplier.cs`/`ExplosionPhysicsForce.cs`는 폴더 위치(`03. Scripts`)와 무관하게 `namespace UnityStandardAssets.Effects`로 선언된 Standard Assets 코드라 제외했다. `MotorcyclePack_`, `Photon Unity Networking`, `PhotonChatApi`, `Standard Assets` 폴더도 전부 서드파티/공식 에셋이라 정리 대상에서 제외.
 > **원본 강의자료 PDF는 없다.** 프로젝트 폴더에 `PhotonNetwork-Documentation.pdf`가 있어서 `00_작업계획.md`에는 "PDF 있음(미확인)"으로 기록해뒀었는데, 실제로 열어보니 이건 강사가 배포한 튜토리얼 자료가 아니라 Photon SDK 자체의 공식 레퍼런스 문서였다 — 대조할 원본이 없으므로 이번 항목은 코드 자체 분석과 주석(학생이 직접 남긴 학습 메모가 매우 상세함)에만 근거한다.
+> **바탕화면 `St5`(21번 다음 순번)는 별도로 정리하지 않는다.** 확인 결과 `St5/Assets/03. Scripts`의 스크립트 18개 중 15개(`BaseCtrl.cs`/`EnemyCtrl.cs`/`PlayerCtrl.cs`/`StageManager.cs`/`BulletCtrl.cs`/`EnemyWeapon.cs`/`EnemyLife.cs`/`ExplosionObject.cs`/`SmoothFollowCam.cs`/`DestructionRay.cs`/`Billboard.cs`/`CreateGizmo.cs`/`SelectGizmo.cs`/`RoamingBox.cs`/`AutoDestroy.cs`)가 이 프로젝트와 **파일명이 완전히 동일**하고, 핵심 로직(터렛 자동조준(8-8), 코루틴 기반 우선순위 FSM(8-6), 전처리기 지시자(8-11))도 그대로 겹친다 — `St5`는 Photon 멀티플레이어화(PhotonView/RPC 등)와 모터사이클/블러드 데칼/감정 표현 등 부가 콘텐츠가 붙기 **이전의 더 작고 이른 스냅샷**으로 보인다. `PlayerCtrl.cs`는 한 걸음 더 거슬러 올라가 St3-A(5-1/5-3번)의 학습용 스텁 `Study1/PlayerCtrl.cs`(246줄, `SendMessage`/이벤트 비교 예제만 있음)과도 뒤쪽 코드 블록이 토씨 하나 안 틀리고 동일 — 같은 클래스가 St3(학습 스텁) → St5(단일 플레이어 완성형) → zombieStudy(Photon 멀티플레이어화) 순서로 이어진 것으로 판단된다. `St5`에만 있는 나머지 3개 파일(`Destructor.cs`/`DoorCtrl.cs`/`PlayerMoveCtrl.cs`)도 자동 파괴 타이머·트리거 기반 문 열림·`CharacterController` 이동처럼 이미 다른 프로젝트(ST1/3D_ST1 등)에서 여러 번 다룬 기초 패턴이라 새로 추가할 내용이 없었다.
 
 ## 8-1. PhotonView 네트워크 오브젝트 소유권 — `pv.isMine` / `pv.ownerId`
 
@@ -2709,3 +2712,1402 @@ St3 전체(60개 스크립트, 6676줄, 5단계)를 관통해서 반복적으로
 **VR_meta에서 이미 고쳐져 있던 부분** (참고: 다른 프로젝트와 달리 이번엔 학생이 스스로 발견하고 수정까지 마친 버그라 "고쳐볼 만한 부분" 대신 별도로 기록)
 
 1. **`GetChild(0) != null` → `childCount > 0`** (11-2번 항목) — 구버전 코드는 `transform.GetChild(0) != null`로 자식 존재 여부를 확인하려 했지만, `GetChild(0)`은 인덱스에 자식이 없으면 `null`이 아니라 즉시 예외를 던진다. 자식이 하나도 없는 오브젝트를 잡으면 그 자리에서 크래시가 나는 구조였고, 학생이 이를 `childCount > 0` 사전 검사로 직접 고쳐 `CustomDirectInteractor.cs`/`CustomGrabInteractable.cs` 양쪽 모두에 일관되게 반영했다.
+
+---
+
+# 12. UnityDll (2026-06-10)
+
+> `C:\Study\Unity\UnityDll\Assets\Study` — Unity 네이티브 플러그인 연동 실습. Unity 프로젝트 안에는 `Study1.cs`(C++ DLL P/Invoke), `Study2.cs`(빈 스크립트), `Study3.cs`(배열/인스펙터 직렬화 문법) 3개뿐이지만, **DLL 두 개(`Assets/Plugins/UnityDllCpp.dll`, `UnityDllCs.dll`)를 만든 원본 소스가 Unity 프로젝트 바깥의 별도 Visual Studio 프로젝트로 존재**해서 같이 대조했다: `C:\Study\UnityDllCpp`(C++ DLL, `Study.h`/`Study.cpp`), `C:\Study\UnityDllCs`(C# 클래스 라이브러리, `YComponent.cs`). 코드뿐 아니라 씬 파일(`SampleScene.unity`)도 직접 대조해서 에디터에서 실제로 무엇을 어디에 붙였는지까지 확인했다.
+> **원본 강의자료 PDF는 없다.** (패키지 캐시의 PDF는 Code Coverage 패키지 자체의 튜토리얼 워크시트 — zombieStudy·ARstudy·VR_meta에 이은 4번째 같은 오판 방지 사례.)
+
+## 12-1. 네이티브 C++ 플러그인 연동(P/Invoke) 기본기
+
+- **한 줄 정의**: Unity C#에서 `[DllImport("dll이름")] extern` 선언으로 네이티브 DLL의 함수를 직접 호출할 수 있다. DLL 쪽은 `extern "C"` + `__declspec(dllexport)`로 함수를 내보내야 하고, 솔루션 플랫폼을 Unity 설치 버전과 같은 아키텍처(x64)로 맞춰야 한다.
+- **왜 중요한가**: C#만으로 안 되는 성능/레거시 코드 재사용(기존 C++ 라이브러리, OS API 등)이 필요할 때 쓰는 표준적인 확장 경로다. 왜 `extern "C"`가 필요한지(C++ 네임 맹글링 때문에 C#의 `DllImport`가 함수 이름을 못 찾음)를 설명할 수 있는지가 면접 포인트.
+- **내 코드에서 어떻게 썼는지**: `Study1.cs:11-24` ↔ `C:\Study\UnityDllCpp\UnityDllCpp\Study.h`
+  ```csharp
+  [DllImport("UnityDllCpp")]
+  private static extern int GetNum1();
+  ```
+  ```cpp
+  extern "C" { int EXPORT GetNum1(); }   // EXPORT는 __declspec(dllexport) 매크로
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - `extern "C"`를 빼면 어떻게 되는가? (C++ 컴파일러가 오버로딩 지원을 위해 함수명을 네임 맹글링해서 바꿔버리기 때문에, C#의 `DllImport("UnityDllCpp")`가 찾는 원래 이름의 함수를 DLL 안에서 찾지 못해 `EntryPointNotFoundException`이 남)
+  - 왜 x64로 솔루션 플랫폼을 맞춰야 하는가? (Unity 에디터/빌드가 64비트로 돌면 로드하는 네이티브 DLL도 반드시 64비트여야 함 — 아키텍처가 안 맞으면 DLL 자체를 못 불러옴)
+- **최신 동향**: 네이티브 플러그인 연동 방식(`DllImport` + `extern "C"`)은 지금도 Unity의 표준 네이티브 플러그인 방식으로 유효하다. 최근에는 성능이 더 중요한 경우 Burst Compiler + Job System, 혹은 IL2CPP 환경에서의 네이티브 연동 등 대체/보완 기술도 쓰이지만, 기본 P/Invoke 방식 자체는 바뀌지 않았다.
+
+## 12-2. DLL 전역 상태의 생명주기와 위험성
+
+- **한 줄 정의**: 네이티브 DLL 안의 전역 변수는 DLL이 프로세스에 로드되어 있는 동안 계속 값을 유지한다 — Unity 에디터에서 Play를 여러 번 눌러도 DLL이 언로드되지 않는 한 초기화되지 않는다.
+- **왜 중요한가**: C#의 스크립트 인스턴스는 Play 종료 시 초기화되지만, 네이티브 DLL의 전역 상태는 그와 독립적으로 살아있다는 걸 모르면 "분명 처음 실행인데 값이 이상하다"는 버그를 마주하게 된다. 실제로 학생이 이 문제를 직접 겪고 리셋 함수를 따로 만들어 대응한 사례.
+- **내 코드에서 어떻게 썼는지**: `UnityDllCpp/Study.cpp`
+  ```cpp
+  int a;   // 전역변수 — DLL이 로드되어 있는 한 계속 유지됨
+  int EXPORT GetNum3() { return a++; }
+  void EXPORT ResetA() { a = 0; }   // 초기화 안 하면 호출할 때마다 계속 증가
+  ```
+  `Study1.cs:39`에서 `GetNum3()` 호출 전에 반드시 `ResetA()`를 먼저 호출.
+- **주의할 점 / 자주 나오는 꼬리 질문**: DLL 전역 상태를 관리하는 더 안전한 대안은? (매번 리셋 함수를 수동 호출하는 대신, "세션 시작/종료" 개념의 Init/Shutdown 함수 쌍을 만들어 명시적으로 상태를 관리하는 패턴이 실무에서 더 흔히 쓰임)
+- **최신 동향**: 확인 필요 없음 — 네이티브 DLL의 전역 변수 생명주기는 언어/플랫폼 차원의 근본적인 동작이라 시간이 지나도 바뀌지 않는 사실이다.
+
+## 12-3. 포인터/배열 마샬링 — `IntPtr` + `unsafe` + `fixed`
+
+- **한 줄 정의**: C++ 함수가 `int*`를 리턴하면 C# 쪽은 이를 `IntPtr`로 받은 뒤, `unsafe` 코드 블록 안에서 `(int*)`로 캐스팅해 포인터 연산으로 값을 읽어와야 한다.
+- **왜 중요한가**: C#은 기본적으로 GC가 메모리를 옮길 수 있어 포인터를 안전하게 다루기 어렵다 — 그래서 포인터를 쓰려면 `unsafe` 한정자와 Player Settings의 "Allow unsafe code" 체크가 필요하고, 이상적으로는 `fixed`로 메모리를 고정해야 한다는 점까지 이해하고 있는지가 핵심.
+- **내 코드에서 어떻게 썼는지**: `Study1.cs:54-70`
+  ```csharp
+  unsafe void GetNumArr1()
+  {
+      IntPtr data = GetNum4();               // C++의 int* 를 IntPtr로 수신
+      var temp = (int*)data.ToPointer();     // unsafe 캐스팅
+      for (int i = 0; i < 100; i++)
+          arr1[i] = temp[i];                 // 포인터 연산으로 값 읽기
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - 왜 `fixed`를 안 쓰고도 일단 동작하는가? (이 경우 포인터가 가리키는 메모리가 C++ DLL 쪽의 정적/전역 배열이라 C# GC의 관리 대상이 아니어서 이동하지 않기 때문 — 코드 하단 주석에 "참고"로 `fixed` 사용법도 남겨둠. 만약 C# 쪽 관리 메모리를 포인터로 넘겼다면 `fixed`로 고정하지 않을 시 GC가 옮겨서 주소가 깨질 수 있음)
+  - 왜 `arr1`을 미리 `new int[100]`으로 크기를 잡아두는가? (`Awake()`에 남은 주석 "못가져옴"이 힌트 — `GetNum4()`의 리턴값을 배열에 직접 대입하는 시도는 실패했고, 크기를 미리 잡은 배열에 한 칸씩 복사해 넣는 방식으로 우회한 시행착오가 코드에 그대로 남아있음)
+- **최신 동향**: 확인 필요 없음 — `unsafe`/`fixed`/`IntPtr` 조합은 C# 언어 차원의 기본 상호운용 메커니즘으로 지금도 동일하게 유효하다.
+
+## 12-4. (발견) 구현은 됐지만 Unity에 연결되지 않은 고급 마샬링
+
+- **한 줄 정의**: C++ DLL 소스(`Study.h`/`Study.cpp`)에는 구조체 포인터 마샬링(`GetNum5`, 유니코드 문자열 포함)과 2차원 배열 포인터 리턴(`GetNum6`, `int(*)[10]`)까지 구현돼 있지만, 정작 Unity의 `Study1.cs`에는 이 두 함수를 호출하는 코드가 없다.
+- **왜 중요한가**: 배운 개념(구조체 마샬링, 다차원 배열 리턴)과 실제로 프로젝트에 연결해 쓴 개념 사이에 간극이 있다는 걸 코드 대조로 직접 확인한 케이스 — "구조체나 다차원 배열도 마샬링해본 적 있는가?"라는 면접 질문에 "이론은 익히고 DLL에도 구현했지만, 그 프로젝트에서 Unity 스크립트까지 연결하진 않았다"고 정직하게 답할 수 있는 근거가 된다.
+- **내 코드에서 어떻게 썼는지**: `UnityDllCpp/Study.h`
+  ```cpp
+  typedef struct stAll {
+      const WCHAR* strTest1;      // 유니티에서 ANSI 문자열 리터럴은 안 되고 유니코드(L"...")만 동작(주석에 직접 명시)
+      WCHAR strTest2[256];
+      int   intTest;
+      BYTE  byteTest[64];
+      UINT  uintTest[4];
+      int   arrys[100];
+      int   raw, col;
+  } typestAll;
+  void EXPORT GetNum5(typestAll* allTemp);   // 구조체 포인터로 입출력
+  int EXPORT (*GetNum6())[10];               // 2차원 배열 포인터 리턴
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: 왜 문자열은 `WCHAR`(유니코드)만 되고 `char`(ANSI)는 안 되는가? (`Study.cpp` 주석에 "유니티에서 ANSI 방식의 문자열 상수는 안되는듯???"이라고 직접 남겨둠 — Unity/C#의 기본 마샬링 관례가 유니코드(UTF-16) 기준이기 때문. `char`/ANSI 문자열을 넘기려면 마샬링 어트리뷰트를 명시적으로 지정해야 함)
+- **최신 동향**: 확인 필요 없음 — 구조체/다차원 배열 마샬링 방식 자체는 P/Invoke의 기본 규칙이라 변하지 않는다.
+
+## 12-5. 순수 C# 플러그인 DLL 만들기 — Unity 없이 `MonoBehaviour` 컴파일하기
+
+- **한 줄 정의**: 별도의 C# 클래스 라이브러리 프로젝트에서 `UnityEngine.CoreModule.dll`을 참조로 추가하면 Unity 프로젝트 밖에서도 `MonoBehaviour`를 상속한 컴포넌트를 작성·컴파일해서 순수 C# DLL로 만들 수 있고, 이 DLL을 `Assets/Plugins`에 넣으면 일반 스크립트처럼 컴포넌트로 부착할 수 있다.
+- **왜 중요한가**: 네이티브(C++) 플러그인 연동(12-1~12-4)과는 다른 축의 "DLL화" 방법 — 같은 프로젝트에서 두 종류의 플러그인 제작 방식(네이티브 DLL, 관리되는 C# DLL)을 한 번에 실습한 사례. 사내 공용 컴포넌트를 DLL로 배포하는 실무 시나리오와 직결된다.
+- **내 코드에서 어떻게 썼는지**: `C:\Study\UnityDllCs\UnityDllCs\YComponent.cs`
+  ```csharp
+  namespace UnityDllCs
+  {
+      [AddComponentMenu("YComponent.YComponent")]   // Add Component 검색창에 뜨는 메뉴 경로 지정
+      public class YComponent : MonoBehaviour
+      {
+          public UnityEngine.Sprite sprite;
+          public Texture texture;
+          public UnityEngine.UI.Image img;
+          void Start() { Debug.Log("DLL works"); }
+      }
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - DLL을 배포할 때 뭘 같이 넘겨야 하는가? (빌드 결과물 중 직접 만든 `UnityDllCs.dll`만 복사하면 됨 — `UnityEngine.dll`/`UnityEngine.UI.dll`은 참조용으로만 쓰였을 뿐 대상 Unity 프로젝트가 이미 갖고 있으므로 같이 넘길 필요 없음)
+  - Unity 프로젝트의 API Compatibility Level과 무슨 관계가 있는가? (외부 클래스 라이브러리를 만들 때 Unity 프로젝트 설정의 .NET 버전(API Compatibility Level)과 동일한 프레임워크로 맞춰야 호환됨 — 안 맞으면 런타임에 타입/메서드가 안 맞아 오류가 날 수 있음)
+- **최신 동향**: 확인 필요 — Unity가 최근 Package Manager 기반 배포(UPM 패키지)를 더 권장하는 추세라, 단순 DLL 드롭 방식은 여전히 동작하지만 실무에서는 UPM 패키지화가 더 표준적인 배포 방법으로 자리잡고 있다.
+
+## 12-6. 에디터 작업 자체도 실습 기록 — 씬 파일로 확인한 실제 부착 내역
+
+- **한 줄 정의**: `SampleScene.unity`를 직접 대조한 결과, `YComponent.cs` 주석에 적힌 튜토리얼 순서(Main Camera 선택 → Add Component → 검색해서 부착)를 그대로 따라 **Main Camera에 실제로 `YComponent`가 부착**되어 있었고, `Study` 빈 오브젝트 하나에는 `Study1`+`Study2`+`Study3` 세 스크립트를 몰아서 붙여 실습한 흔적이 확인됐다.
+- **왜 중요한가**: 코드만 봐서는 "이 컴포넌트를 실제로 오브젝트에 붙여서 테스트했는지"까지는 알 수 없다 — 씬 파일(`.unity`, YAML)을 열어 `MonoBehaviour` 블록의 `m_Script` guid와 `.meta` 파일의 guid를 대조하면 에디터에서 실제로 한 작업(어떤 컴포넌트를 어디에 붙였는지)을 코드 밖에서 검증할 수 있다는 걸 보여주는 사례.
+- **내 코드에서 어떻게 썼는지**: `Assets/Scenes/SampleScene.unity`에서 Main Camera의 `MonoBehaviour` 블록 `m_Script: {fileID: -171144603, guid: 30799f863dc49024e9b2bab8324feddb, type: 3}` ↔ `Assets/Plugins/UnityDllCs.dll.meta`의 `guid: 30799f863dc49024e9b2bab8324feddb` — 정확히 일치해서 Main Camera에 `YComponent`가 붙어있음을 확인.
+- **주의할 점 / 자주 나오는 꼬리 질문**: `Study2.cs`(빈 스크립트)까지 `Study` 오브젝트에 붙여둔 이유는? (내용이 비어있는 걸 보면 나중에 쓰려고 자리만 잡아뒀거나 지우지 않은 실습 흔적으로 보임 — 실무였다면 정리 대상이지만, 학습 과정의 스냅샷으로는 그대로 두는 것도 자연스러움)
+- **최신 동향**: 해당 없음 — 씬 파일을 텍스트로 열어 guid를 대조하는 방법은 Unity의 YAML 씬 포맷 자체가 유지되는 한 계속 유효한 디버깅/검증 기법이다.
+
+## 12-7. Inspector 직렬화 규칙 — `[System.Serializable]`과 다차원 배열의 한계
+
+- **한 줄 정의**: `MonoBehaviour`가 아닌 일반 클래스도 `[System.Serializable]`을 붙이면 인스펙터에 필드가 펼쳐져서 노출되지만, `int[,]` 같은 다차원 배열은 이 어트리뷰트와 무관하게 기본적으로 인스펙터에 노출되지 않는다(1차원 배열과 가변길이(jagged) 배열은 노출됨).
+- **왜 중요한가**: "왜 이 필드는 인스펙터에 안 보이지?"라는 흔한 의문에 대한 답 — Unity의 기본 직렬화기가 지원하는 타입의 범위를 정확히 아는지가 커스텀 `PropertyDrawer`(St3-D, 10번 참고)를 언제 만들어야 하는지 판단하는 기준이 된다.
+- **내 코드에서 어떻게 썼는지**: `Study3.cs:4-18`
+  ```csharp
+  [System.Serializable]
+  public class MosterPower { public int[] power; }   // 일반 클래스도 노출 가능
+
+  public class Study3 : MonoBehaviour
+  {
+      public int[] arr1;                 // 노출 O
+      public int[,] arr2 = new int[3, 2] { ... };   // 기본적으로 노출 안 됨
+      public MosterPower monsPower1;               // 1차원(단일 객체) 노출 O
+      public MosterPower[] monsPower2;             // 배열로 감싸면 다차원처럼 표현하면서도 노출 O
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: 다차원 배열을 인스펙터에 노출하고 싶으면 어떻게 해야 하는가? (직접 지원되지 않으므로 `MosterPower[]`처럼 1차원 배열의 배열/직렬화 가능한 래퍼 클래스로 감싸서 우회하거나, St3-D에서 다룬 커스텀 `PropertyDrawer`를 만들어야 함 — 코드 주석에도 "커스텀으로 노출 시킬수 있지만 아직은 참자"라고 명시)
+- **최신 동향**: 확인 필요 없음 — Unity 기본 직렬화기의 다차원 배열 미지원은 오래 유지되어온 제약으로 최신 버전까지 동일하다.
+
+## 12-8. C# 배열 문법 총정리 — 1차원/다차원/가변길이(jagged)
+
+- **한 줄 정의**: C#은 1차원 배열(`int[]`), 다차원(사각) 배열(`int[,]`), 가변길이(jagged) 배열(`int[][]`, "배열의 배열")을 문법적으로 구분하며, 셋을 헷갈리지 않는 게 실전에서 중요하다.
+- **왜 중요한가**: Unity 스크립팅 자체보다는 C# 언어 기본기지만, 인스펙터 노출 여부(12-7번)와도 직결되고 면접에서 종종 개념 구분을 확인하는 질문이 나오는 영역.
+- **내 코드에서 어떻게 썼는지**: `Study3.cs:55-101` — `params` 키워드로 오버로드된 여러 `ArrDisplay` 함수로 세 종류 배열을 한 번에 출력해보는 유틸
+  ```csharp
+  static void ArrDisplay(params int[][] arr) { ... }   // 가변길이 배열 여러 개
+  static void ArrDisplay(int[,] arr) { ... }            // 다차원 배열 1개
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: 다차원 배열과 가변길이 배열의 실질적 차이는? (다차원 배열은 모든 행의 길이가 고정된 하나의 "사각형" 메모리 블록이고, 가변길이 배열은 각 요소가 독립적인 배열 참조라 행마다 길이가 달라질 수 있음 — 메모리 구조와 성능 특성이 다름)
+- **최신 동향**: 확인 필요 없음 — C# 배열 문법 자체는 언어 차원에서 안정적으로 유지되고 있다.
+
+---
+
+# 13. FSM (2026-06-24)
+
+> `C:\Study\Unity\FSM\Assets` — 유한 상태 기계(FSM)를 세 가지 다른 방식으로 구현해나간 진화 과정이 한 프로젝트 안에 그대로 남아있는 실습. `Enemy1.cs`(절차적 if/else) → `Enemy2.cs`(순수 C#으로 손수 짠 State 디자인패턴, 중첩 추상 클래스) → `Enemy3.cs` + `EnemyState`/`EnemyBaseState`/`Enemy{Patrol,Move,CheckAttack,Attack,Return,Runaway,Search,Timer}State.cs`(Unity `Animator`의 `StateMachineBehaviour` 기반 FSM, `EnemyController_1`~`EnemyController_3_2.controller` 5개 버전으로 반복 개선) 순서로 발전했다. 에디터 확장(커스텀 스크립트 템플릿, 단축키)도 실제로 만들어 쓴 흔적이 있어 코드 밖의 작업까지 반영했다.
+> **`Assets/Scripts/` 폴더의 `Enemy1~3.cs`/`Player.cs`/`dump.cs`는 diff 대조 결과 중간에 잘린 구버전/중복본**임을 확인 — 정리에는 루트(`Assets/` 바로 아래)의 최종 버전만 사용한다.
+> **원본 강의자료 PDF는 없다.**
+> **바탕화면의 `FSM`은 이 프로젝트와 사실상 동일 프로젝트**(diff로 확인, 이쪽이 인코딩이 바르고 `OnStateExit` 구현이 더 완성돼 있음)라 여기서 한 번만 다루고 바탕화면 사본은 별도 처리하지 않는다.
+
+## 13-1. 3단계로 진화한 FSM 구현 비교
+
+- **한 줄 정의**: 같은 "적이 플레이어를 추적/공격/순찰한다"는 문제를, ① 절차적 if/else → ② 손수 짠 State 디자인패턴(중첩 abstract 클래스) → ③ Unity `Animator` 기반 `StateMachineBehaviour`, 이렇게 서로 다른 세 가지 방식으로 순서대로 다시 구현해본 실습.
+- **왜 중요한가**: FSM은 게임 AI의 기본기지만, "왜 if/else로는 한계가 있고 State 패턴이 필요한가", "왜 순수 C# State 패턴에서 다시 Unity의 Animator 기반 FSM으로 옮겨갔는가"를 스스로 겪어본 코드가 남아있어 면접에서 각 방식의 장단점을 실제 경험을 근거로 설명할 수 있다.
+- **내 코드에서 어떻게 썼는지**: `Enemy1.cs`(if/else) → `Enemy2.cs:23,63-209`(손수 짠 State 패턴)
+  ```csharp
+  // Enemy2.cs — 순수 C# State 패턴
+  abstract public class State
+  {
+      protected Enemy2 _enemy;
+      public State(Enemy2 enemy) { _enemy = enemy; }
+      abstract public void OnEnter();
+      abstract public void OnUpdate();
+      abstract public void OnExit();
+  }
+  public class SearchState : State { /* ... */ }
+  public class MoveState : State { /* ... */ }
+  ```
+  → `Enemy3.cs` + `EnemyPatrolState.cs` 등(Animator 기반, 13-2번에서 상세)
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - if/else 방식의 한계는? (상태가 늘어날수록 조건문이 기하급수적으로 얽히고, 상태 진입/유지/종료 시점의 로직이 한 함수 안에 뒤섞여 유지보수가 어려워짐)
+  - 손수 짠 State 패턴에서 Animator 기반으로 다시 옮긴 이유는 무엇이었을 것 같은가? (Animator 기반은 상태 전환 그래프를 에디터에서 시각적으로 보고 관리할 수 있고, 애니메이션 재생과 상태 전환을 자연스럽게 묶을 수 있다는 이점이 있음 — 반대로 손수 짠 State 패턴은 애니메이션과 무관한 순수 로직 FSM에 더 적합해 게임 성격에 따라 선택이 갈릴 수 있음)
+- **최신 동향**: 확인 필요 없음 — 세 방식 모두 지금도 실무에서 쓰이는 유효한 FSM 구현 기법이며, 우열이 있다기보다 상황(애니메이션 연동 필요 여부, 상태 복잡도)에 따라 선택하는 문제다.
+
+## 13-2. `StateMachineBehaviour` 활용법
+
+- **한 줄 정의**: `StateMachineBehaviour`를 상속한 스크립트를 Animator의 개별 상태(State)에 붙이면, 그 상태에 진입/유지/종료될 때 `OnStateEnter`/`OnStateUpdate`/`OnStateExit`가 자동 호출된다.
+- **왜 중요한가**: 상태별 로직을 각각 별도의 작은 클래스 파일로 분리할 수 있어(`EnemyPatrolState`, `EnemyAttackState` 등) 하나의 거대한 스크립트에 모든 상태 로직을 몰아넣지 않아도 된다 — 책임 분리가 자연스럽게 강제되는 구조.
+- **내 코드에서 어떻게 썼는지**: `EnemyState.cs`(베이스) → `EnemyBaseState.cs`(공통 오버라이드 골격) → `EnemyPatrolState.cs`(실제 로직)
+  ```csharp
+  public class EnemyState : StateMachineBehaviour
+  {
+      protected Enemy3 _enemy;
+      override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
+      {
+          _enemy = animator.GetComponent<Enemy3>();   // 상태 진입 시 소유 오브젝트의 컴포넌트를 캐싱
+      }
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - `_enemy`를 매번 `OnStateEnter`마다 다시 가져오는 이유는? (`StateMachineBehaviour`는 `MonoBehaviour`가 아니라 Animator 상태에 종속된 별도의 객체라 필드가 매번 초기화되지 않는다는 보장이 없어, 안전하게 상태 진입마다 다시 캐싱하는 방어적 습관)
+  - `EnemySearchState.cs`만 `EnemyState`가 아니라 `StateMachineBehaviour`를 직접 상속하고 있는데 이건 실수인가? (기능적으로는 동일하게 동작하지만(둘 다 `_enemy` 캐싱 로직을 자체적으로 중복 구현), `EnemyState`를 상속했다면 코드 중복 없이 베이스의 `OnStateEnter`를 재사용할 수 있었을 것 — 일관성이 아쉬운 지점)
+- **최신 동향**: 확인 필요 없음 — `StateMachineBehaviour`는 Unity Animator 시스템의 표준 확장 지점으로 지금도 동일하게 유효하다.
+
+## 13-3. Animator Controller 파라미터/트랜지션으로 상태 전환 제어
+
+- **한 줄 정의**: 상태 전환 조건을 코드로 직접 분기하는 대신, Animator Controller에 파라미터(`hasTarget`(bool), `onTime`/`onAttack`(trigger))를 만들어두고 각 상태 스크립트가 `animator.SetBool`/`SetTrigger`로 파라미터만 바꾸면, 실제 전환은 에디터의 Animator 그래프(화살표)가 처리한다.
+- **왜 중요한가**: "언제 어느 상태로 갈지"를 코드가 아니라 시각적인 그래프로 관리할 수 있다는 게 Animator 기반 FSM의 핵심 장점 — 상태 스크립트는 "조건이 됐다"는 신호만 보내고, 실제 전환 로직(어디서 어디로)은 코드 밖(에디터)에 있다는 책임 분리 구조를 이해하는지가 포인트.
+- **내 코드에서 어떻게 썼는지**: `EnemyCheckAttackState.cs`(신호 보내기) ↔ `EnemyController_3_2.controller`(그래프에서 실제 전환 정의, Base Layer에 `Patrol`/`Search`/`Delay`/`Dash` 상태와 `hasTarget`/`onTime`/`onAttack` 파라미터 확인됨)
+  ```csharp
+  if (dist < _enemy._attackRange)
+      animator.SetTrigger("onAttack");   // "공격해도 될 조건"이라는 신호만 보냄, 실제 전환은 Animator 그래프가 처리
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: `EnemyController_1`부터 `_3_2`까지 5개나 남아있는 이유는? (Animator 그래프 자체를 갈아엎으며 반복 개선한 흔적 — 코드만으로는 안 보이는 "그래프 구조를 다시 설계해본 시행착오"가 파일 개수로 남아있는 사례. 최종본만 남기지 않고 버전을 그대로 둔 것도 학습 과정 기록 관점에서는 자연스러움)
+- **최신 동향**: 확인 필요 없음 — 파라미터 기반 트랜지션은 Unity Animator의 기본 설계로 지금도 동일하다.
+
+## 13-4. 커스텀 Script Template으로 FSM 상태 스크립트 자동 생성
+
+- **한 줄 정의**: `Assets/ScriptTemplates` 폴더에 `{우선순위}-{메뉴명}-{기본파일명}.cs.txt` 형식의 파일을 넣으면, Unity의 `Create > C# Script` 메뉴에 커스텀 항목이 추가되고 `#SCRIPTNAME#` 같은 예약어가 실제 생성될 클래스 이름으로 자동 치환된다.
+- **왜 중요한가**: `EnemyXXXState.cs` 8개 파일이 전부 `EnemyState`를 상속하고 `OnStateEnter`/`Update`/`Exit` 골격을 반복하는데, 이 반복 타이핑을 없애기 위해 직접 템플릿을 만들어 쓴 것 — 반복되는 보일러플레이트를 도구화하는 습관을 보여주는 지점.
+- **내 코드에서 어떻게 썼는지**: `ScriptTemplates/81-Enemy AI Script-EnemyBaseState.cs.txt`
+  ```csharp
+  public class #SCRIPTNAME#: EnemyState
+  {
+      override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
+      { base.OnStateEnter(animator, stateInfo, layerIndex); }
+      // OnStateUpdate / OnStateExit 골격도 함께 포함
+  }
+  ```
+  `Assets/Scripts/dump.cs`에 이 기능을 만드는 방법(예약어 종류, 우선순위 규칙, 파일 위치)을 정리해둔 메모가 남아있음.
+- **주의할 점 / 자주 나오는 꼬리 질문**: 왜 아무데나 막 쓰면 안 되고 "범위가 작은 항목"에만 쓰라고 메모해뒀을까? (커스텀 템플릿은 프로젝트 전역의 `Create` 메뉴에 영구적으로 항목을 추가하는 것이라, 남용하면 메뉴가 지저분해지고 다른 팀원에게 혼란을 줄 수 있음 — 정말 반복되는 특정 패턴(이 프로젝트의 FSM 상태 클래스처럼)에만 선별적으로 적용하라는 자각)
+- **최신 동향**: 확인 필요 없음 — Script Template 커스터마이징은 Unity 에디터의 오래된 표준 확장 기능으로 지금도 동일하게 동작한다.
+
+## 13-5. 에디터 확장 — 커스텀 키보드 단축키로 스크립트 생성
+
+- **한 줄 정의**: `[MenuItem]` 어트리뷰트의 메뉴 경로 문자열에 `%`(Ctrl/Cmd)·`&`(Alt)·`#`(Shift) 특수기호를 붙이면 그 메뉴 항목에 키보드 단축키가 자동으로 바인딩된다.
+- **왜 중요한가**: St3-C/D에서 다룬 `[MenuItem]`/`[CustomEditor]` 에디터 확장 어트리뷰트 계열(지금까지 4종 세트로 정리됨)에 "단축키 바인딩"이라는 새로운 활용 사례가 추가되는 지점 — 반복 작업을 마우스 클릭 없이 키 조합 하나로 줄이는 실전적인 생산성 도구화.
+- **내 코드에서 어떻게 썼는지**: `Editor/NewBehaviourScript.cs`
+  ```csharp
+  // Ctrl + Alt + N
+  [MenuItem("Custom Shortcuts/Create C# Script %&n")]
+  private static void CreateScript()
+  {
+      string templatesFolder = EditorApplication.applicationContentsPath + "/Resources/ScriptTemplates";
+      string[] candidates = Directory.GetFiles(templatesFolder, "*C# Script-NewBehaviourScript.cs.txt");
+      if (candidates.Length > 0)
+          ProjectWindowUtil.CreateScriptAssetFromTemplateFile(candidates[0], "NewScript.cs");
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: 왜 Unity 설치 폴더 안의 템플릿 경로(`EditorApplication.applicationContentsPath`)를 직접 찾아서 쓰는가? (13-4번의 프로젝트 전용 커스텀 템플릿과 달리, 이건 Unity가 기본 제공하는 "C# Script" 표준 템플릿을 그대로 재사용하려는 의도 — 굳이 자기가 템플릿 내용을 다시 작성하지 않고 기존 API(`ProjectWindowUtil.CreateScriptAssetFromTemplateFile`)를 활용한 점이 포인트)
+- **최신 동향**: 확인 필요 없음 — `[MenuItem]` 단축키 문법과 `ProjectWindowUtil` API는 Unity 에디터 확장의 안정적인 표준 기능이다.
+
+## 13-6. Player 이동 입력 처리 시행착오
+
+- **한 줄 정의**: `Player.cs`에는 이동 입력을 처리하는 세 가지 시도가 주석으로 나란히 남아있다 — `GetKeyDown`(누르는 순간만 감지), `Input.GetAxis`(부드러운 아날로그 입력), 최종적으로 채택된 `GetKey`(누르고 있는 동안 계속 감지).
+- **왜 중요한가**: "부적합 1", "부적합 2", "ok 3"이라는 직접 남긴 주석이 각 API의 차이를 실제로 겪어보며 왜 틀렸는지 판단한 과정을 보여줌 — `GetKeyDown`으로 이동 처리를 하면 키를 누르는 그 프레임 한 번만 이동하고 멈춰버린다는, 초심자가 흔히 하는 실수를 스스로 발견하고 고친 사례.
+- **내 코드에서 어떻게 썼는지**: `Player.cs:23-58`
+  ```csharp
+  // 부적합 1: GetKeyDown — 누르는 순간 프레임에만 반응해서 계속 눌러도 한 번만 이동함
+  // 부적합 2: Input.GetAxis — 정규화 처리 등 의도와 다르게 동작
+  // ok 3: 최종 채택
+  if (Input.GetKey(KeyCode.UpArrow))
+      transform.Translate(Vector2.up * speed * Time.deltaTime);
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: `GetKeyDown`과 `GetKey`의 정확한 차이는? (`GetKeyDown`은 키가 눌리는 "그 한 프레임"에만 `true`, `GetKey`는 누르고 있는 "모든 프레임" 동안 `true` — 지속적인 이동 같은 동작엔 `GetKey`, 점프처럼 한 번만 반응해야 하는 동작엔 `GetKeyDown`이 적합)
+- **최신 동향**: 확인 필요 — 레거시 `Input` 클래스는 여전히 동작하지만, Unity는 최근 New Input System으로의 전환을 권장하는 추세(ARstudy 10-5번에서 다룬 마이그레이션 사례와 연결).
+
+## 13-7. 피격 연출 코루틴 패턴
+
+- **한 줄 정의**: 피격 시 스프라이트를 잠깐 빨간색으로 바꿨다가 원래대로 되돌리는 연출을 코루틴(`Hit()`)으로 구현하고, 중복 피격 시 이전 코루틴을 `StopAllCoroutines()`로 먼저 정리한 뒤 새로 시작한다.
+- **왜 중요한가**: 코루틴을 시작하기 전에 이전 코루틴을 정리하지 않으면 여러 개가 동시에 돌면서 색상이 꼬이거나 예상치 못한 타이밍에 원상복구되는 버그로 이어지기 쉬운데, 이를 미리 방지하는 방어적 패턴을 실제로 적용한 사례.
+- **내 코드에서 어떻게 썼는지**: `Player.cs:66-79`
+  ```csharp
+  public void Damaged()
+  {
+      StopAllCoroutines();      // 이전 피격 연출이 진행 중이면 먼저 정리
+      StartCoroutine(Hit());
+  }
+  IEnumerator Hit()
+  {
+      _spriteRenderer.color = Color.red;
+      yield return new WaitForSeconds(0.1f);
+      _spriteRenderer.color = Color.white;
+  }
+  private void OnDestroy()
+  {
+      StopAllCoroutines();      // 오브젝트 파괴 시 습관적으로 정리
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: `OnDestroy`에서 `StopAllCoroutines()`를 호출하는 게 왜 필요한가? (오브젝트가 파괴돼도 이미 시작된 코루틴이 즉시 멈추는 게 아니라 다음 `yield` 지점까지 계속 실행되려 하다가 파괴된 오브젝트의 컴포넌트에 접근하며 에러를 낼 수 있음 — 명시적으로 끊어주는 방어 코드)
+- **최신 동향**: 확인 필요 없음 — 코루틴 생명주기 관리 패턴은 Unity의 기본 동작 방식에 기반해 지금도 동일하게 유효하다.
+
+## 13-8. (참고) `Assets/Scripts` 폴더는 중간에 잘린 구버전 잔재
+
+- **한 줄 정의**: `Assets/Scripts/Enemy2.cs`, `Enemy3.cs`, `Player.cs`, `dump.cs`를 루트 버전과 diff로 대조한 결과, State 패턴 구현부·이동 로직 등 핵심 내용이 통째로 빠지고 문장 중간(심지어 단어 중간, 인코딩이 깨진 채)에 파일이 끊겨 있음을 확인했다.
+- **왜 중요한가**: 정리 작업 중 같은 이름의 파일이 여러 경로에 있을 때 어느 쪽이 "진짜 최종본"인지 코드 내용을 실제로 diff 떠보지 않으면 잘못된 버전을 대표 예제로 쓸 뻔한 사례 — `unity_핵심정리.md` 작업 방법론 자체에 기록해둘 만한 교훈.
+- **내 코드에서 어떻게 썼는지**: (해당 없음 — 조사 방법론 기록)
+- **주의할 점 / 자주 나오는 꼬리 질문**: 해당 없음.
+- **최신 동향**: 해당 없음.
+
+---
+
+# 14. ShaderST (2026-07-07)
+
+> `C:\Study\Unity\ShaderST\Assets` — 셰이더 문법 자체를 다루는 실습으로, **C# 스크립트가 하나도 없고 `.shader` 파일 5개뿐**이다: `Deep+.shader`/`Deep-.shader`(레거시 고정함수, 렌더 큐 실험용), `Lambert_Old.shader`(CG `Surface Shader` 기반 Lambert 라이팅), `Lambert.shader`(같은 셰이더를 URP HLSL로 재작성), `StudyShader.Shader`(실제 컴파일되는 셰이더가 아니라 ShaderLab 문법을 스스로 정리한 학습노트). 씬(`SampleScene.unity`)에는 `Cube+`/`Cube-1`/`Quad`/`Quad (1)` 오브젝트가 배치돼 있어 Queue 값에 따른 렌더링 순서 차이를 실제로 실험해봤음을 확인했다.
+> **원본 강의자료 PDF는 없다.** (패키지 캐시의 PDF는 Code Coverage 패키지 자체 워크시트 — zombieStudy·ARstudy·VR_meta·UnityDll·URPassets3D에 이은 6번째 같은 오판 방지 사례.)
+
+## 14-1. ShaderLab 3단 구조와 Tag(Queue/RenderType)
+
+- **한 줄 정의**: Unity 셰이더는 ① 셰이더 이름, ② `Properties`(인스펙터에 노출될 속성), ③ `SubShader`(실제 렌더링 프로그램) 세 영역으로 구성되고, `SubShader` 안의 `Tags`로 `Queue`(그리는 순서), `RenderType`(셰이더 분류) 등 렌더링 방식을 설정한다.
+- **왜 중요한가**: 이 프로젝트에서 가장 특이한 지점 — `StudyShader.Shader`가 실제로 빌드에 쓰이는 셰이더가 아니라, **학생이 직접 정리한 이론 학습노트**(주석 안에 표까지 그려가며 Queue 키워드별 렌더 순서 숫자, Pass의 5단계 동작 등을 정리)로 존재한다. 다른 프로젝트들이 강의 PDF를 대조해왔다면, 여기서는 학생이 스스로 남긴 필기가 그 역할을 대신한다.
+- **내 코드에서 어떻게 썼는지**: `StudyShader.Shader` 주석
+  ```
+  Background: 1000  // 스카이박스/배경
+  Geometry:   2000  // 기본값, 불투명 오브젝트
+  Transparent:3000  // 유리/파티클 등 반투명
+  Overlay:    4000  // 렌즈플레어/GUI, 가장 마지막
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: `"Geometry+1"`처럼 `+`/`-`를 붙이는 이유는? (내부적으로 Queue는 1000 단위 정수(2000, 3000 등)로 관리되는데, 여기에 보조 오프셋을 더해 같은 그룹 안에서도 세밀하게 그리는 순서를 조정할 수 있음 — 아래 14-2번에서 실제 활용)
+- **최신 동향**: 확인 필요 없음 — ShaderLab의 기본 구조와 Queue 체계는 지금도 동일하게 유지된다.
+
+## 14-2. RenderQueue로 그리기 순서 제어 실습
+
+- **한 줄 정의**: `Deep+`(Queue `"Transparent+1"`)와 `Deep-`(Queue `"Transparent"`) 두 셰이더를 `ZWrite Off` 상태로 만들고 `Cube`/`Quad` 오브젝트에 나눠 붙여, **깊이 판정과 무관하게 Queue 값만으로 그려지는 순서(어느 것이 위에 덮이는지)가 결정됨**을 씬에서 직접 실험했다.
+- **왜 중요한가**: 반투명/2D 오버레이 렌더링에서 "물리적으로 더 가까운데 왜 뒤에 그려지지?" 같은 흔한 혼란의 근본 원인 — 깊이 버퍼(Z-Buffer)와 렌더 큐(Queue)는 서로 다른 메커니즘이고, `ZWrite Off`인 반투명 오브젝트끼리는 깊이가 아니라 Queue 순서(그리고 같은 Queue 내에서는 그리기 호출 순서)가 최종 결과를 좌우한다는 걸 코드+씬 배치로 직접 확인한 사례.
+- **내 코드에서 어떻게 썼는지**: `Deep+.shader`/`Deep-.shader`
+  ```
+  // Deep-.shader
+  Tags { "Queue" = "Transparent" }      // 기본 반투명 순서(3000)
+  ZWrite Off
+  Blend SrcAlpha OneMinusSrcAlpha
+
+  // Deep+.shader
+  Tags { "Queue" = "Transparent+1" }    // 반투명 오브젝트들보다 한 단계 늦게(더 위에) 그림
+  ```
+  씬의 `Quad`(z=0)/`Quad (1)`(z=1.36) + `Cube+`/`Cube-1`에 각각 다른 셰이더를 붙여 겹쳐 보이는 순서를 실제로 비교.
+- **주의할 점 / 자주 나오는 꼬리 질문**: `ZWrite Off`를 켜지 않고(즉 `ZWrite On`인 채로) 같은 실험을 하면 어떻게 되는가? (불투명 오브젝트처럼 깊이 버퍼에 기록되어 버려서, Queue 값과 무관하게 카메라와의 실제 거리로 가려짐 여부가 결정됨 — Queue를 이용한 그리기 순서 제어는 `ZWrite Off`가 전제일 때 의미가 있음)
+- **최신 동향**: 확인 필요 없음 — 렌더 큐/ZWrite를 이용한 그리기 순서 제어는 프로그래머블/URP 셰이더에서도 동일한 원리로 유지된다.
+
+## 14-3. 레거시 고정함수(Fixed Function) 파이프라인 셰이더 문법
+
+- **한 줄 정의**: `SetTexture [_MainTex] { Combine texture }`처럼 CG/HLSL 코드를 한 줄도 쓰지 않고 ShaderLab 키워드만으로 텍스처를 그대로 출력하는 방식 — 프로그래머블 셰이더 이전 세대의 문법.
+- **왜 중요한가**: 지금은 거의 쓰이지 않지만, "셰이더 프로그램을 아예 안 짜고도 최소한의 렌더링 효과(블렌딩, 텍스처 출력)를 낼 수 있다"는 셰이더의 가장 기본적인 형태를 보여줘서, 이후 배우는 Surface/HLSL 셰이더가 내부적으로 뭘 대신 해주는지 대비해서 이해하기 좋다.
+- **내 코드에서 어떻게 썼는지**: `Deep+.shader`/`Deep-.shader` 전체가 고정함수 문법(14-2번 코드 참고) — `Lighting Off`, `Cull Back`, `Fog { Mode Off }` 등도 전부 키워드 설정뿐, 정점/픽셀 셰이더 코드가 없음.
+- **주의할 점 / 자주 나오는 꼬리 질문**: 고정함수 셰이더는 지금도 실무에서 쓰이는가? (일반적으로는 CG/HLSL 프로그래머블 셰이더나 Shader Graph로 대체됐지만, 초저사양 호환이나 극도로 단순한 2D 스프라이트 출력처럼 아주 가벼운 용도에는 여전히 유효한 선택지 — 다만 최신 렌더 파이프라인(URP/HDRP)에서는 지원이 제한적이라 **확인 필요**)
+- **최신 동향**: 확인 필요 — Built-in RP에서는 여전히 동작하지만 URP/HDRP에서는 고정함수 파이프라인 자체가 사실상 폐기되는 추세다.
+
+## 14-4. Surface Shader(CG)로 Lambert 라이팅 직접 구현 + 노멀맵
+
+- **한 줄 정의**: `#pragma surface Surf Lambert`로 Unity 내장 Lambert(난반사) 라이팅 모델을 선언하고, `Surf` 함수 안에서 텍스처 색상(Albedo)과 노멀맵을 강도 조절해서 표면 정보를 채워주는 CG Surface Shader.
+- **왜 중요한가**: Surface Shader는 라이팅 계산 자체(그림자, 여러 광원 처리 등)를 Unity가 대신 처리해주고, 개발자는 "이 표면이 어떤 색이고 노멀이 어느 방향인가"만 채워주면 되는 구조 — 저수준 정점/픽셀 셰이더를 직접 다루기 전 단계로 배우기 좋은 이유를 코드로 보여준다.
+- **내 코드에서 어떻게 썼는지**: `Lambert_Old.shader`
+  ```cpp
+  void Surf(Input IN, inout SurfaceOutput surfout)
+  {
+      surfout.Albedo = tex2D(_Main, IN.uv_Main) * _Color;
+      fixed3 normal = UnpackNormal(tex2D(_Normal, IN.uv_Main));
+      normal.xy *= _StrengthNormal;      // 노멀맵 강도 조절
+      surfout.Normal = normalize(normal);
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: 파일에 `MyLambert`라는 라이팅 함수가 따로 정의돼 있는데 왜 실제로 안 쓰이는가? (`#pragma surface Surf Lambert`는 여전히 Unity 내장 `Lambert` 라이팅 모델을 그대로 지정하고 있어, `dot(normal, lightDir)`로 난반사를 직접 계산하는 `MyLambert`는 정의만 되어 있을 뿐 스위칭되어 사용되진 않음 — 내장 라이팅 모델이 내부적으로 무슨 계산을 하는지 스스로 재현해보며 이해하려 한 학습용 코드로 보이며, UnityDll 12-4번의 "구현은 했지만 실제 연결은 안 한" 패턴과 같은 결)
+- **최신 동향**: 확인 필요 — CG Surface Shader는 Built-in RP 전용 기술로, URP/HDRP에서는 지원되지 않고 Shader Graph나 커스텀 HLSL로 대체해야 한다(14-5번 참고).
+
+## 14-5. Built-in RP CG Surface Shader → URP HLSL 마이그레이션 실사례
+
+- **한 줄 정의**: 같은 Lambert 텍스처+컬러 셰이더를 `Lambert_Old.shader`(`CGPROGRAM`, `#pragma surface`, Built-in RP 전용)와 `Lambert.shader`(`HLSLPROGRAM`, `Core.hlsl` include, `TEXTURE2D`/`SAMPLER` 매크로, URP 전용)로 나란히 두 벌 작성해서 렌더 파이프라인 전환을 직접 실습했다.
+- **왜 중요한가**: `unity_핵심정리.md`에서 반복 확인해온 "API/기술 마이그레이션을 직접 겪은 경험" 테마(St3의 `WWW`, zombieStudy의 AssetBundle, ARstudy의 Input System, VR_meta의 XRI)의 새로운 축 — 이번엔 스크립팅 API가 아니라 **렌더 파이프라인 자체의 전환**(Built-in RP → URP)이며, 셰이더 작성 문법 전체가 CG에서 HLSL+SRP 매크로 체계로 바뀐다는 걸 같은 결과물을 두 벌 써보며 비교했다.
+- **내 코드에서 어떻게 썼는지**: `Lambert.shader`
+  ```hlsl
+  HLSLPROGRAM
+  #pragma vertex vert
+  #pragma fragment frag
+  #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
+  TEXTURE2D(_Main); SAMPLER(sampler_Main);   // Surface Shader의 sampler2D를 대체하는 URP 매크로
+
+  half4 frag(Varyings IN) : SV_Target
+  {
+      half4 texCol = SAMPLE_TEXTURE2D(_Main, sampler_Main, IN.uv);
+      return texCol * _Color;
+  }
+  ENDHLSL
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - 왜 `sampler2D`/`tex2D` 대신 `TEXTURE2D`/`SAMPLE_TEXTURE2D` 매크로를 쓰는가? (SRP(Scriptable Render Pipeline, URP/HDRP의 기반)는 텍스처와 샘플러를 분리해서 다루는 최신 그래픽 API(Vulkan/Metal/DX12 등)와의 호환을 위해 별도 매크로 체계를 쓰기 때문 — Built-in RP의 CG 문법과 소스 레벨에서 호환되지 않음)
+  - Surface Shader의 자동 라이팅 처리를 URP HLSL에서는 어떻게 대체하는가? (URP는 Surface Shader 같은 자동 라이팅 추상화가 없어 정점/프래그먼트 함수에서 라이팅을 직접 계산해야 함 — 이 프로젝트의 `Lambert.shader`는 Albedo만 반영하고 실제 라이팅 계산까지는 이식되지 않은 것으로 보임(정리 대상 코드에서 라이팅 관련 URP 함수 호출이 확인되지 않음), 마이그레이션이 부분적으로만 진행된 상태로 남아있다는 뜻)
+- **최신 동향**: 확인 필요 없음 — Built-in RP는 신규 프로젝트에서 권장되지 않고 URP/HDRP로의 전환이 업계 표준 흐름이라, 이 마이그레이션 경험 자체가 실무와 직결된다.
+
+## 14-6. (참고) 이 프로젝트는 C# 스크립트가 전혀 없다
+
+- **한 줄 정의**: `Assets` 전체를 검색해도 `.cs` 파일이 하나도 없고, `.shader` 파일 5개만으로 구성된 순수 셰이더 문법 실습 프로젝트다.
+- **왜 중요한가**: 지금까지 다룬 Unity 프로젝트 중 유일하게 "스크립팅"이 아니라 "셰이더 언어(ShaderLab/CG/HLSL)"만 다룬 사례라는 점을 명시해두는 게, 포트폴리오에서 이 프로젝트의 성격을 오해하지 않게 하는 데 필요하다.
+- **내 코드에서 어떻게 썼는지**: (해당 없음 — 프로젝트 성격 기록)
+- **주의할 점 / 자주 나오는 꼬리 질문**: 해당 없음.
+- **최신 동향**: 해당 없음.
+
+---
+
+# 15. Localization (2026-07-14)
+
+> `C:\Study\Unity\Localization\Assets` — 다국어 로컬라이제이션(현지화) 시스템을 두 세대에 걸쳐 다시 짜본 실습. 시작점은 다운로드한 `LocalizationTool.unitypackage`(에디터 작업 메모 `LocalizationTool/260714_개발.txt`에 기록)와 구글 시트로 관리한 번역 원본(`LocalizationTool/예제.txt`에 시트 링크, `Origin/What.xlsx`)이며, 이를 CSV로 내보내 `Resources` 폴더에서 읽어들이는 구조다. `Localization1.cs`(싱글톤 MonoBehaviour+리스트 인덱스)에서 `Localization2.cs`/`Localization3.cs`(정적 클래스+CSV Dictionary, diff 결과 `Localization3`은 클래스 이름만 다른 사실상 동일 복제본)로 다시 설계했고, 씬(`SampleScene.unity`)을 직접 대조한 결과 `GUITest` 오브젝트에 `Localization1`+`GUITest1`+`GUITest2`가, `Text (Legacy)` 오브젝트에 `LocalizedText1`+`LocalizedText2`가 **리팩터링 전/후 버전이 동시에** 붙어있음을 확인했다.
+> **원본 강의자료 PDF는 없다.**
+
+## 15-1. 다국어 로컬라이제이션 아키텍처 진화 — 인스턴스+리스트 → 정적 클래스+CSV Dictionary
+
+- **한 줄 정의**: v1(`Localization1`)은 `MonoBehaviour` 싱글톤 인스턴스가 `List<string>`을 `SystemLanguage` 인덱스로 바로 꺼내 쓰는 구조였고, v2(`Localization2`)는 `MonoBehaviour`를 버리고 완전히 정적(static) 클래스로 바꿔 CSV에서 읽은 `List<Dictionary<string,string>>`을 Key로 조회하는 구조로 다시 설계됐다.
+- **왜 중요한가**: 씬에 오브젝트로 존재해야만 접근 가능한 싱글톤(v1)에서, 씬과 무관하게 어디서든 바로 호출 가능한 정적 클래스(v2)로 옮긴 이유를 코드 변화로 직접 보여준다 — 데이터(번역 테이블)와 그것을 다루는 로직에 굳이 `GameObject` 생명주기가 필요 없다는 걸 스스로 깨달은 리팩터링.
+- **내 코드에서 어떻게 썼는지**: `Localization1.cs:13-18` vs `Localization2.cs:82-94`
+  ```csharp
+  // v1: 씬에 붙어있어야 하는 싱글톤 인스턴스
+  static public Localization1 instance;
+  private void Awake() { instance = this; }
+
+  // v2: 정적 클래스, 오브젝트 없이 바로 호출
+  static List<Dictionary<string, string>> data;
+  public static void Init() { if (data == null) data = CSVReader.ReadFile("Data"); }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: `MonoBehaviour` 싱글톤 대신 정적 클래스를 쓸 때의 단점은? (인스펙터에서 값을 직접 노출하거나 `Update()` 같은 Unity 생명주기 콜백을 받을 수 없음 — 순수 데이터/로직 계층에는 유리하지만, 씬의 다른 오브젝트와 인스펙터로 연결해야 하는 경우엔 정적 클래스가 오히려 불편해질 수 있음)
+- **최신 동향**: 확인 필요 — 이 프로젝트는 자체 CSV+정적 클래스 방식이지만, 실무에서는 Unity의 공식 `com.unity.localization` 패키지(스마트 스트링, 폰트/에셋별 로컬라이제이션까지 지원)를 쓰는 경우가 많아, 실무 투입 시 공식 패키지 채택 여부를 먼저 확인하는 게 좋다.
+
+## 15-2. CSV 기반 다국어 텍스트 관리 — 구글 시트 → CSV → `Resources`
+
+- **한 줄 정의**: 번역 원본을 구글 시트(협업 편집 가능)로 관리하다가 CSV로 내보내 `Resources` 폴더에 `TextAsset`으로 넣고, 정규식 기반 파서(`CSVReader`)로 런타임에 파싱해서 `Key`/`Korean`/`English` 같은 헤더 컬럼별 값을 딕셔너리로 구성한다.
+- **왜 중요한가**: 번역 텍스트를 코드에 하드코딩하지 않고 비개발자(기획자/번역가)도 편집 가능한 스프레드시트로 분리 관리하는, 실무에서 흔히 쓰이는 로컬라이제이션 파이프라인의 축소판을 직접 구현해본 사례.
+- **내 코드에서 어떻게 썼는지**: `CSVReader.cs:12-13` (따옴표 포함 필드까지 안전하게 나누는 정규식)
+  ```csharp
+  static string SPLIT_RE = @",(?=(?:[^""]*""[^""]*"")*(?![^""]*""))";   // 따옴표 안의 콤마는 구분자로 취급 안 함
+  static string LINE_SPLIT_RE = @"\r\n|\n\r|\n|\r";                     // OS별 줄바꿈 차이 흡수
+  ```
+  `Data.csv`: `Key,Korean,English` 헤더 + `Title,이것은 제목,This is Title` 형태의 행.
+- **주의할 점 / 자주 나오는 꼬리 질문**: 왜 단순히 `Split(',')`가 아니라 정규식을 쓰는가? (번역 문장 안에 콤마가 포함될 수 있는데(`"안녕, 반가워요"`처럼), 단순 콤마 분리는 이런 필드를 잘못 쪼개버림 — 정규식으로 따옴표로 감싼 구간의 콤마는 무시하도록 처리)
+- **최신 동향**: 확인 필요 없음 — CSV 파싱과 스프레드시트 기반 번역 관리 파이프라인은 지금도 실무에서 널리 쓰이는 방식이다.
+
+## 15-3. 관찰자 패턴(델리게이트 이벤트)으로 언어 변경 전파
+
+- **한 줄 정의**: 언어가 바뀌는 시점을 `System.Action` 델리게이트(`OnLanguageChanged`)로 구독자들에게 알리고, 텍스트/이미지 등 각 UI 컴포넌트가 이 이벤트에 `+=`로 구독해서 자기 자신을 갱신한다.
+- **왜 중요한가**: 언어를 관리하는 코드가 "화면의 UI가 몇 개나 있고 어떻게 생겼는지" 전혀 몰라도 되고, 반대로 각 UI도 "언어 관리자가 내부적으로 어떻게 동작하는지" 몰라도 되는 느슨한 결합(loose coupling)을 실현하는 표준적인 방법 — v1→v2 사이에 이벤트가 넘기는 정보량 자체도 줄어들며 설계가 더 깔끔해졌다.
+- **내 코드에서 어떻게 썼는지**: v1(값을 직접 넘김) vs v2(신호만 주고 구독자가 직접 조회)
+  ```csharp
+  // v1: 이벤트가 텍스트 값을 직접 실어 나름
+  public static System.Action<string> OnLanguageChanged;
+  OnLanguageChanged.Invoke(msg);
+  // LocalizedText1: void OnChanged(string value) { _text.text = value; }
+
+  // v2: 이벤트는 "바뀌었다"는 신호만, 값 조회는 구독자 책임
+  public static System.Action OnLanguageChanged;
+  OnLanguageChanged.Invoke();
+  // LocalizedText2: void OnChanged() { _text.text = Localization2.GetText(_key); }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: v1처럼 값을 직접 넘기는 방식과 v2처럼 신호만 주는 방식, 뭐가 더 나은가? (v1은 텍스트 UI 하나를 염두에 둔 설계라 "이 값으로 바꿔"가 자연스럽지만, 이미지처럼 언어별로 전혀 다른 값을 필요로 하는 컴포넌트(15-4번의 `Localizedimage`)가 늘어나면 "무슨 값을 넘겨야 하나"가 애매해짐 — v2처럼 신호만 주고 각자 알아서 원하는 데이터(텍스트든 스프라이트든)를 조회하게 하는 편이 다양한 컴포넌트로 확장하기 쉬움. `Localization2.cs` 주석에 이 트레이드오프에 대한 학생의 고민이 직접 적혀있다: "가독성 ?? 개인적으로...굳이 여기서 함수 호출을 한 번 더 탈 필요가 있나?")
+- **최신 동향**: 확인 필요 없음 — 델리게이트/이벤트 기반 옵저버 패턴은 C#/Unity의 기본적이고 안정적인 설계 도구다.
+
+## 15-4. (발견) 이미지는 3개 언어를 지원하는데 텍스트 CSV는 2개 언어뿐
+
+- **한 줄 정의**: `Localizedimage.cs`의 `LocalizedSprite` 구조체는 `SystemLanguage` 아무 값이나 받을 수 있어 실제로 한국어/영어/일본어 이미지 3벌을 지원하도록 만들어졌고 `GUITest2.cs`에도 "Japanese" 버튼이 있는데, 정작 텍스트 번역표(`Resources/Data.csv`)는 `Key,Korean,English` 컬럼뿐이라 일본어 텍스트는 아예 없다.
+- **왜 중요한가**: 로컬라이제이션 시스템이 "이미지 축"과 "텍스트 축"으로 나뉘어 각각 독립적으로 발전하다가, 실제 지원 언어 범위가 서로 어긋난 채로 남아있는 걸 CSV 데이터와 코드를 같이 대조해야만 발견할 수 있는 사례 — 코드만 보면 두 시스템 다 "다국어 지원"이라고 말할 수 있지만, 실제 데이터까지 확인하면 완성도에 차이가 있다는 게 드러난다.
+- **내 코드에서 어떻게 썼는지**: `Localizedimage.cs:9-10`(언어 제한 없음) ↔ `Resources/Data.csv:1`(`Key,Korean,English`만 존재)
+  ```csharp
+  public struct LocalizedSprite
+  {
+      public SystemLanguage language;   // Korean/English/Japanese 등 뭐든 넣을 수 있음
+      public Sprite sprite;
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: 이런 불일치를 방지하려면 어떻게 설계하는 게 좋을까? (지원 언어 목록을 한 곳(예: enum이나 상수 배열)으로 관리해서 텍스트/이미지 등 모든 로컬라이즈 대상이 같은 언어 목록을 참조하게 하면, 이미지엔 있고 텍스트엔 없는 언어가 생기는 걸 코드/데이터 검증 단계에서 미리 걸러낼 수 있음)
+- **최신 동향**: 해당 없음(프로젝트 자체 발견 사항).
+
+## 15-5. 커스텀 `PropertyDrawer`로 인스펙터 편의성 개선
+
+- **한 줄 정의**: `[CustomPropertyDrawer(typeof(LocalizedSprite))]`로 `LocalizedSprite` 구조체(언어+스프라이트 쌍) 전용 그리기 방식을 정의해, 인스펙터에서 두 필드를 세로로 길게 나열하는 대신 한 줄에 절반씩 나란히 배치했다.
+- **왜 중요한가**: St3-D(10번 프로젝트)에서 다룬 커스텀 `PropertyAttribute`/`PropertyDrawer` 활용이 이 프로젝트에서도 재등장 — 리스트로 여러 개 반복 입력해야 하는 데이터(언어별 이미지 목록)일수록 한 줄에 압축해서 보여주는 게 실질적인 작업 효율에 영향을 준다는 걸 보여주는 실전 사례.
+- **내 코드에서 어떻게 썼는지**: `Localizedimage.cs:13-23`
+  ```csharp
+  [CustomPropertyDrawer(typeof(LocalizedSprite))]
+  public class LocalizedSpriteDrawer : PropertyDrawer
+  {
+      public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+      {
+          position.width /= 2.0f;
+          EditorGUI.PropertyField(position, property.FindPropertyRelative("language"), GUIContent.none);
+          position.x += position.width;
+          EditorGUI.PropertyField(position, property.FindPropertyRelative("sprite"), GUIContent.none);
+      }
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: `GUIContent.none`을 넘기는 이유는? (기본적으로 각 필드 앞에 필드 이름 라벨이 붙는데, 이미 한 줄에 두 필드를 나란히 배치했기 때문에 라벨까지 표시하면 좁은 공간에서 겹치거나 잘림 — 라벨을 생략하고 필드만 촘촘히 배치하기 위함)
+- **최신 동향**: 확인 필요 없음 — `PropertyDrawer` 기반 인스펙터 커스터마이징은 Unity 에디터의 안정적인 표준 확장 지점이다.
+
+## 15-6. `CSVReader`의 동기/비동기 이중 지원 — 로컬 vs 구글시트 URL
+
+- **한 줄 정의**: 로컬 `Resources` 폴더의 CSV는 이미 로드된 `TextAsset`을 즉시 파싱하는 동기 함수(`Read`/`ReadFile`)로 처리하고, 구글 시트를 URL로 직접 받아오는 경우는 네트워크 요청이 필요해 코루틴 버전(`IEnumerator ReadURL`)과 `async`/`await` 버전(`Task<...> ReadURL`) 두 가지로 각각 구현했다.
+- **왜 중요한가**: "왜 로컬 파일은 동기로 처리하고 URL은 비동기로 처리해야 하는가"에 대한 이유(네트워크 요청은 완료 시점을 예측할 수 없어 그동안 게임이 멈추면 안 됨)를 코드로 대비시켜 보여준다. 게다가 같은 비동기 요구사항을 코루틴과 async/await 두 문법으로 각각 구현해본 것도, 두 방식의 차이를 스스로 정리해보려는 의도로 보인다(코드 주석에 async/await 동작 원리를 상세히 필기해둠).
+- **내 코드에서 어떻게 썼는지**: `CSVReader.cs:96-124`(코루틴), `CSVReader.cs:158-188`(async/await)
+  ```csharp
+  // 코루틴 버전
+  public static IEnumerator ReadURL(string url, Action<List<Dictionary<string, string>>> callback)
+  {
+      using (UnityWebRequest www = UnityWebRequest.Get(url))
+      {
+          yield return www.SendWebRequest();
+          ...
+          callback?.Invoke(data);
+      }
+  }
+
+  // async/await 버전
+  public static async Task<List<Dictionary<string, string>>> ReadURL(string url)
+  {
+      using (UnityWebRequest www = UnityWebRequest.Get(url))
+      {
+          var operation = www.SendWebRequest();
+          while (!operation.isDone) await Task.Yield();
+          ...
+          return ReadString(www.downloadHandler.text);
+      }
+  }
+  ```
+  두 함수 모두 `#if UNITY_2020_1_OR_NEWER`로 `UnityWebRequest`의 신버전(`.result`)과 구버전(`isNetworkError`/`isHttpError`) API를 조건부 컴파일로 분기 처리.
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - 코루틴과 async/await 중 어느 쪽이 더 나은가? (콜백을 넘기는 코루틴 버전은 Unity 생명주기와 자연스럽게 맞물리는 전통적인 방식이고, `Task` 기반 async/await 버전은 결과를 `await`로 바로 받을 수 있어 호출부 코드가 더 순차적으로 읽힘 — 팀의 코드 스타일이나 Unity 버전(오래된 프로젝트는 코루틴이 더 안전)에 따라 선택이 갈림)
+  - `#if UNITY_2020_1_OR_NEWER` 같은 조건부 컴파일을 쓰는 이유는? (여러 Unity 버전을 지원해야 하는 라이브러리성 코드에서, Deprecated된 API(`isNetworkError`)와 새 API(`.result`)를 둘 다 지원하기 위해 빌드 시점에 맞는 코드만 선택적으로 컴파일되게 하는 방법)
+- **최신 동향**: 확인 필요 없음 — 코루틴, async/await, 조건부 컴파일 모두 여전히 유효한 Unity/C# 표준 기법이다.
+
+## 15-7. 씬에서 확인한 신구 버전 공존
+
+- **한 줄 정의**: 씬 파일(`SampleScene.unity`)을 guid로 대조한 결과, `GUITest` 오브젝트에는 `Localization1`+`GUITest1`(v1)과 `GUITest2`(v2)가, `Text (Legacy)` 오브젝트에는 `LocalizedText1`(v1)과 `LocalizedText2`(v2)가 동시에 부착되어 있음을 확인했다.
+- **왜 중요한가**: 코드 파일이 여러 버전(1, 2, 3)으로 남아있다는 것과, 그 버전들이 실제로 씬에서 동시에 살아있는 컴포넌트로 테스트되고 있었다는 것은 다른 정보다 — 씬 대조를 통해 "리팩터링 전/후 버전을 지우지 않고 나란히 켜둔 채 비교하며 개발했다"는 실제 작업 방식까지 확인할 수 있었다. FSM 프로젝트(13-3번)의 `EnemyController_1~3_2.controller` 5개 버전 보존과 같은 결의 습관.
+- **내 코드에서 어떻게 썼는지**: (해당 없음 — 씬 파일 guid 대조로 확인한 사실 기록)
+- **주의할 점 / 자주 나오는 꼬리 질문**: 이렇게 신구 버전을 동시에 켜두면 어떤 문제가 생길 수 있는가? (두 버전이 같은 UI 컴포넌트(`Text`)를 서로 다른 시점에 덮어쓰면서 어느 쪽 결과가 화면에 남을지 예측하기 어려워질 수 있음 — 개발 중 비교 목적이라면 괜찮지만, 최종 빌드 전에는 이전 버전 컴포넌트를 정리하는 게 안전함)
+- **최신 동향**: 해당 없음(프로젝트 자체 관찰 사항).
+
+## 15-8. 범용 CSV 데이터 테이블로 확장
+
+- **한 줄 정의**: `CSVReader`를 번역 텍스트가 아니라 일반적인 게임 밸런스 데이터(드래곤 몬스터의 `Damage`/`Defense`/`Name`)를 담은 `What.csv`를 읽는 데도 그대로 재사용했다 — 로컬라이제이션 전용 도구가 아니라 범용 CSV 파서로 설계되었음을 보여주는 사례.
+- **왜 중요한가**: 같은 CSV 파싱 인프라 하나로 "번역표"와 "게임 데이터표"를 둘 다 처리할 수 있다는 건, 이 도구가 로컬라이제이션에 종속되지 않은 범용 유틸리티로 잘 분리 설계됐다는 뜻 — 데이터 기반(Data-Driven) 개발의 기본기를 보여주는 지점이다.
+- **내 코드에서 어떻게 썼는지**: `Test.cs:13-24`
+  ```csharp
+  List<Dictionary<string, object>> data = CSVReader.Read("What");   // Damage,Defense,Name 컬럼
+  Damage = (int)data[i]["Damage"];
+  Defense = (float)data[i]["Defense"];
+  Name = (string)data[i]["Name"];
+  ```
+  `CSVReader.Read`는 값이 정수/실수로 파싱 가능하면 자동으로 `object` 타입으로 변환해서 담아줌(`int.TryParse`/`float.TryParse`) — 반면 로컬라이제이션용 `ReadFile`/`ReadString`은 전부 `string`으로만 담는 별도 메서드로 분리되어 있음(용도에 따라 반환 타입을 다르게 설계).
+- **주의할 점 / 자주 나오는 꼬리 질문**: 왜 `Read`(object 자동 변환)와 `ReadFile`/`ReadString`(string 고정) 두 벌의 파서를 따로 뒀는가? (게임 데이터 테이블은 숫자 연산이 필요해 타입 변환이 유용하지만, 번역 텍스트는 애초에 전부 문자열이라 변환이 무의미하고 오히려 불필요한 파싱 비용만 늘어나므로 용도별로 최적화된 메서드를 분리한 것으로 보임)
+- **최신 동향**: 확인 필요 없음 — CSV 기반 데이터 테이블은 지금도 게임 밸런스 데이터 관리에 흔히 쓰이는 방식이다(다만 실무에서는 ScriptableObject나 전용 데이터 에디터 툴로 대체되는 경우도 많음).
+
+---
+
+# 16. Crypt (2026-07-21)
+
+> `C:\Study\Unity\Crypt\Assets` — 세이브 데이터 저장 방식과 암호화 기법을 각각 여러 세대에 걸쳐 발전시켜본 실습. 저장 방식은 `TestSave.cs`(`BinaryWriter`, 가장 오래된 스타일) → `Player.cs`(`StreamWriter` 평문, `PlayerPrefs`와 비교하는 주석 포함) → `PlayerJson.cs`(`JsonUtility`+`Application.persistentDataPath`+암호화)로, 암호화는 `Crypt.cs`(AES **ECB** 모드) → `CryptCBC.cs`(AES **CBC** 모드+매번 새 IV, 예외 처리 강화)로 각각 진화했다. `Downloader.cs`는 이 프로젝트의 다른 주제(구글 시트를 아이템 테이블로 다운로드)를 다룬 별도 실습이 같이 들어있다. 씬(`SampleScene.unity`)을 대조한 결과 `Player` 오브젝트에 `TestSave`+`Player`+`PlayerJson` 세 세대 스크립트가 동시에 부착돼 있음을 확인했다.
+> **원본 강의자료 PDF는 없다.** (패키지 캐시의 PDF는 Code Coverage 패키지 워크시트 — zombieStudy·ARstudy·VR_meta·UnityDll·URPassets3D·ShaderST에 이은 7번째 같은 오판 방지 사례.)
+
+## 16-1. 저장 시스템 3단계 진화 — `BinaryWriter` → `StreamWriter` 평문 → `JsonUtility`+암호화
+
+- **한 줄 정의**: 같은 "플레이어 데이터(이름/레벨/체력/공격력/사망여부)를 저장하고 불러온다"는 문제를, ① 이진 바이너리(`BinaryWriter`/`BinaryReader`) → ② 줄바꿈 구분 평문 텍스트(`StreamWriter`/`StreamReader`) → ③ JSON 직렬화(`JsonUtility`)로 순서대로 다시 구현했다.
+- **왜 중요한가**: 세 방식의 장단점(가독성, 디버깅 용이성, 확장성, 파일 크기)을 스스로 겪어본 코드가 남아있어, "왜 결국 JSON으로 정착했는가"를 실제 경험을 근거로 설명할 수 있다 — 특히 평문 라인 저장은 필드 순서가 저장/로드 양쪽에서 정확히 일치해야 해서 필드가 하나만 추가돼도 전체가 깨지는 반면, JSON은 필드 이름 기반이라 훨씬 안전하다는 차이를 코드로 직접 비교할 수 있다.
+- **내 코드에서 어떻게 썼는지**: `TestSave.cs:40-42`(바이너리) vs `Player.cs:37-41`(평문 라인) vs `PlayerJson.cs:52-53`(JSON)
+  ```csharp
+  // TestSave: 필드 순서에 맞춰 기계어로 직접 기록
+  sw.Write(score); sw.Write(point);
+
+  // Player: 필드 순서에 맞춰 한 줄씩 문자열로 기록
+  streamWriter.WriteLine(data.name);
+  streamWriter.WriteLine(data.level.ToString());
+
+  // PlayerJson: 필드 이름 기반 직렬화, 순서 무관
+  string jsonData = JsonUtility.ToJson(data);
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: `BinaryWriter`와 `StreamWriter`(평문) 중 어느 쪽이 파일 크기가 작고, 어느 쪽이 사람이 읽고 디버깅하기 쉬운가? (바이너리는 압축적이고 빠르지만 텍스트 에디터로 열어봐도 내용을 알 수 없어 디버깅이 어렵고, 평문은 반대로 용량은 더 크지만 즉시 눈으로 확인 가능 — 개발 중에는 평문/JSON이, 배포 후 최적화 단계에서는 바이너리가 유리해지는 트레이드오프)
+- **최신 동향**: 확인 필요 없음 — 세 방식 모두 여전히 유효한 선택지이며, 실무에서는 JSON(가독성)과 바이너리(성능/난독화)를 상황에 맞게 섞어 쓰는 경우가 많다.
+
+## 16-2. `Application.dataPath` vs `Application.persistentDataPath`
+
+- **한 줄 정의**: `Application.dataPath`는 프로젝트/빌드의 `Assets` 폴더 경로(에디터에서는 쓰기 가능하지만 배포된 빌드에서는 읽기 전용이거나 재설치 시 사라짐)이고, `Application.persistentDataPath`는 OS가 앱별로 제공하는 영구 저장 폴더(게임을 종료해도 유지됨)다.
+- **왜 중요한가**: `TestSave`/`Player`(구버전)는 `Application.dataPath`를 썼지만 `PlayerJson`(최신 버전)은 `Application.persistentDataPath`로 바뀌었다 — 에디터에서는 둘 다 잘 동작해서 문제를 못 느끼지만, 실제 빌드 배포 시 저장이 안 되거나 사라지는 문제로 이어질 수 있는, 초심자가 놓치기 쉬운 함정을 스스로 고쳐나간 지점.
+- **내 코드에서 어떻게 썼는지**: `PlayerJson.cs:33-37`
+  ```csharp
+  string saveDirectory = Path.Combine(Application.persistentDataPath, "save");
+  Directory.CreateDirectory(saveDirectory);   // 이미 있으면 아무 작업 안 하므로 항상 호출해도 안전
+  savePath = Path.Combine(saveDirectory, "PlayerJsonCrypt2.txt");
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: Windows에서 `persistentDataPath`는 실제로 어디를 가리키는가? (보통 `C:/Users/사용자/AppData/LocalLow/회사이름/프로젝트이름/` — 코드 주석에 학생이 직접 남겨둔 정보)
+- **최신 동향**: 확인 필요 없음 — 저장 경로로 `persistentDataPath`를 쓰는 것은 Unity의 표준 권장 사항으로 지금도 동일하다.
+
+## 16-3. 대칭키 암호화 1세대 — AES(Rijndael) ECB 모드
+
+- **한 줄 정의**: `Crypt.cs`는 `RijndaelManaged`(AES와 동일 계열 알고리즘)를 **ECB(Electronic CodeBook)** 모드로 설정해, 같은 키로 블록 단위 암호화를 수행한다.
+- **왜 중요한가**: ECB 모드는 같은 평문 블록이 항상 같은 암호문 블록으로 암호화되는 구조적 약점이 있어(패턴이 그대로 노출될 수 있음) 보안 용도로는 권장되지 않는데, 학생이 이걸 코드에 직접 구현해보고 스스로 한계를 인지한 뒤(16-4번의 CBC로) 개선했다는 흐름 자체가 암호화 학습의 정석적인 경로를 보여준다.
+- **내 코드에서 어떻게 썼는지**: `Crypt.cs:15-22`
+  ```csharp
+  _rijndaelManaged = new RijndaelManaged();
+  //_rijndaelManaged.Mode = CipherMode.CBC; // AES 암호화 알고리즘 검색 (더욱 안전하지만 현재는 적당하지 않다)
+  _rijndaelManaged.Mode = CipherMode.ECB; // 대신 KEY 값이 실 시간으로 변경이 필요
+  _rijndaelManaged.Key = Encoding.UTF8.GetBytes(KEY.Substring(0, 128 / 8));
+  ```
+  하나의 `RijndaelManaged` 객체(`_rijndaelManaged`)를 계속 재사용하는 정적 프로퍼티 패턴도 특징.
+- **주의할 점 / 자주 나오는 꼬리 질문**: 왜 ECB 모드가 "더 안전하지 않다"고 스스로 판단했을까? (주석에 남긴 "KEY 값이 실 시간으로 변경이 필요"라는 표현이 힌트 — IV 없이 같은 키로만 블록을 암호화하는 ECB는 매번 결과가 똑같아지므로, 그나마의 완화책으로 키 자체를 자주 바꿔야 한다는 필요성을 인지하고 있었음. 근본적인 해결책은 모드를 CBC로 바꾸고 매번 랜덤 IV를 쓰는 것 — 16-4번)
+- **최신 동향**: 확인 필요 없음 — ECB 모드가 패턴 노출에 취약하다는 것은 암호학의 잘 정립된 사실이며, 지금도 보안 용도로는 권장되지 않는다.
+
+## 16-4. 대칭키 암호화 2세대 — AES CBC 모드 + 매번 새 IV
+
+- **한 줄 정의**: `CryptCBC.cs`는 **CBC(Cipher Block Chaining)** 모드로 바꾸고, 암호화할 때마다 새로운 IV(초기화 벡터)를 생성해서 암호문 앞에 붙여 저장(`[IV 16바이트][암호문]`)한다 — 복호화 시 앞 16바이트를 IV로 분리해서 사용한다.
+- **왜 중요한가**: 16-3번의 ECB 모드가 가진 "같은 평문 → 같은 암호문" 문제를, CBC+랜덤 IV 조합으로 "같은 평문이라도 매번 다른 암호문"이 나오도록 해결한 실제 개선 사례 — IV가 비밀이 아니라 공개돼도 되는 값이라는 점(주석에 명시)까지 정확히 이해하고 설계했다.
+- **내 코드에서 어떻게 썼는지**: `CryptCBC.cs:62-108`
+  ```csharp
+  aes.GenerateIV();                    // 암호화마다 새 IV
+  byte[] ivBytes = aes.IV;
+  // ... 암호화 ...
+  // 결과 배열 = [IV][암호문] 형태로 합쳐서 반환
+  Buffer.BlockCopy(ivBytes, 0, resultBytes, 0, ivBytes.Length);
+  Buffer.BlockCopy(encryptedBytes, 0, resultBytes, ivBytes.Length, encryptedBytes.Length);
+  ```
+  복호화(`Decrypt`)에는 `Crypt.cs`에 없던 길이 검증(`if (resultBytes.Length <= ivLength) throw ...`)까지 추가되어, 손상되거나 형식이 잘못된 저장 데이터를 방어하는 코드가 새로 생겼다.
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - IV가 비밀이 아니어도 되는 이유는? (IV의 역할은 "같은 키+같은 평문이라도 매번 다른 암호문이 나오게" 하는 것뿐이고, 실제 기밀성은 키(Key)가 담당함 — 그래서 IV는 암호문과 함께 공개적으로 저장/전송해도 안전하며, 복호화 쪽이 그 IV를 정확히 알아야 한다는 것만 중요함)
+  - `CryptCBC`가 매번 새 `Aes` 객체를 생성하는 반면 `Crypt`는 `RijndaelManaged` 객체를 재사용하는 이유는 뭘까? (CBC는 암호화마다 IV가 달라져야 하므로 객체를 매번 새로 만들어 새 IV를 생성하는 흐름이 자연스럽고, ECB는 IV가 없어 객체를 재사용해도 문제가 없었기 때문 — 모드 차이가 객체 생명주기 설계에도 영향을 준 사례)
+- **최신 동향**: 확인 필요 — AES-CBC는 여전히 널리 쓰이지만, 최신 암호학에서는 무결성 검증까지 함께 제공하는 AES-GCM 같은 AEAD(Authenticated Encryption) 모드를 더 권장하는 추세다. 게임 세이브 데이터처럼 변조 탐지가 중요한 경우 실무에서는 GCM 도입도 고려할 만하다.
+
+## 16-5. Save 데이터 보안 단계 실험 — 원문 → Base64 → AES 암호화
+
+- **한 줄 정의**: `PlayerJson.cs`의 `Save()`/`Load()`에는 JSON 데이터를 그대로 저장하는 방식(케이스1), Base64로 인코딩만 하는 방식(케이스2), AES-CBC로 실제 암호화하는 방식(케이스3) 세 가지가 주석으로 나란히 남아있고, 최종적으로 케이스3이 채택되어 있다.
+- **왜 중요한가**: "인코딩(Encoding)"과 "암호화(Encryption)"를 혼동하지 않고 정확히 구분한 게 이 개념의 핵심 — Base64는 누구나 디코딩할 수 있는 표현 방식 변환일 뿐 보안 기능이 전혀 없는데, 이를 "보안 약간 높음"이라고 주석에 스스로 정확히 표현해뒀다(암호화와는 별개로 "약간"이라는 뉘앙스로 구분).
+- **내 코드에서 어떻게 썼는지**: `PlayerJson.cs:55-74` 주석 처리된 3단계
+  ```csharp
+  // case 1. No Convert (보안 낮음)
+  //streamWriter.Write(jsonData);
+
+  // case 2. Convert UTF8 -> Base64 (보안 약간 높음)
+  //byte[] bytes = System.Text.Encoding.UTF8.GetBytes(jsonData);
+  //string convertData = System.Convert.ToBase64String(bytes);
+
+  // case 3. Crypt (최종 채택)
+  streamWriter.Write(CryptCBC.Encrypt(jsonData));
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: Base64 인코딩은 어떤 상황에는 유용한가? (세이브 파일을 열어봐도 값을 바로 읽지 못하게 해서 "성의 없는 조작"은 막을 수 있지만, Base64는 디코딩 알고리즘이 공개돼 있어 누구나 즉시 원문으로 되돌릴 수 있으므로 진짜 보안이 필요한 데이터에는 절대 충분하지 않음 — 단순히 이진 데이터를 텍스트로 안전하게 표현해야 할 때(이미지, 암호화된 바이트 등을 문자열로 옮길 때) 쓰는 인코딩 도구일 뿐)
+- **최신 동향**: 확인 필요 없음 — 인코딩과 암호화의 개념적 차이는 시간이 지나도 변하지 않는 기본 원칙이다.
+
+## 16-6. (참고) 암호화 키가 소스코드에 하드코딩됨
+
+- **한 줄 정의**: `Crypt.cs`/`CryptCBC.cs` 둘 다 AES 키를 `static readonly string KEY = "s44svGyNRvmj5E3FGds6fLmp";`처럼 소스 코드에 문자열 그대로 박아뒀다.
+- **왜 중요한가**: 실무에서 흔히 지적되는 보안 취약점(하드코딩된 키는 빌드 파일을 디컴파일하면 그대로 노출됨)인데, 학생이 이를 몰랐던 게 아니라 코드 주석에 스스로 "랜카드 고유넘버랑 조합해야지 완벽, 최소 16자"라고 남겨 한계와 개선 방향(하드웨어 고유값 등으로 키를 조합해 디컴파일만으로는 못 얻어내게)까지 정확히 인지하고 있었다는 점이 이 항목의 핵심.
+- **내 코드에서 어떻게 썼는지**: `Crypt.cs:7-8`, `CryptCBC.cs:8-11`
+  ```csharp
+  // 인터넷에서 아무 암호 생성기 사용
+  static readonly string KEY = "s44svGyNRvmj5E3FGds6fLmp";    // Woo: 랜카드 고유넘버랑 조합해야지 완벽, 최소 16자
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: 하드코딩 키를 실무에서는 어떻게 보완하는가? (기기 고유 식별자와 조합, 서버에서 키를 받아오는 방식, OS 제공 보안 저장소(Keychain/Keystore) 활용 등 — 다만 클라이언트 단독 앱에서는 "완벽한 키 은닉"이 근본적으로 불가능하다는 것도 실무에서 함께 이해해야 하는 한계임)
+- **최신 동향**: 해당 없음(암호학/보안 실무의 기본 원칙).
+
+## 16-7. 구글 시트를 아이템 테이블로 다운로드 — 다른 URL 패턴으로 재실습
+
+- **한 줄 정의**: `Downloader.cs`는 구글 시트를 `https://docs.google.com/spreadsheets/d/{시트ID}/export?format=csv&gid={시트번호}` URL로 직접 요청해서 CSV로 받아오고, 자체 내장한 `CSVReader` 클래스로 파싱해 아이템 목록(`name`/`price`/`count`)을 구성한다.
+- **왜 중요한가**: Localization 프로젝트(18번)의 `ReadURL`이 쓴 `/export?format=csv`와는 다른 정확한 URL 패턴(`&gid=`로 특정 시트/탭까지 지정)을 다시 실습해본 것 — 같은 목표(구글 시트 → 게임 데이터)를 서로 다른 프로젝트에서 반복 연습하며 굳힌 흔적. 또한 정규식 기반 파서(`CSVReader.Read`)와 단순 `Split(',')` 기반 파서(`ReadCSV`, 따옴표 안 콤마를 처리 못하는 미완성 버전)가 한 파일에 나란히 남아있어, 15-2번(Localization)에서 다룬 "왜 정규식 파서가 필요한가"를 다시 한번 실물로 대조할 수 있다.
+- **내 코드에서 어떻게 썼는지**: `Downloader.cs:58,80`
+  ```csharp
+  const string urlPattern = "https://docs.google.com/spreadsheets/d/{0}/export?format=csv&gid={1}";
+  string url = string.Format(urlPattern, "1st0GvHiYSBQofM3z6C1r8yFej_PyFIQJvv8-uouig7w", 0);
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: `gid` 파라미터는 왜 필요한가? (구글 시트 파일 하나에 여러 개의 탭(시트)이 있을 수 있는데, `gid`가 그중 어느 탭을 CSV로 내보낼지 지정하는 값 — 시트 URL의 `#gid=0` 부분에서 그대로 가져다 씀)
+- **최신 동향**: 확인 필요 없음 — 구글 시트의 CSV export URL 패턴은 지금도 동일하게 동작한다.
+
+## 16-8. (참고) 씬에서 확인한 신구 저장 시스템 공존
+
+- **한 줄 정의**: 씬 파일(`SampleScene.unity`)을 guid로 대조한 결과, `Player` 오브젝트 하나에 `TestSave`(1세대)·`Player`(2세대)·`PlayerJson`(3세대) 세 스크립트가 동시에 부착돼 있음을 확인했다.
+- **왜 중요한가**: FSM(13-3번)의 Animator Controller 5개 버전, Localization(15-7번)의 신구 컴포넌트 공존에 이어, "리팩터링 전/후 버전을 지우지 않고 같은 오브젝트에 나란히 켜둔 채 비교하며 학습한다"는 이 사용자의 일관된 학습 습관이 세 번째로 확인된 사례.
+- **내 코드에서 어떻게 썼는지**: (해당 없음 — 씬 파일 guid 대조로 확인한 사실 기록)
+- **주의할 점 / 자주 나오는 꼬리 질문**: 해당 없음.
+- **최신 동향**: 해당 없음.
+
+---
+
+# 17. Art (2026-07-23)
+
+> `C:\Study\Unity\Art\Assets` — 다른 프로젝트들과 성격이 다른, **코드보다 아트/에디터 작업이 중심**인 실습. 스크립트는 `PlayerController.cs`(20줄)와 `ChangeSprite.cs`(9줄) 딱 2개뿐이고, 실제 작업 비중은 스프라이트 리깅·Animator 그래프·파티클 시스템 구성에 있다. 세 모듈로 구성: `00_Character_Complete`(2D 캐릭터 파츠 리깅+스킨 교체), `01_Ui_Complete`(Animator 기반 UI 버튼 상태 애니메이션+폰트), `02_ParticleSystem_Complete`(파티클 모듈 스터디+상자 오픈/레벨업 이펙트 합성).
+> **원본 강의자료 PDF는 없다.** (`Assets/TextMesh Pro/Documentation/`의 PDF는 TextMesh Pro 패키지 자체 가이드, 패키지 캐시의 PDF는 Code Coverage 워크시트 — `00_작업계획.md`에서 "진짜 강의자료일 가능성"으로 남겨뒀던 마지막 항목이었지만 실제로 열어본 결과 이번에도 같은 오판 패턴(8번째)으로 결론남. 이걸로 "패키지에 딸려온 PDF ≠ 강의자료" 패턴은 이 정리 작업 전체에서 완전히 확정됨.)
+
+## 17-1. 2D 캐릭터 파츠 리깅 + Sprite Library를 이용한 스킨 교체 시스템
+
+- **한 줄 정의**: Photoshop에서 레이어별로 나눠 그린 캐릭터 파츠(`Chr_Knight.psb`의 Face/Head1/Head2/Arm_F/Body 등)를 Unity **2D Animation 패키지**로 임포트해서 뼈대(Bone)에 스키닝하고, `SpriteLibraryAsset`(`.spriteLib`)으로 부위별 스프라이트 팔레트를 정의해두면, 같은 애니메이션 클립(Idle/Walk/Attack)을 여러 스킨(Knight/Orc)에 그대로 재사용할 수 있다.
+- **왜 중요한가**: 캐릭터마다 애니메이션을 따로 만들지 않고, "본 구조와 애니메이션은 공유하되 겉모습(스프라이트)만 갈아끼우는" 방식은 2D 게임에서 캐릭터/장비 종류가 늘어날 때 제작 비용을 크게 줄여주는 실무 표준 기법이다 — Spine 같은 유료 툴 없이도 Unity 공식 2D Animation 패키지만으로 이 파이프라인을 구축해본 경험.
+- **내 코드에서 어떻게 썼는지**: `Lib_Chr_Knight.spriteLib`(부위별 카테고리: `Face`/`Head`(`Head1`/`Head2` 두 라벨)/`Arm_F`/`Body` 등) ↔ `ChangeSprite.cs`
+  ```csharp
+  public SpriteLibraryAsset[] asset;   // 스킨(캐릭터 종류)별 라이브러리 목록
+  public SpriteLibrary lib;
+  public SpriteResolver skin;
+
+  void Start()
+  {
+      lib.spriteLibraryAsset = asset[index];         // 스킨 전체 교체
+      skin.SetCategoryAndLabel("Head", "Head2");     // 특정 부위(머리)만 다른 스프라이트로 교체
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: `SpriteLibrary`(라이브러리 전체 교체)와 `SpriteResolver`(개별 부위 교체)의 역할 차이는? (`SpriteLibrary`는 오브젝트가 참조할 스프라이트 팔레트 "묶음" 자체를 바꾸는 상위 개념이고, `SpriteResolver`는 그 팔레트 안에서 "카테고리(부위)-라벨(변형)" 조합으로 개별 파츠 하나만 선택적으로 바꾸는 하위 개념 — 캐릭터 전체 스킨 교체와 장비 부위별 교체를 같은 시스템으로 처리할 수 있는 이유가 이 계층 구조에 있음)
+- **최신 동향**: 확인 필요 없음 — Unity 2D Animation 패키지(Sprite Skin, Sprite Library, Sprite Resolver)는 지금도 공식적으로 유지보수되는 2D 캐릭터 애니메이션 표준 도구다.
+
+## 17-2. Animator Controller로 캐릭터 이동/공격 상태 구성
+
+- **한 줄 정의**: `Player.controller`는 `Idle`/`Walk`/`Attack` 세 상태와 `moving`(bool)/`attack`(trigger) 두 파라미터로 구성되고, `PlayerController.cs`는 방향키 입력에 따라 이 파라미터만 갱신할 뿐 실제 상태 전환은 Animator 그래프가 전담한다.
+- **왜 중요한가**: FSM 프로젝트(13-3번)에서 확인한 "코드는 신호만 보내고 전환 로직은 그래프에 둔다"는 책임 분리 패턴이 이 프로젝트에서도 동일하게 재확인된다 — 2D 캐릭터 애니메이션에서도 같은 설계 원칙이 그대로 적용됨을 보여주는 사례.
+- **내 코드에서 어떻게 썼는지**: `PlayerController.cs:14-32`
+  ```csharp
+  if (Input.GetKey(KeyCode.RightArrow))
+  {
+      transform.localScale = new Vector3(-1, 1, 1);   // 스프라이트 좌우 반전
+      animator.SetBool("moving", true);
+      transform.Translate(Vector3.right * Time.deltaTime);
+  }
+  ...
+  if (Input.GetKey(KeyCode.LeftControl) &&
+      !animator.GetCurrentAnimatorStateInfo(0).IsName("Attack"))   // 공격 중 재입력 방지
+  {
+      animator.SetTrigger("attack");
+  }
+  ```
+  배경 장식 오브젝트(꽃)에도 `Flower.controller`라는 별도의 단순 반복 애니메이션 컨트롤러를 만들어 씀 — 캐릭터가 아닌 배경 요소에도 Animator를 적용하는 활용 범위를 보여줌.
+- **주의할 점 / 자주 나오는 꼬리 질문**: `transform.localScale`의 x값을 음수로 만들어 좌우 반전하는 방식의 장단점은? (스프라이트를 별도로 좌우 두 벌 만들 필요 없이 간단히 방향 전환을 표현할 수 있지만, 자식 오브젝트가 있는 경우 자식까지 같이 반전되어 의도치 않은 결과가 나올 수 있어 복잡한 캐릭터에서는 `SpriteRenderer.flipX`를 쓰는 게 더 안전함)
+- **최신 동향**: 확인 필요 없음 — Animator 파라미터 기반 상태 제어는 2D/3D를 가리지 않는 Unity의 기본 설계다.
+
+## 17-3. Animator 기반 UI 버튼 상태 애니메이션
+
+- **한 줄 정의**: Unity 기본 `Button` 컴포넌트가 제공하는 단순 색상 전환(Color Tint) 대신, `TabButton.controller`로 `Normal`/`Highlighted`/`Pressed`/`Disabled` 4개 상태를 Animator로 직접 구성해서 버튼의 시각 반응을 세밀하게 제어했다.
+- **왜 중요한가**: 색상만 바뀌는 기본 버튼 반응은 대부분의 실전 UI에서 부족하게 느껴지는데, `Button`의 Transition 모드를 "Animation"으로 바꿔 Animator Controller를 직접 연결하면 스케일 변화, 스프라이트 교체, 여러 오브젝트 동시 제어 등 훨씬 다채로운 버튼 반응을 만들 수 있다 — UI 폴리싱의 실무적인 다음 단계를 보여준다.
+- **내 코드에서 어떻게 썼는지**: `TabButton.controller`(상태: `Normal`/`Highlighted`/`Pressed`/`Disabled`) ↔ `PreFabs/Common_TabBtn.prefab`(여러 탭에서 재사용하는 프리팹화)
+- **주의할 점 / 자주 나오는 꼬리 질문**: 왜 하나의 컨트롤러를 프리팹으로 만들어 재사용하는가? (여러 탭 버튼마다 각각 Animator Controller를 새로 만들면 나중에 반응을 하나 수정할 때 전부 따로 고쳐야 함 — 프리팹+공용 컨트롤러 조합으로 만들면 한 곳만 고쳐도 모든 탭 버튼에 일괄 반영됨)
+- **최신 동향**: 확인 필요 없음 — `Button`의 Animation Transition 모드는 Unity UI(uGUI)의 오래되고 안정적인 기능이다.
+
+## 17-4. 상자(Chest) 오픈 연출 — Animator+파티클 합성
+
+- **한 줄 정의**: `pnl_UI_Chest.controller`(`UI_Chest_Down`/`UI_Chest_Open` 두 상태, `Open`/`Down` 파라미터)로 상자 뚜껑 스프라이트를 여닫는 것과 동시에, 코인(`Fx_Coin`)·반짝임(`Fx_GlowStar`)·연기(`Fx_Cloud`)·빛줄기(`Fx_StretchRay`)·궤적선(`Fx_Line`) 등 서로 다른 파티클 이펙트 5종을 겹쳐서 하나의 "보상 연출"을 완성했다.
+- **왜 중요한가**: 화려한 게임 이펙트는 파티클 시스템 하나로 만드는 게 아니라, 단순한 이펙트 여러 개를 레이어처럼 겹쳐서 합성하는 경우가 대부분이라는 실무적 감각을 보여주는 사례 — Animator(오브젝트 상태 전환)와 Particle System(시각 효과) 두 시스템을 같은 타이밍에 맞춰 트리거하는 협업 구조.
+- **내 코드에서 어떻게 썼는지**: `02_ParticleSystem_Complete/01_Chest_Complete_Material/`(`Fx_Cloud.mat`/`Fx_Coin.mat`/`Fx_GlowStar.mat`/`Fx_Line.mat`/`Fx_StretchRay.mat`) + `Texture/Chest/`(`Chest_lid_Closed.png`/`Chest_lid_Open.png`/`Coin_Rotation.png`/`GlowStar.png` 등 이펙트별 전용 텍스처)
+- **주의할 점 / 자주 나오는 꼬리 질문**: 이펙트를 하나의 복잡한 파티클 시스템으로 만들지 않고 여러 개로 쪼개서 합성하는 이유는? (개별 이펙트를 독립적으로 켜고 끄고 타이밍을 조절할 수 있어 재사용성과 튜닝 편의성이 훨씬 좋음 — 예를 들어 "코인만 다른 상황에서 재사용"하거나 "빛줄기 타이밍만 늦추기" 같은 조정이 하나의 거대한 파티클 시스템보다 훨씬 쉬움)
+- **최신 동향**: 확인 필요 없음 — 여러 파티클 시스템을 레이어링해서 합성 이펙트를 만드는 방식은 지금도 게임 VFX 제작의 기본 접근법이다.
+
+## 17-5. 파티클 시스템 모듈별 스터디 그리드
+
+- **한 줄 정의**: `Particle_Study.prefab` 안에 여러 개의 파티클 시스템을 나란히 배치하고 각각에 라벨(`Text`)을 붙여서, `SimulationSpace`(Local/World), `SortMode`, `Emission`(시간당/거리당 방출), `Noise` 모듈, Stretched Billboard 렌더 모드, Sub Emitter(파티클이 또 다른 파티클을 낳는 구조), Trail(궤적) 등 파티클 시스템의 개별 기능을 하나씩 따로 실험해본 참고표를 만들었다.
+- **왜 중요한가**: 파티클 시스템은 옵션이 매우 많아 한꺼번에 배우면 무엇이 어떤 효과를 내는지 헷갈리기 쉬운데, 기능 하나당 예제 하나씩 격자로 배치해 비교하는 방식은 이후 실제 이펙트(17-4번의 상자 오픈 등)를 만들 때 "이 효과가 필요하면 어떤 모듈을 써야 하는지" 바로 떠올릴 수 있게 해주는 체계적인 학습 방법이다.
+- **내 코드에서 어떻게 썼는지**: `Particle_Study.prefab`의 자식 구조 — `Particle System`/`Particle System (1)`/`Particle System (2)`/`Particle System (3)`/`Sub_Particle System`/`Stretched Billboard_Trail` 등 각 셀마다 전용 `Text` 라벨이 붙어있어 무엇을 실험 중인지 명시.
+- **주의할 점 / 자주 나오는 꼬리 질문**: `SimulationSpace`를 Local과 World 중 뭘 선택하느냐에 따라 무엇이 달라지는가? (Local이면 파티클이 발생기(에미터) 오브젝트가 움직일 때 같이 따라 움직이고, World면 발생한 자리에 그대로 남아있음 — 예를 들어 캐릭터를 따라다니는 불꽃 이펙트는 Local, 캐릭터가 지나간 자리에 남는 발자국 파티클은 World가 적합)
+- **최신 동향**: 확인 필요 없음 — Unity 빌트인 Particle System(Shuriken)의 모듈 구성은 오랫동안 안정적으로 유지되고 있다(더 고급 VFX가 필요하면 VFX Graph(GPU 파티클)로 넘어가는 경우도 있음 — 확인 필요: 이 프로젝트가 그 단계까지 다루진 않음).
+
+## 17-6. 경험치(Exp)/레벨업 UI 이펙트
+
+- **한 줄 정의**: 진행형 게이지 UI(슬라이더, `Silider_BG`/`Silider_Blue`)에 아이콘·글로우 텍스처(`icon_Exp`/`Glow`/`Icon_Upgrade`)와 "LEVEL UP!" 텍스트 이미지를 겹쳐서 레벨업 순간의 연출을 만든 세트(`Texture/Exp/`).
+- **왜 중요한가**: 17-4번의 "상자 오픈"이 순간적인 폭발형 연출이라면, 이건 "진행 상태를 보여주는 UI(슬라이더)"에 이펙트를 얹는 다른 결의 합성 사례 — 게임 UI에서 이펙트가 붙는 두 가지 대표적인 상황(순간 이벤트 vs 진행 상태 강조)을 한 프로젝트에서 비교해볼 수 있다.
+- **내 코드에서 어떻게 썼는지**: `Texture/Exp/Silider_BG.png`/`Silider_Blue.png`(게이지) + `Glow.png`/`icon_Exp.png`/`Icon_Upgrade.png`(강조 요소) + `LEVEL UP!.png`(연출 텍스트 이미지)
+- **주의할 점 / 자주 나오는 꼬리 질문**: 해당 없음(에셋 구성 기록).
+- **최신 동향**: 확인 필요 없음.
+
+## 17-7. TextMeshPro SDF 폰트 커스터마이징 (서드파티 폰트 활용)
+
+- **한 줄 정의**: 구글 폰트인 `LilitaOne-Regular.ttf`(서드파티 무료 폰트)를 TextMeshPro의 **SDF(Signed Distance Field)** 폰트 에셋(`LilitaOne-Regular SDF.asset`)으로 변환해서 UI 텍스트에 사용했다.
+- **왜 중요한가**: 기본 시스템 폰트 대신 프로젝트 분위기에 맞는 서드파티 폰트를 가져와 쓰는 건 실무에서 흔한 작업이고, TextMeshPro는 일반 폰트를 그대로 쓰지 않고 SDF 방식으로 변환해야 확대/축소해도 흐려지지 않는 선명한 텍스트 렌더링이 가능하다는 걸 실습해본 사례.
+- **내 코드에서 어떻게 썼는지**: `01_Ui_Complete/Fonts/LilitaOne-Regular.ttf`(원본 폰트) → `LilitaOne-Regular SDF.asset`(TextMeshPro Font Asset Creator로 생성한 SDF 폰트 에셋)
+- **주의할 점 / 자주 나오는 꼬리 질문**: SDF 폰트가 일반 비트맵 폰트보다 나은 점은? (거리장(distance field) 정보를 저장해두기 때문에 텍스트를 아무리 확대해도 가장자리가 매끈하게 유지됨 — 일반 비트맵 폰트는 확대하면 픽셀이 그대로 늘어나 계단현상이 생기는 것과 대비됨)
+- **최신 동향**: 확인 필요 없음 — TextMeshPro의 SDF 폰트 워크플로우는 지금도 Unity UI 텍스트의 표준 방식이다.
+
+## 17-8. (참고) 코드보다 아트/에디터 작업이 중심인 프로젝트
+
+- **한 줄 정의**: 이 프로젝트의 스크립트는 `PlayerController.cs`(20줄)와 `ChangeSprite.cs`(9줄) 단 2개뿐이며, 둘 다 Animator 파라미터를 세팅하거나 Sprite Library를 교체하는 최소한의 연결 코드 역할만 한다. 실제 결과물의 대부분은 스프라이트 리깅, Animator 그래프 설계, 파티클 모듈 튜닝, UI 이펙트 합성 같은 코드 밖 에디터/아트 작업에 있다.
+- **왜 중요한가**: 지금까지 다룬 대다수 Unity 프로젝트가 "스크립트 코드"를 중심으로 정리됐다면, 이 프로젝트는 반대로 "결과물의 완성도가 코드가 아니라 에디터에서 만든 애니메이션/이펙트/UI 구성에 있다"는 걸 명시적으로 구분해두는 게 포트폴리오에서 이 프로젝트의 성격을 정확히 전달하는 데 필요하다(사용자가 이 프로젝트를 정리할 때 직접 강조한 지점).
+- **내 코드에서 어떻게 썼는지**: (해당 없음 — 프로젝트 성격 기록)
+- **주의할 점 / 자주 나오는 꼬리 질문**: 해당 없음.
+- **최신 동향**: 해당 없음.
+
+---
+
+# 18. Astar (바탕화면, 생성일 불확실)
+
+> `C:\Users\user\Desktop\Astar\Assets\Scripts` — A* 길찾기 알고리즘을 그리드 기반으로 직접 구현한 실습(스크립트 9개, 총 1347줄). 알고리즘 자체(`PathFinding.cs`, 601줄)에 교과서적인 A* 로직이 한국어 주석으로 매우 촘촘하게 설명되어 있고, 실행 방식이 동기 → 수동 스텝 → 코루틴 시각화 3단계로 진화한 흔적이 한 파일 안에 나란히 남아있다. `Test.cs`는 A*와 무관하게 `IEquatable<T>` 개념을 별도로 연습해본 스크래치 코드.
+> **원본 강의자료 PDF는 없다.**
+
+## 18-1. A* 핵심 자료구조 — F/G/H 비용을 가진 Node + Open/Closed 리스트
+
+- **한 줄 정의**: 그리드의 각 칸을 나타내는 `Node`가 G비용(시작점부터의 실제 이동 비용)·H비용(목표까지의 추정 비용)·F비용(G+H, 총 우선순위)과 부모 노드 참조를 갖고, 아직 평가하지 않은 노드를 담는 `Open` 리스트와 이미 평가를 마친 노드를 담는 `Closed` 리스트로 탐색 진행 상태를 관리한다.
+- **왜 중요한가**: A* 알고리즘의 핵심은 결국 "지금까지 든 비용(G)"과 "앞으로 들 것으로 예상되는 비용(H)"을 더한 값(F)이 가장 작은 노드부터 우선적으로 탐색하는 것 — 이 세 값의 의미와 관계를 정확히 구분해서 설명할 수 있는지가 A*를 안다고 할 수 있는 최소 기준이다.
+- **내 코드에서 어떻게 썼는지**: `Node.cs:152-168`
+  ```csharp
+  public int FCost { get { return m_hCost + m_gCost; } }   // 총 비용 = G + H
+  public int HCost { get { return m_hCost; } }              // 목표까지 추정 비용
+  public int GCost { get { return m_gCost; } }               // 시작점부터의 실제 비용
+  ```
+  `NodeComparer.cs`(`IComparer<Node>`)로 Open 리스트를 F비용 오름차순(같으면 H비용 오름차순)으로 정렬해서, 정렬된 리스트의 맨 앞(`m_openList[0]`)을 다음 탐색 노드로 선택.
+- **주의할 점 / 자주 나오는 꼬리 질문**: F비용이 같은 두 노드 중 어느 걸 먼저 골라야 하는가? (`NodeComparer`가 F비용이 같으면 H비용이 더 작은(=목표에 더 가까운) 노드를 우선하도록 처리 — 목표에 더 가까운 노드부터 탐색하면 최종 경로를 더 빨리 찾을 가능성이 높아지는 실전적인 타이브레이커)
+- **최신 동향**: 확인 필요 없음 — A*의 F/G/H 개념과 Open/Closed 리스트 구조는 1968년 처음 제안된 이래 지금까지 변하지 않은 알고리즘의 근본 정의다.
+
+## 18-2. 휴리스틱 거리 계산 — 대각선 이동을 고려한 옥타일 거리
+
+- **한 줄 정의**: 8방향(상하좌우+대각선) 이동이 가능한 그리드에서, 대각선 이동 1칸의 비용을 10, 직선 이동 1칸의 비용을 10으로 잡되 대각선에는 `14`(≈10×√2)를 곱해 실제 유클리드 거리에 더 가깝게 근사한 "옥타일 거리(Octile Distance)" 공식을 휴리스틱(H비용)으로 사용한다.
+- **왜 중요한가**: 그리드에서 대각선과 직선 이동에 같은 비용(맨해튼 거리)을 쓰면 대각선 이동이 부당하게 저렴해 보여 비효율적인 경로가 나올 수 있는데, 대각선에 √2배 비용을 반영하는 게 왜 필요한지 실제 코드로 이해할 수 있다.
+- **내 코드에서 어떻게 썼는지**: `PathFinding.cs:93-103`
+  ```csharp
+  public int GetDistance(Node a, Node b)
+  {
+      int x = Mathf.Abs(a.Col - b.Col);
+      int y = Mathf.Abs(a.Row - b.Row);
+      // 대각선으로 이동 가능한 칸 수(min(x,y))는 14, 나머지 직선 이동 칸 수(|x-y|)는 10
+      return 14 * Mathf.Min(x, y) + 10 * Mathf.Abs(x - y);
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: 14와 10이라는 숫자는 왜 나왔고, 임의로 바꿔도 되는가? (10은 직선 이동 1칸 비용의 기준 단위, 14는 대각선 1칸(√2×10 ≈ 14.14를 반올림) 비용 — 코드 주석에도 "소비값은 알아서 셋팅 해도 됨, 그러나 14 < 10이 크면 안 됨"이라고 명시되어 있어, 비율만 유지하면(대각선이 직선보다 비싸야 함) 실제 값 자체는 조정 가능하다는 걸 이해하고 있었음 — 이 휴리스틱이 실제 최단 비용을 과대평가하지 않아야 A*가 최적 경로를 보장한다는 원리(admissible heuristic)와 연결됨)
+- **최신 동향**: 확인 필요 없음 — 옥타일 거리 휴리스틱은 8방향 그리드 길찾기의 표준 기법으로 지금도 동일하게 쓰인다.
+
+## 18-3. Open/Closed 리스트 갱신 알고리즘 — A* 메인 루프
+
+- **한 줄 정의**: 현재 노드의 이웃을 순회하며 (1) 이미 평가를 마친(Closed) 노드나 벽(Wall)이면 건너뛰고, (2) 새로 계산한 G비용이 기존보다 낮거나 아직 Open에 없으면 G/H/F비용과 부모를 갱신하고 Open에 추가하는, A* 알고리즘의 핵심 루프를 구현했다.
+- **왜 중요한가**: A*의 정확성이 걸린 부분 — "이미 Open에 있는 노드라도 더 짧은 경로를 발견하면 갱신해야 한다"는 조건을 빠뜨리면 최적 경로를 보장할 수 없는데, 이 로직이 정확히 구현되어 있다.
+- **내 코드에서 어떻게 썼는지**: `PathFinding.cs:282-323`(`IEStep` 내부)
+  ```csharp
+  if (m_closedList.Contains(neighbours[i])) continue;         // 이미 확정된 노드는 스킵
+  if (neighbours[i].NType == NodeType.Wall) continue;          // 벽은 이동 불가
+
+  int gCost = m_currNode.GCost + GetDistance(neighbours[i], m_currNode);
+  if (m_openList.Contains(neighbours[i]) == false || gCost < neighbours[i].GCost)
+  {
+      // 처음 발견했거나, 더 짧은 경로를 찾았으면 갱신
+      neighbours[i].SetGCost(gCost);
+      neighbours[i].SetHCost(GetDistance(neighbours[i], m_targetNode));
+      neighbours[i].SetParent(m_currNode);
+      if (!m_openList.Contains(neighbours[i])) m_openList.Add(neighbours[i]);
+  }
+  m_closedList.Add(m_currNode);          // 현재 노드는 평가 완료 처리
+  m_openList.Remove(m_currNode);
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: 왜 이웃 노드를 Open에 추가하기 전에 현재 노드를 먼저 Closed로 옮기지 않고, 이웃 처리를 다 끝낸 뒤에 Closed로 옮기는가? (현재 노드 자신은 이웃 목록에 포함되지 않으므로 순서가 결과에 영향을 주진 않지만, "이번 스텝에서 평가한 이웃들 처리 → 이번 노드는 이제 완료 처리"라는 순서가 코드 흐름상 더 자연스럽고 읽기 쉬움)
+- **최신 동향**: 확인 필요 없음 — 이 갱신 로직은 A* 알고리즘 정의 자체이며 변하지 않는다.
+
+## 18-4. 경로 역추적(RetracePath) — 부모 체인을 따라 거슬러 올라가기
+
+- **한 줄 정의**: 목표 노드에 도달하면, 그 노드부터 `Parent` 참조를 계속 따라 올라가며 리스트에 담고(이 순서는 목표→시작 역순이 됨), 마지막에 `Reverse()`로 뒤집어서 시작→목표 순서의 최종 경로를 만든다.
+- **왜 중요한가**: 탐색 도중에는 각 노드가 "내가 어디서 왔는지"(부모)만 기억하고 있을 뿐 전체 경로를 알지 못하는데, 목표에 도달한 시점에 이 부모 링크를 거슬러 올라가는 것만으로 전체 경로를 복원할 수 있다는 A*의 우아한 특성을 보여준다.
+- **내 코드에서 어떻게 썼는지**: `PathFinding.cs:106-125`
+  ```csharp
+  public List<Node> RetracePath(Node currNode)
+  {
+      List<Node> nodes = new List<Node>();
+      while (currNode != null)
+      {
+          nodes.Add(currNode);
+          currNode = currNode.Parent;   // 부모를 계속 거슬러 올라감
+      }
+      nodes.Reverse();                  // 목표→시작 순서였던 걸 시작→목표로 뒤집음
+      return nodes;
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: `Reverse()`를 안 하면 어떻게 되는가? (리스트가 목표에서 시작 방향으로 채워지므로, `BaseChar.Update()`(18-6번 연결)가 `m_path[0]`부터 순서대로 따라가는 방식과 맞물려 캐릭터가 거꾸로 된 경로(목표에서 시작 쪽으로)를 따라가게 됨)
+- **최신 동향**: 확인 필요 없음 — 부모 포인터 체인을 이용한 경로 복원은 A*/다익스트라 등 그래프 탐색 알고리즘 전반의 표준 기법이다.
+
+## 18-5. 알고리즘 실행 방식 3단계 진화 — 동기 → 수동 스텝 → 코루틴 시각화
+
+- **한 줄 정의**: 같은 A* 로직을 ① `FindPath`(하나의 `do-while` 루프 안에서 완결, "테스트 함수(참고용)") → ② `Step`(스페이스바를 누를 때마다 한 스텝씩 수동 진행, "지금은 안씀") → ③ `FindPathCoroutine`/`IEStep`(코루틴으로 매 프레임 한 스텝씩 자동 진행하며 시각화, 실제 채택된 최종 버전) 순서로 세 번 다시 구현했다.
+- **왜 중요한가**: 알고리즘의 정답 자체는 같지만 "그걸 어떻게 실행하고 보여줄 것인가"를 다르게 설계해본 경험 — 특히 코루틴 버전에서는 `yield return null`로 한 스텝마다 한 프레임씩 양보해서 탐색 과정이 눈에 보이도록 만들었다는 점이 교육적 시각화 설계의 핵심.
+- **내 코드에서 어떻게 썼는지**: `PathFinding.cs:1,6-7`(재귀를 쓰지 않은 이유), `PathFinding.cs:344-345`
+  ```
+  // 재귀 함수를 사용한 길찾기의 경우 맵이 커지고 장애물이 배치되어 있는 경우
+  // 재귀 함수 호출의 제한으로 인해 프로그램이 강제 종료 될 수 있다.
+  ```
+  ```csharp
+  yield return null;   // 코루틴 종료 후 다음 프레임에 이어서 실행 — 매 스텝이 화면에 보임
+  if (m_currNode == m_targetNode) { ... player.SetPath(m_pathNode); }
+  else StartCoroutine(IEStep(player));   // 목표 도달 전까지 스스로를 다시 호출(재귀 대신 반복+코루틴)
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: 왜 재귀 함수 대신 코루틴으로 "자기 자신을 다시 호출"하는 방식을 썼는가? (재귀는 호출 스택 깊이에 제한이 있어 맵이 크고 탐색이 오래 걸리면 스택 오버플로우로 이어질 수 있는데, 코루틴은 매 스텝마다 한 프레임을 양보하고 새로 시작하는 방식이라 스택이 쌓이지 않음 — 그와 동시에 "매 프레임 한 스텝씩"이라는 자연스러운 시각화 타이밍까지 덤으로 얻음)
+- **최신 동향**: 확인 필요 없음 — 코루틴을 이용한 알고리즘 시각화/분산 실행은 Unity에서 지금도 유효한 표준 기법이다.
+
+## 18-6. 탐색 과정 시각화 — 노드 색상 + F/G/H 텍스트
+
+- **한 줄 정의**: 탐색 중인 각 노드를 역할에 따라 색으로 구분해서 실시간으로 표시한다 — 열린 노드(Open) 노란색, 이번 스텝의 이웃 파란색, 닫힌 노드(Closed) 회색, 최종 경로 빨간색, 이전/시작 노드 초록색, 목표 노드 보라색. 각 노드 위에는 F/G/H 비용도 텍스트로 함께 표시된다.
+- **왜 중요한가**: A* 알고리즘은 눈에 보이지 않는 내부 상태(어떤 노드가 평가됐고, 왜 이 경로가 선택됐는지)가 많은데, 이를 색상과 숫자로 매 스텝 시각화하면 알고리즘이 "왜 이렇게 동작하는지"를 직관적으로 이해할 수 있게 된다 — 알고리즘을 배우는 것과 동시에 "디버깅/설명 가능한 형태로 시각화하는" 스킬까지 같이 연습한 셈이다.
+- **내 코드에서 어떻게 썼는지**: `PathFinding.cs:152-185`
+  ```csharp
+  public void ResetColor()
+  {
+      foreach (var n in m_openList) n.SetColor(Color.yellow);
+      foreach (var n in m_currNeighbours) n.SetColor(Color.blue);
+      foreach (var n in m_closedList) n.SetColor(Color.grey);
+      if (m_prevNode != null) m_prevNode.SetColor(Color.green);
+      m_targetNode.SetColor(Color.magenta);
+      if (m_pathNode != null)
+          foreach (var n in m_pathNode) n.SetColor(Color.red);
+  }
+  ```
+  `Node.cs:171-177`의 `SetHCost`/`SetGCost`가 비용이 바뀔 때마다 `Text` 컴포넌트(`m_fText`/`m_hText`/`m_gText`)도 함께 갱신.
+- **주의할 점 / 자주 나오는 꼬리 질문**: 색을 매번 전체 리스트를 순회하며 다시 칠하는 방식(`ResetColor`)의 단점은? (노드 수가 많아지면 매 스텝마다 Open/Closed 전체를 순회하는 비용이 커짐 — 상태가 바뀐 노드만 그때그때 색을 바꾸는 방식이 더 효율적이지만, 학습/디버깅용 시각화 목적에서는 코드가 단순해지는 이 방식도 충분히 합리적인 선택)
+- **최신 동향**: 확인 필요 없음 — 알고리즘 시각화 기법 자체는 시대와 무관하게 유효한 학습 도구다.
+
+## 18-7. 그리드 클릭 상호작용 — 시작/목표/장애물 설정
+
+- **한 줄 정의**: 마우스 좌클릭으로 플레이어(시작점) 위치를, 우클릭으로 목표 위치를 설정하며 즉시 경로 탐색 코루틴을 실행하고, W키를 누르고 있는 동안 클릭한 노드를 장애물(Wall)로 바꾸고, R키로 전체를 리셋한다.
+- **왜 중요한가**: 알고리즘 자체보다 "사용자가 직접 맵을 편집하고 즉시 결과를 확인할 수 있는" 인터랙티브 데모를 만들었다는 점 — 장애물을 마음대로 배치해보며 A*가 이를 어떻게 우회하는지 실험할 수 있는 실습 도구로 완성했다.
+- **내 코드에서 어떻게 썼는지**: `Controller.cs:33-79`
+  ```csharp
+  Node RayCast() { return m_grid2D.ClickNode(); }   // 클릭 지점의 노드를 찾음(RectTransform 기반)
+
+  if (Input.GetMouseButtonUp(1))   // 우클릭: 목표 설정 + 탐색 시작
+  {
+      m_target.transform.position = RayCast().transform.position;
+      pathfinding.FindPathCoroutine(m_player, m_target);
+  }
+  if (Input.GetKey(KeyCode.W))     // W: 장애물 설치
+  {
+      Node node = RayCast();
+      if (node != null) node.SetNodeType(NodeType.Wall);
+  }
+  ```
+  `Grid2D.FindNode`는 `RectTransformUtility.RectangleContainsScreenPoint`로 UI 좌표계에서 클릭 지점이 어느 노드의 사각 영역에 속하는지 판정(3D 월드 좌표의 `Collider.Contains`가 아니라 UI 전용 판정 방식을 사용).
+- **주의할 점 / 자주 나오는 꼬리 질문**: `Node.cs`에 `Contains`(Collider 기반) 함수가 있는데 왜 실제로는 `RectangleContainsScreenPoint`(UI 기반)를 쓰는가? (코드 주석에 "여기선 안씀 X"이라고 명시 — 그리드가 UI Canvas 위의 `Image`로 구현되어 있어서 3D Collider 판정보다 UI 전용 판정 함수가 더 정확하고 자연스러움. Collider 버전은 다른 접근 방식을 시도해봤다가 UI 판정으로 바꾼 흔적으로 보임)
+- **최신 동향**: 확인 필요 없음 — 두 판정 방식 모두 여전히 유효하며, UI 기반 그리드에는 `RectTransformUtility`가, 월드 공간 오브젝트에는 `Collider` 기반 판정이 각각 적합하다는 원칙도 변함없다.
+
+## 18-8. (참고) 미사용 확장 설계 — `PairNode`/`IEquatable` 실행 대기열
+
+- **한 줄 정의**: 여러 캐릭터가 동시에 길찾기를 요청할 경우를 대비해 `PairNode`(플레이어+타겟 쌍) 클래스를 `IEquatable<PairNode>`로 구현하고 대기열(`m_orderlist`)까지 만들어뒀지만, 코드 주석("여기선 안씀 참고만~", "미션")에 명시된 대로 실제로는 이 프로젝트에서 쓰이지 않는다.
+- **왜 중요한가**: 배운 개념(`IEquatable<T>`를 구현해 `List.Contains`가 커스텀 동등성 비교를 쓰게 만드는 기법)을 실제 문제(동시 요청 큐잉)에 응용해서 설계까지 해봤지만 프로젝트에는 연결하지 않은 채로 남겨둔 사례 — UnityDll(12-4번)의 미사용 구조체 마샬링, ShaderST(14-4번)의 미사용 커스텀 라이팅 함수와 같은 결의 패턴이 이번에도 나타난다. `Test.cs`에서 같은 `IEquatable` 개념(`Part` 클래스)을 별도로 더 연습해본 것도 이 개념을 확실히 익히려던 의도로 보인다.
+- **내 코드에서 어떻게 썼는지**: `PathFinding.cs:12-48`
+  ```csharp
+  public class PairNode : IEquatable<PairNode>
+  {
+      public BaseChar m_player;
+      public BaseChar m_target;
+      public bool Equals(PairNode other) { ... }   // IEquatable 구현 → List.Contains가 이걸 사용
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: `IEquatable<T>`를 구현하면 `List<T>.Contains`의 동작이 왜 바뀌는가? (기본적으로 `Contains`는 참조 동일성(같은 인스턴스인지)으로 비교하지만, `IEquatable<T>`를 구현하면 그 타입에 한해 커스텀 `Equals` 로직으로 "내용이 같은지"를 비교하게 됨 — 여기서는 `m_player`의 인스턴스 ID가 같으면 같은 요청으로 취급하려는 의도)
+- **최신 동향**: 확인 필요 없음 — `IEquatable<T>` 기반 컬렉션 비교 커스터마이징은 C#의 안정적인 표준 기능이다.
+
+---
+
+# 19. 우선순위HeapSort (바탕화면, 생성일 불확실)
+
+> `C:\Users\user\Desktop\우선순위HeapSort\Assets` — 배열 기반 이진 힙(Binary Heap)으로 우선순위 큐(Priority Queue)를 구현하고, 힙의 트리 구조를 실시간으로 시각화하는 소규모 실습(스크립트 2개, 296줄). `TreeManager.cs`(힙 로직)와 `NodeDisp.cs`(노드 텍스트 표시)로 구성되며, UI(Push/Pop 버튼 + Min/Max Toggle)로 직접 값을 넣고 빼며 힙이 재정렬되는 과정을 눈으로 확인할 수 있는 인터랙티브 데모다.
+> **원본 강의자료 PDF는 없다.**
+
+## 19-1. 배열 기반 완전이진트리로 구현한 힙
+
+- **한 줄 정의**: 힙은 "부모가 항상 자식보다 우선순위가 높다(작거나 크다)"는 규칙을 만족하는 완전이진트리인데, 이 규칙 덕분에 노드끼리 포인터로 연결하지 않고도 배열 하나(`Node[] tree`)와 인덱스 산술만으로 트리 구조 전체를 표현할 수 있다.
+- **왜 중요한가**: "왜 힙은 배열로 구현하는 게 자연스러운가"를 인덱스 계산 공식으로 직접 설명할 수 있는지가 힙/우선순위 큐를 안다고 할 수 있는 최소 기준 — 완전이진트리이기 때문에 빈 칸 없이 배열에 빽빽하게 채울 수 있다는 전제가 핵심이다.
+- **내 코드에서 어떻게 썼는지**: `TreeManager.cs:14,250-252`
+  ```csharp
+  public Node[] tree = new Node[128];   // 배열 하나로 트리 전체를 표현
+
+  private int GetParentIndex(int curIndex)
+  {
+      return (curIndex - 1) / 2;   // 자식 인덱스로부터 부모 인덱스를 역산
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - 인덱스 `i`의 왼쪽/오른쪽 자식 인덱스는 어떻게 구하는가? (왼쪽 `2i+1`, 오른쪽 `2i+2` — `GetParentIndex`의 `(i-1)/2`는 정확히 이 공식의 역함수)
+  - 배열 크기를 미리 128로 고정해둔 것의 한계는? (그 이상 노드가 추가되면 `IndexOutOfRangeException`이 나는 구조 — 실무에서는 `List<T>`나 동적 배열로 필요 시 크기를 늘리는 방식을 쓰는 게 안전함)
+- **최신 동향**: 확인 필요 없음 — 배열 기반 이진 힙은 지금도 우선순위 큐 구현의 표준 방식이다(C#의 `PriorityQueue<TElement,TPriority>`(.NET 6+)도 내부적으로 이 방식을 쓴다 — 확인 필요: 정확한 내부 구현은 버전마다 다를 수 있음).
+
+## 19-2. 삽입(Push) + 상향 재정렬(Sift-Up)
+
+- **한 줄 정의**: 새 값은 항상 배열의 맨 끝(다음 빈 자리)에 먼저 추가한 뒤, 그 자리에서 부모와 비교해가며 규칙을 어기면 서로 교환하고 한 칸씩 위로 올라가는 과정(`MinHeap`/`MaxHeap`)을 반복한다.
+- **왜 중요한가**: 힙의 삽입이 O(log n)인 이유가 바로 이 상향 이동 횟수가 트리의 높이(log n)를 넘지 않기 때문이라는 걸 코드로 확인할 수 있다.
+- **내 코드에서 어떻게 썼는지**: `TreeManager.cs:58-73`
+  ```csharp
+  public void MinHeap(Node node, int parentIndex, int val)
+  {
+      while (node.value < tree[parentIndex].value)   // 자식이 부모보다 작으면(Min 우선순위 위반)
+      {
+          node.value = tree[parentIndex].value;       // 부모 값을 자식 자리로 내리고
+          tree[parentIndex].value = val;               // 새 값을 부모 자리로 올림
+          node = tree[parentIndex];
+          parentIndex = GetParentIndex(parentIndex);   // 한 칸 더 위로
+      }
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: `MinHeap`과 `MaxHeap`의 차이는 어디 한 곳뿐인가? (`while` 조건의 부등호 방향(`<` vs `>`) 딱 한 글자 차이 — 우선순위 큐의 "우선순위 기준"이 코드 전체 구조가 아니라 비교 연산자 하나로 결정된다는 걸 극명하게 보여줌)
+- **최신 동향**: 확인 필요 없음 — Sift-Up(Bubble-Up) 알고리즘은 힙 자료구조의 표준 정의 그대로다.
+
+## 19-3. 삭제(Pop) + 하향 재정렬(Sift-Down)
+
+- **한 줄 정의**: 최우선순위 노드(루트, 인덱스 0)를 꺼낸 뒤에는 배열의 마지막 노드 값을 루트로 옮기고, 그 값이 자식들보다 규칙을 어기면 두 자식 중 "더 우선순위가 높은 쪽"과 교환하며 아래로 내려가는 과정을 반복한다.
+- **왜 중요한가**: 단순히 루트를 지우고 끝내는 게 아니라 "마지막 노드를 루트로 옮긴 뒤 재정렬"하는 이유(완전이진트리 모양을 계속 유지해야 다음 삽입/삭제도 O(log n)을 보장할 수 있음)를 이해하고 있는지가 힙 삭제 로직의 핵심 포인트.
+- **내 코드에서 어떻게 썼는지**: `TreeManager.cs:99-186`(Min 기준 발췌)
+  ```csharp
+  tree[0].value = tree[nodeCount - 1].value;   // 마지막 노드 값을 루트로 이동
+  Destroy(GameObject.Find("Node: " + (nodeCount - 1).ToString()));   // 마지막 노드는 제거
+  nodeCount--;
+
+  while ((node.left != null && node.left.value < node.value) ||
+         (node.right != null && node.right.value < node.value))
+  {
+      // 왼쪽/오른쪽 자식 중 더 작은 쪽을 골라 교환하고 그 방향으로 계속 내려감
+      if (rightVal < leftVal) { /* 오른쪽과 교환 */ }
+      else { /* 왼쪽과 교환 */ }
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: 두 자식이 모두 규칙을 어길 때 왜 "더 작은(더 우선순위 높은) 자식" 쪽으로 내려가야 하는가? (아무 자식이나 골라 교환하면, 교환하지 않은 다른 자식이 여전히 새 부모보다 우선순위가 높은 상태로 남을 수 있어 힙 규칙이 완전히 복구되지 않음 — 반드시 "더 우선순위가 높은 자식"과 교환해야 한 번의 교환으로 그 지점의 규칙이 확실히 만족됨)
+- **최신 동향**: 확인 필요 없음 — Sift-Down(Heapify-Down) 알고리즘도 힙의 표준 정의 그대로 유지된다.
+
+## 19-4. Min-Heap ↔ Max-Heap 전환
+
+- **한 줄 정의**: `MinPriority`라는 bool 플래그 하나로 같은 트리 구조를 최솟값 우선(Min-Heap)과 최댓값 우선(Max-Heap) 둘 중 하나로 동작시키고, UI의 Toggle로 즉시 전환하면서 기존 트리를 리셋(`ResetTable`)한다.
+- **왜 중요한가**: 우선순위 큐가 "우선순위"의 방향(작을수록 급한지, 클수록 급한지)에 따라 완전히 다른 용도로 쓰인다는 걸(예: 다익스트라 최단거리는 Min-Heap, 이벤트 스케줄링은 상황에 따라 Max/Min)한 프로젝트 안에서 스위치 하나로 비교해볼 수 있게 만든 설계.
+- **내 코드에서 어떻게 썼는지**: `TreeManager.cs:268-279`
+  ```csharp
+  public void ResetTable(bool priority)
+  {
+      MinPriority = priority;
+      for (int i = 0; i < nodeCount; i++)
+      {
+          Destroy(GameObject.Find("Node: " + i.ToString()));
+          tree[i] = null;
+      }
+      nodeCount = 0;
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: 전환할 때 기존 트리를 굳이 다 지우고 새로 시작하는 이유는? (Min-Heap 규칙으로 정렬된 트리를 Max-Heap 규칙으로 그대로 재해석하면 완전히 뒤죽박죽이 되므로, 규칙이 바뀌는 순간 처음부터 다시 쌓는 게 유일하게 안전한 방법)
+- **최신 동향**: 확인 필요 없음.
+
+## 19-5. 힙 구조를 실시간 시각화
+
+- **한 줄 정의**: 노드가 추가될 때마다 `Resources`의 `Node` 프리팹(`TextMesh` 포함)을 동적으로 생성해서 이름을 `"Node: 인덱스"`로 지정하고, 부모 노드의 `Transform`을 부모로 삼아 계층 구조를 만들며, 배열 인덱스를 이용한 좌표 계산식으로 이진트리 모양대로 화면에 자동 배치한다.
+- **왜 중요한가**: 힙이 배열로 저장되어 있다는 사실과, 그걸 사람이 이해하기 쉬운 트리 모양으로 화면에 그려주는 것은 완전히 별개의 문제 — "논리적 자료구조"와 "시각적 표현"을 분리해서, 값이 바뀔 때마다 `NodeDisp.UpdateDisp`로 표시만 갱신하는 구조를 만든 것이 이 프로젝트의 실전적인 완성도를 보여준다.
+- **내 코드에서 어떻게 썼는지**: `TreeManager.cs:23,45-49` + `NodeDisp.cs`
+  ```csharp
+  GameObject nodeDisp = Instantiate(Resources.Load<GameObject>("Node"));
+  nodeDisp.transform.parent = parentT;   // 부모 노드의 Transform 아래로 배치(계층 구조 = 트리 구조)
+
+  float dist = 8f / (-Mathf.Pow(parentT.position.y - 1f, 2f));   // 깊이가 깊어질수록 간격을 좁힘
+  nodeDisp.transform.position = parentT.position -
+      new Vector3((dist * (currentIndex - (parentIndex * 2f) - 1f)) - (dist / 2f), 1f);
+  ```
+  ```csharp
+  // NodeDisp.cs
+  public void UpdateDisp(Node node) { textMesh.text = node.value.ToString(); }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: `GameObject.Find("Node: " + index)`로 매번 오브젝트를 이름 검색하는 방식의 단점은? (문자열 기반 검색은 St3(5-1)/zombieStudy(8-12)에서 반복 확인한 "이름 기반 API의 위험성" 테마와 같은 문제 — 트리 규모가 커질수록 매번 씬 전체에서 이름을 찾는 비용이 커짐. `Node` 클래스에 생성된 `GameObject`/`NodeDisp` 참조를 직접 필드로 들고 있으면 검색 없이 바로 접근 가능해 더 효율적)
+- **최신 동향**: 확인 필요 없음 — 자료구조 알고리즘 자체를 시각화해서 보여주는 기법은 Astar(18-6번)에서도 확인한 것처럼 지금도 유효한 학습/디버깅 도구다.
+
+## 19-6. (참고) 배열 인덱스 방식과 포인터(`Node.left`/`right`) 방식을 함께 사용
+
+- **한 줄 정의**: 삽입(`Push`)의 상향 재정렬은 배열 인덱스 산술(`GetParentIndex`)로 부모를 찾아가는 반면, 삭제(`Pop`)의 하향 재정렬은 `Node` 클래스에 미리 저장해둔 `left`/`right` 포인터로 자식을 찾아간다 — 같은 트리를 두 가지 다른 방식(인덱스 계산 vs 포인터 참조)으로 넘나들며 탐색한다.
+- **왜 중요한가**: 배열 기반 힙은 이론적으로 포인터 없이 인덱스만으로 완전히 구현 가능한데, 실제로는 `Node.left`/`right` 필드까지 별도로 유지하며 두 방식을 섞어 썼다는 게 흥미로운 설계 선택 — 인덱스 계산이 더 간결한 삽입 경로엔 인덱스를, 자식 두 개를 비교해야 하는 복잡한 삭제 경로엔 포인터를 쓴 것으로 보이며, 일관성(한 가지 방식만 사용) 대비 편의성을 택한 절충안으로 볼 수 있다.
+- **내 코드에서 어떻게 썼는지**: `TreeManager.cs:255-266`(`SetChild`로 `left`/`right` 포인터를 인덱스 산술 결과와 동기화해서 유지)
+  ```csharp
+  private void SetChild(int childIndex, int parIndex)
+  {
+      int leftOrRight = childIndex - (parIndex * 2) - 1;
+      if (leftOrRight == 0) tree[parIndex].left = tree[childIndex];
+      else tree[parIndex].right = tree[childIndex];
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: 이 이중 관리 방식이 버그로 이어질 수 있는 지점은 없는가? (`tree[]` 배열의 값과 `Node.left`/`right` 포인터가 항상 정확히 동기화되어야 하는데, 만약 둘 중 하나만 갱신하고 다른 하나를 빠뜨리는 코드가 추가되면 배열 기준 값과 포인터 기준 트리 모양이 서로 어긋나는 버그가 생길 수 있음 — 상태를 두 가지 형태로 동시에 유지하는 설계는 항상 이런 동기화 위험을 동반한다는 일반적인 교훈)
+- **최신 동향**: 확인 필요 없음.
+
+---
+
+# 20. DressUpAsset (바탕화면, 강의자료 — 학생 코드 없음)
+
+> `C:\Users\user\Desktop\DressUpAsset` — 학생이 직접 짠 프로젝트가 아니라, 다운로드한 서드파티 캐릭터 에셋(`dressup+assets.unitypackage`)과 강의자료 PDF(`Ch2.DressUp.pdf`, ibatstudio.com 워터마크로 출처 확인)로만 구성되어 있다. 아래 항목들은 **"내 코드"가 아니라 PDF 강의자료에서 다룬 개념을 요약**한 것 — 리스트 기반 옷 갈아입히기(드레스업) 앱을 만들면서 `List<T>`, Humanoid 아바타 리깅, Animator 파라미터 트랜지션, UI 버튼 이벤트, `PlayerPrefs`+씬 전환 저장을 순서대로 실습하는 구성이다.
+> **PDF 외 별도 원본 소스 코드는 없다.**
+
+## 20-1. `List<T>`를 이용한 동적 크기 컬렉션 관리
+
+- **한 줄 정의**: 배열은 크기를 미리 고정해야 하지만, `List<T>`는 요소가 늘어나거나 줄어들 때마다 인스펙터에서 크기를 다시 지정할 필요 없이 `Add`/`Remove`로 자유롭게 다룰 수 있다.
+- **왜 중요한가**: "배열의 크기를 미리 알 수 없거나 자주 바뀌는 경우"라는, 리스트를 쓰는 가장 기본적이고 실전적인 이유를 예제로 보여준다 — 이후 다룰 드레스업 시스템(20-2번)의 옷 목록 관리 전체가 이 개념 위에 서있다.
+- **학습한 내용 (출처: 강의자료, `#Scene01: ListEx`)**:
+  ```csharp
+  public GameObject[] enemies;                      // 배열: 크기 고정, 인스펙터에서 매번 재설정 필요
+  List<GameObject> newList = new List<GameObject>();  // 리스트: 조건에 맞는 것만 동적으로 채움
+
+  foreach (GameObject e in enemies)
+      if (e.tag == "Enemy")
+          newList.Add(e);   // 태그가 "Enemy"인 오브젝트만 리스트에 추가(홀수번째 큐브만 해당)
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: 왜 처음부터 리스트로만 받지 않고 배열(`enemies`)에서 리스트로 다시 옮기는가? (인스펙터에 노출해서 오브젝트를 손으로 연결하는 용도는 배열이 익숙하고 간편하지만, 그중 조건에 맞는 것만 골라 동적으로 관리해야 하는 부분은 리스트가 유리 — 입력은 배열로 받고 가공은 리스트로 하는 조합)
+- **최신 동향**: 확인 필요 없음 — `List<T>`는 C#/.NET의 안정적인 표준 컬렉션이다.
+
+## 20-2. 드레스업 시스템 핵심 패턴 — "전부 끄고 하나만 켠다"
+
+- **한 줄 정의**: 헤어/상의/하의 각 카테고리의 자식 오브젝트(여러 벌의 옷)를 `List<GameObject>`로 수집해서 전부 비활성화해두고, 원하는 인덱스 하나만 `SetActive(true)`로 켜는 방식(`ShowDress`)으로 "옷 갈아입히기"를 구현한다.
+- **왜 중요한가**: 씬에 이미 존재하는 여러 옷 오브젝트 중 하나만 보이게 하는 이 패턴은, 인스턴스를 새로 만들고 지우는 방식(`Instantiate`/`Destroy`)보다 메모리 할당이 없어 가볍고, 카테고리 하나마다 "선택된 인덱스"라는 정수 하나만 있으면 상태 전체를 표현할 수 있다는 게 핵심 설계 포인트.
+- **학습한 내용 (출처: 강의자료)**: 반복되는 초기화 코드를 `MakeDresses`로 리팩터링하는 과정까지 단계별로 제시됨
+  ```csharp
+  void MakeDresses(Transform dressGroup, List<GameObject> dressList)
+  {
+      foreach (Transform dress in dressGroup)
+      {
+          dressList.Add(dress.gameObject);
+          dress.gameObject.SetActive(false);   // 일단 전부 꺼둠
+      }
+  }
+  public void ShowDress(List<GameObject> dressList, int dressNumber)
+  {
+      for (int i = 0; i < dressList.Count; i++)
+          dressList[i].SetActive(false);       // 전부 다시 끄고
+      dressList[dressNumber].SetActive(true);  // 선택한 것만 켬
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: 헤어/상의/하의 세 그룹에 대해 왜 함수 하나(`MakeDresses`)를 공용으로 만들었는가? (강의자료에 "Start() 함수에서 반복적으로 선언된 문장을 하나의 메소드로 정리한다"고 명시 — 세 그룹이 완전히 같은 초기화 절차를 거치므로, 그룹별 `Transform`과 `List`만 매개변수로 받으면 코드 중복 없이 재사용 가능)
+- **최신 동향**: 확인 필요 없음 — "전부 끄고 하나만 켠다"는 패턴은 라디오버튼류 UI/캐릭터 커스터마이징 시스템에서 지금도 흔히 쓰이는 기법이다.
+
+## 20-3. Humanoid 아바타 리깅 설정
+
+- **한 줄 정의**: FBX 모델을 임포트할 때 `Rig` 탭의 `Animation Type`을 사람 모양 뼈대를 가진 모델이면 `Humanoid`로 지정하고, `Configure...`로 들어가 각 관절이 올바르게 매핑됐는지 뼈대(연두색)와 근육(Muscle Group Preview) 미리보기로 확인한다.
+- **왜 중요한가**: `Animation Type`의 4가지 선택지(`None`/`Legacy`/`Generic`/`Humanoid`)를 정확히 구분하는 게 왜 중요한지 보여준다 — 특히 `Humanoid`로 지정하면 서로 다른 캐릭터 모델 간에도 같은 애니메이션 클립을 공유(리타겟팅)할 수 있게 되는데, 이게 3D 캐릭터 애니메이션 파이프라인의 핵심 이점이다.
+- **학습한 내용 (출처: 강의자료)**:
+  - `None`: 애니메이션 없음 / `Legacy`: 구버전 방식, 모델과 애니메이션이 분리 안 됨 / `Generic`: 사람이 아닌 형태(동물, 로봇 등) / `Humanoid`: 사람 모양 뼈대 — 리타겟팅 가능
+  - `Avatar Definition`을 `Create From This Model`로 설정 후 `Configure...`에서 뼈대 매핑을 검증, `Muscle Group Preview`의 슬라이더로 관절 가동 범위(Open/Close, Left/Right 등)를 직접 확인
+- **주의할 점 / 자주 나오는 꼬리 질문**: `Humanoid`와 `Generic`을 구분하는 실질적 기준은 무엇인가? (뼈대가 인간형 표준 골격(머리-몸통-팔-다리 등 정해진 구조)에 대응되는지 여부 — 대응되면 `Humanoid`로 설정해 다른 인간형 캐릭터의 애니메이션을 그대로 가져다 쓸 수 있고, 그렇지 않은 형태(쿼드러페드 동물, 비인간형 로봇 등)는 `Generic`으로 개별 처리해야 함)
+- **최신 동향**: 확인 필요 없음 — Humanoid 리깅/Avatar 시스템은 Unity의 표준 3D 캐릭터 애니메이션 파이프라인으로 지금도 동일하게 유효하다.
+
+## 20-4. Animator 파라미터 기반 트랜지션 + `Has Exit Time`
+
+- **한 줄 정의**: 정수형 파라미터(`aniNum`)를 만들어 각 트랜지션의 `Conditions`에 `aniNum Equals N` 같은 조건을 걸어두고, 코드에서 `Animator.SetInteger("aniNum", 값)`만 호출하면 해당 조건을 만족하는 상태로 자동 전환된다. `Has Exit Time`을 체크 해제하면 현재 애니메이션 재생이 끝나길 기다리지 않고 조건이 만족되는 즉시 전환된다.
+- **왜 중요한가**: FSM(13-3번)/UnityDll(12번 지역) 등에서 이미 확인한 "Animator 파라미터로 전환 조건을 걸고, 코드는 파라미터만 갱신한다"는 설계가 Humanoid 캐릭터 애니메이션에도 동일하게 적용된다는 걸 보여준다. `Has Exit Time`의 체크 여부가 "전환에 지연이 생기는가"를 결정한다는 걸 정확히 짚어낸 점도 실전적이다.
+- **학습한 내용 (출처: 강의자료)**:
+  ```csharp
+  Animator anim;
+  int aniNumber = 0;
+  public void ChangeAni()
+  {
+      aniNumber++;
+      if (aniNumber > 3) aniNumber = 0;   // 등록된 애니메이션 개수만큼 순환
+      anim.SetInteger("aniNum", aniNumber);
+  }
+  ```
+  Conditions에 `aniNum Equals 2`처럼 정수 비교 조건을 걸고, `Has Exit Time` 체크를 해제해 즉시 전환되게 세팅.
+- **주의할 점 / 자주 나오는 꼬리 질문**: `Has Exit Time`을 체크된 채로 두면 어떤 문제가 생길 수 있는가? (버튼을 연타해도 현재 애니메이션이 끝날 때까지 다음 상태로 넘어가지 않아, 사용자 입장에서는 "버튼을 눌렀는데 반응이 없다"고 느껴질 수 있음 — 즉각적인 반응이 필요한 UI 트리거형 애니메이션 전환에는 `Has Exit Time`을 꺼두는 것이 일반적)
+- **최신 동향**: 확인 필요 없음 — 파라미터 기반 트랜지션과 `Has Exit Time` 옵션은 Unity Animator의 기본 기능으로 지금도 동일하다.
+
+## 20-5. UI Button OnClick + `static` 카운터로 순환 교체 로직
+
+- **한 줄 정의**: 헤어/상의/하의 교체 버튼마다 `OnClick`에 연결된 메서드(`ChangeHair`/`ChangeUpper`/`ChangeBottom`)가 있고, 각각 리스트 크기를 넘으면 0으로 되돌리는 방식으로 "다음 옷"을 순환시키며, 이 인덱스들은 `csGirlAvatar`의 `static int`(`hairNum`/`upperNum`/`bottomNum`)로 관리된다.
+- **왜 중요한가**: 버튼 클릭 로직(`csBtnManager`)과 실제 옷 데이터(`csGirlAvatar`)가 서로 다른 컴포넌트로 분리되어 있는데, 인덱스를 `static`으로 선언해서 씬을 오가거나 여러 곳에서 접근해도 값이 유지되게 만든 설계 — 20-6번(씬 전환 저장)과도 바로 연결되는 이유다.
+- **학습한 내용 (출처: 강의자료)**:
+  ```csharp
+  public void ChangeHair()
+  {
+      List<GameObject> myHairList = girl.myHairList;
+      myHairListCount = myHairList.Count;
+
+      csGirlAvatar.hairNum++;
+      if (csGirlAvatar.hairNum >= myHairListCount)
+          csGirlAvatar.hairNum = 0;         // 마지막 옷 다음엔 처음으로 순환
+      girl.ShowDress(myHairList, csGirlAvatar.hairNum);
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: `hairNum`/`upperNum`/`bottomNum`을 왜 `static`으로 선언했는가? (씬이 전환되거나 여러 스크립트에서 같은 값을 참조해야 할 때, 인스턴스 필드라면 참조가 끊기지만 `static`은 클래스 자체에 값이 귀속되어 어디서든 `csGirlAvatar.hairNum`으로 동일한 값에 접근 가능 — 다만 인스턴스가 여러 개 생기면 안 되는 값(전역으로 하나만 존재해야 하는 상태)에만 신중하게 써야 하는 트레이드오프가 있음)
+- **최신 동향**: 확인 필요 없음.
+
+## 20-6. `PlayerPrefs` + `SceneManager.LoadScene`으로 씬 전환 시 상태 유지
+
+- **한 줄 정의**: 씬을 전환하면 이전 씬의 모든 오브젝트(와 그 값)가 사라지므로, 씬을 넘어가기 전에 선택한 의상 번호를 `PlayerPrefs`(기기에 영구 저장되는 키-값 저장소)에 저장해두고, 다음 씬이 시작될 때 그 값을 다시 읽어와 같은 상태를 복원한다.
+- **왜 중요한가**: "씬이 바뀌어도 게임 상태를 유지하고 싶다"는 요구를 가장 간단하게 해결하는 방법(다른 방법으로는 `DontDestroyOnLoad`나 정적 매니저 클래스가 있음) — 저장까지 필요한 경우(앱을 완전히 종료했다 다시 켜도 유지)엔 `PlayerPrefs`가 적합하다는 걸 실습으로 보여준다.
+- **학습한 내용 (출처: 강의자료)**:
+  ```csharp
+  // 씬을 나가기 전: 저장
+  public void saveCurrentDresses(int hNum, int uNum, int bNum)
+  {
+      PlayerPrefs.SetInt("hair", hNum);
+      PlayerPrefs.SetInt("upper", uNum);
+      PlayerPrefs.SetInt("bottom", bNum);
+  }
+  // 다음 씬 시작 시: 복원
+  void Start()
+  {
+      if (PlayerPrefs.GetInt("hair") == null) InitDresses();   // 저장된 값 없으면 기본값
+      else LoadSaveDresses();                                   // 있으면 불러와서 복원
+  }
+  // 씬 전환은 별도 매니저가 담당
+  SceneManager.LoadScene("Room");
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: `PlayerPrefs.GetInt("hair") == null` 비교가 실제로 의도대로 동작하는가? (`PlayerPrefs.GetInt`는 값이 없으면 `null`이 아니라 기본적으로 `0`을 반환하는 `int`형이라, 이 비교는 사실 항상 `false`로 평가되어 의도한 "저장된 값이 없을 때" 분기를 제대로 타지 못하는 허점이 있음 — `PlayerPrefs.HasKey("hair")`로 존재 여부를 확인하는 것이 정확한 방법. 강의자료에 그대로 있는 코드지만 실무에서 그대로 쓰면 안 되는 부분)
+- **최신 동향**: 확인 필요 없음 — `PlayerPrefs`는 지금도 간단한 로컬 설정/상태 저장에 널리 쓰이지만, 보안이 필요 없는 가벼운 값(옵션, 선택 상태 등)에 한정해서 쓰는 게 권장된다(민감한 데이터는 Crypt 프로젝트(16번)에서 다룬 암호화 저장 방식이 더 적합).
+
+---
+
+# 21. JSON (바탕화면, 강의자료 — 학생 코드 없음)
+
+> `C:\Users\user\Desktop\JSON` — 학생이 직접 짠 프로젝트가 아니라, 강의자료 PDF(`Ch6.JSON사용하기.pdf`, 정확히는 "서버프로그래밍 G02.JSON활용" 문서)와 강사가 배포한 예제 프로젝트(`JSONEx.zip` 내부 `99.JSONEx/`, 2017년 타임스탬프)로 구성되어 있다. **PDF 본문 마지막에 "Unity5에서 작성된 C#스크립트 코드는 생략하였다"고 명시**되어 있어, 실제 코드는 PDF가 아니라 `JSONEx.zip`을 직접 풀어서 확인했다 — 그 과정에서 PDF에는 없는 로그인/회원가입/로비 씬(`csMemberLogin.cs`/`csMemberJoin.cs`, `99.Login`/`99.Join`/`99.Lobby` 씬)까지 추가로 발견했다. 아래 항목들은 **"내 코드"가 아니라 강의자료+예제코드에서 다룬 개념을 요약**한 것이다.
+> **`exam_tender.zip의 사본.zip`(21MB SQL 덤프)은 기존 판단대로 이 실습과 무관한 샘플 데이터**로 확인되어 제외했다. `서버프로그래밍01~03` PDF는 APM(Apache+PHP+MySQL) 설치, MySQL, 웹서버 포팅 절차를 다루는 서버 인프라 문서라 Unity/C# 개념과는 별개 — 이번 정리에서는 JSON 관련 본문(G02.JSON활용)과 여기서 언급된 부분만 반영했다.
+
+## 21-1. SimpleJSON 파서로 로컬 JSON 파일 읽기
+
+- **한 줄 정의**: Unity 공식 API에는 내장 JSON 파서가 마땅치 않아(당시 기준) SimpleJSON 같은 서드파티 파서를 `Plugins` 폴더에 넣어 쓰며, `Resources.Load<TextAsset>`로 `.json` 파일을 읽어들인 뒤 `JSON.Parse(text)`로 파싱하고 인덱서(`["키"]`)로 값에 접근한다.
+- **왜 중요한가**: JSON처럼 구조화된 텍스트 데이터를 문자열 그대로 다루지 않고, 딕셔너리/배열처럼 키·인덱스로 자연스럽게 접근할 수 있게 해주는 파서의 역할과 사용법을 보여준다. 여러 Unity JSON 파서(SimpleJSON/LitJSON/JSONObject/JsonFX) 중 하나를 선택해 프로젝트에 통합하는 실무적인 첫 단계이기도 하다.
+- **학습한 내용 (출처: 강의자료+예제코드, `csUseSimpleJson.cs`)**:
+  ```csharp
+  jsonData = Resources.Load<TextAsset>("user_info");
+  var json = JSON.Parse(jsonData.text);
+
+  string user_name = json["이름"].ToString();
+  int level = json["능력치"]["레벨"].AsInt;      // 중첩 객체 접근 + 정수 변환
+  for (int i = 0; i < json["보유스킬"].Count; i++)
+      Debug.Log(json["보유스킬"][i].ToString());  // JSON 배열 순회
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: `.AsInt`와 `.ToString()`의 차이는? (SimpleJSON은 파싱된 값을 내부적으로 문자열처럼 다루기 때문에(강의자료의 SimpleJSON 위키 설명: "숫자/불린/null도 문자열처럼 취급됨"), `.ToString()`은 있는 그대로의 문자열을, `.AsInt`는 그 문자열을 정수로 변환해서 반환 — 실제 연산이 필요하면 `.AsInt`/`.AsFloat`류를, 그냥 출력만 하려면 `.ToString()`을 쓰면 됨)
+- **최신 동향**: 확인 필요 — SimpleJSON은 여전히 쓰이지만, 최신 Unity는 `JsonUtility`(Crypt/Localization 프로젝트에서 이미 다룸)를 기본 내장 JSON 직렬화 도구로 제공한다. 다만 `JsonUtility`는 `[Serializable]` 클래스 구조가 미리 정해져 있어야 하는 반면, SimpleJSON류는 구조를 몰라도 동적으로 파싱할 수 있다는 차이가 있어 여전히 쓰임새가 갈린다.
+
+## 21-2. `WWWForm`+`WWW`로 서버에 데이터 요청(조회)
+
+- **한 줄 정의**: `WWWForm`으로 POST 파라미터(`SecretCode` 등)를 구성하고, 레거시 `WWW` 클래스로 서버 URL에 요청을 보낸 뒤 코루틴 안에서 `yield return www`로 응답이 올 때까지 기다린다.
+- **왜 중요한가**: 클라이언트(Unity)가 서버(PHP+MySQL)에서 데이터를 읽어오는 가장 기본적인 흐름 — SNS 연동이나 앱 내 서버 통신이 이런 방식으로 처리된다고 강의자료에 명시되어 있다. `www.error`로 성공/실패를 먼저 검증한 뒤에만 데이터를 파싱하는 방어적 순서도 확인할 수 있다.
+- **학습한 내용 (출처: 예제코드, `csGetDataFromWeb.cs`)**:
+  ```csharp
+  WWWForm form = new WWWForm();
+  form.AddField("SecretCode", SecretCode);   // 간단한 접근 제어용 키
+  var www = new WWW(boardListURL, form);
+  yield return www;                           // 응답 대기
+
+  if (string.IsNullOrEmpty(www.error))
+      DisplayBoardList(www.text);             // 성공 시에만 파싱
+  else
+      Debug.Log("Error : " + www.error);
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: `SecretCode`는 진짜 보안 수단인가? (아니다 — 강의자료도 "주소 API KEY라고 하는데... 실무에서는 영문&숫자가 혼합된 형태의 문자열이 사용된다"고 설명할 뿐, 이건 클라이언트 코드에 그대로 하드코딩되는 값이라 디컴파일하면 바로 노출됨. 진짜 인증이 필요하면 서버 세션/토큰 기반 인증이 필요하고, 이 코드의 `SecretCode`는 "아무나 접근하지 못하게 하는 최소한의 문턱" 정도의 의미로 이해해야 함 — Crypt 프로젝트(16-6번)에서 다룬 "클라이언트 하드코딩 키의 근본적 한계"와 같은 맥락)
+- **최신 동향**: 확인 필요 없음 — 다만 API 자체(`WWW`/`WWWForm`)는 Deprecated됨(21-6번 참고).
+
+## 21-3. `WWWForm`으로 데이터 전송(등록/저장) + 서버 응답 규약
+
+- **한 줄 정의**: 클라이언트에서 작성한 데이터(글 제목, 내용 등)를 `WWWForm.AddField`로 여러 필드에 담아 서버로 전송하고, 서버는 처리 결과를 `{"returnCode":1,"returnMsg":"..."}` 형태의 JSON으로 응답해서 클라이언트가 성공/실패를 판별하게 한다.
+- **왜 중요한가**: 게임의 회원가입/로그인/게시물 등록처럼 "클라이언트가 서버에 뭔가를 쓰는" 흐름의 기본 패턴 — 단순히 데이터를 보내고 끝나는 게 아니라, 서버가 처리 결과를 구조화된 형태(`returnCode`+`returnMsg`)로 돌려주는 "응답 규약"을 클라이언트와 서버가 미리 약속해둬야 한다는 걸 보여준다.
+- **학습한 내용 (출처: 강의자료+예제코드, PHP `board_set.json.php` ↔ `csSetDataToWeb.cs`)**:
+  ```csharp
+  // 클라이언트: 여러 필드를 담아 전송
+  form.AddField("name", user_name);
+  form.AddField("subject", user_subject);
+  form.AddField("contents", user_contents);
+  ```
+  ```php
+  // 서버(PHP): 성공/실패를 코드+메시지로 응답
+  $returnData['returnCode'] = 1;  // 성공:1, 실패:0
+  $returnData['returnMsg'] = "게시물 입력 성공";
+  echo json_encode($returnData);
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: `returnCode`를 `bool`이 아니라 `int`(0/1)로 설계한 이유는 무엇일까? (실무에서는 성공/실패 두 가지가 아니라 "부분 성공", "이미 존재함", "권한 없음" 등 여러 상태를 구분해야 하는 경우가 많아, 처음부터 `bool`보다 확장 가능한 정수 코드 체계로 설계해두는 경우가 흔함 — 다만 이 예제는 실제로 0/1 두 가지만 쓰고 있어 딱히 그 확장성을 활용하진 않음)
+- **최신 동향**: 확인 필요 없음 — "성공 여부 + 메시지"를 JSON으로 응답하는 패턴은 REST API 설계에서 지금도 흔히 쓰이는 관용구다(다만 최신 API는 HTTP 상태 코드 자체로 성공/실패를 표현하고 본문은 데이터에 집중하는 방식을 더 권장하기도 함 — 확인 필요: 프로젝트/팀 컨벤션에 따라 다름).
+
+## 21-4. PHP 서버 사이드 — JSON 인코딩 + 문자셋(캐릭터셋) 변환
+
+- **한 줄 정의**: PHP는 DB 조회 결과 배열을 `json_encode()`로 JSON 문자열로 변환해 응답하고, Unity(UTF-8)와 레거시 MySQL(EUC-KR) 사이의 한글 인코딩 불일치는 PHP의 `iconv("UTF-8","EUCKR", ...)` 내장 함수로 변환해서 맞춘다.
+- **왜 중요한가**: 클라이언트-서버 통신에서 각 쪽이 쓰는 문자 인코딩이 다르면 한글이 깨지는 문제가 실무에서 매우 흔한데, 이 문제의 원인(Unity=UTF-8, 구형 MySQL 기본값=EUC-KR)과 해결 지점(PHP 미들웨어에서 변환)을 정확히 짚어낸 사례. 지금까지 정리한 여러 프로젝트에서 다룬 "인코딩 문제"(CP949 vs UTF-8 원본 소스 파일 등)와 같은 종류의 문제가 네트워크 통신 계층에서도 똑같이 나타난다는 걸 보여준다.
+- **학습한 내용 (출처: 강의자료, PHP 코드)**:
+  ```php
+  mysql_query("set names utf8");   // 조회 시: DB 세션 캐릭터셋을 임시로 UTF-8로
+  ...
+  $v['name'] = iconv("UTF-8","EUCKR",$_POST['name']);   // 저장 시: Unity가 보낸 UTF-8을 DB의 EUC-KR로 변환
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: 왜 DB 자체를 UTF-8로 바꾸지 않고 매번 변환하는가? (강의자료의 맥락상 이미 EUC-KR로 구축되어 운영 중인 레거시 웹서버/DB에 맞춰야 하는 상황으로 보임 — 새 프로젝트라면 처음부터 DB를 UTF-8(특히 `utf8mb4`)로 만드는 것이 이런 변환 코드 자체를 없앨 수 있는 더 근본적인 해결책)
+- **최신 동향**: 확인 필요 — 이 자료의 `mysql_query`/`mysql_*` 계열 함수는 오래전에 Deprecated되어 PHP 최신 버전에서는 아예 제거됨(PDO나 `mysqli`로 대체됨) — 강의자료 자체가 오래된 PHP 문법 기준으로 작성된 것으로 보이며, 실무에 적용할 땐 최신 PHP 데이터베이스 API로 바꿔야 한다.
+
+## 21-5. 로그인/회원가입 흐름 — 클라이언트 유효성 검사 + 서버 인증 + 씬 전환
+
+- **한 줄 정의**: `InputField`로 입력받은 아이디(이메일 형식)/비밀번호를 먼저 클라이언트 쪽에서 간단히 검증(`Contains("@")`, 길이 체크)한 뒤, 서버에 전송해 인증 결과를 받고, 로그인 성공 시(`jSon.Count != 0`) `SceneManager.LoadScene`으로 로비 씬으로 이동한다.
+- **왜 중요한가**: 이 흐름은 PDF 강의자료 본문엔 없고 **예제 프로젝트(`JSONEx.zip`)의 `csMemberLogin.cs`/`csMemberJoin.cs`, `99.Login`/`99.Join`/`99.Lobby` 씬을 직접 열어봐서만 발견한 내용**이다 — PDF가 다루는 "JSON 활용" 기초(읽기/쓰기)를 실제 로그인 시스템까지 확장해본 강사의 완성된 예제로, 클라이언트 검증(빠른 실패)과 서버 검증(진짜 인증)을 함께 쓰는 2단계 검증 구조를 보여준다.
+- **학습한 내용 (출처: 예제코드, `csMemberLogin.cs`)**:
+  ```csharp
+  if (id.text.Contains("@"))                    // 1차: 클라이언트 쪽 형식 검사(빠른 피드백)
+  {
+      if (pass.text.Length != 0)
+          StartCoroutine("LoginMember");         // 2차: 서버에 실제 인증 요청
+      else Msg.text = "비번을 확인해주세요.";
+  }
+  ...
+  void DisplayLoginResult(string strJsonData)
+  {
+      var jSon = JSON.Parse(strJsonData);
+      if (jSon.Count != 0)                        // 응답 배열에 데이터가 있으면 로그인 성공으로 간주
+      {
+          ...
+          SceneManager.LoadScene("99.Lobby");
+      }
+      else Msg.text = "접속정보를 확인해 주세요.";
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: 클라이언트 쪽 검증(`Contains("@")`)만으로 충분한가? (전혀 아니다 — 클라이언트 검증은 사용자 경험을 위한 "빠른 피드백"일 뿐이고, 실제 아이디/비밀번호가 맞는지는 반드시 서버에서 DB와 대조해야 함. 클라이언트 검증은 우회 가능하므로 보안 경계가 될 수 없다는 게 이 2단계 구조의 핵심 교훈)
+- **최신 동향**: 확인 필요 없음 — 클라이언트 1차 검증 + 서버 2차 인증이라는 구조 자체는 지금도 표준적인 설계다.
+
+## 21-6. (참고) 레거시 `WWW`/`WWWForm` API
+
+- **한 줄 정의**: 이 예제 전체가 `UnityWebRequest`가 아니라 구버전 `WWW`/`WWWForm` 클래스로 작성되어 있다(자료 시점 2017년 기준).
+- **왜 중요한가**: `unity_핵심정리.md`에서 반복 확인해온 "`WWW`→`UnityWebRequest` API 마이그레이션" 테마(St3 5-21번, zombieStudy 8-10번, Localization 15-6번)의 시대적 근거가 되는 자료 — 정확히 이 시기(2017년 전후)의 튜토리얼들이 `WWW` 기반으로 작성되어 있었다는 걸 실물로 확인할 수 있다.
+- **학습한 내용 (출처: 예제코드)**: `new WWW(url, form)` + `yield return www` + `www.error`/`www.text` 접근 패턴이 이 예제의 모든 네트워크 스크립트(`csGetDataFromWeb`/`csSetDataToWeb`/`csMemberLogin`)에서 동일하게 반복됨.
+- **주의할 점 / 자주 나오는 꼬리 질문**: `WWW`를 `UnityWebRequest`로 바꾸면 이 코드들은 어떻게 달라지는가? (`new WWW(url, form)` → `UnityWebRequest.Post(url, form)` 계열로 바뀌고, `yield return www` → `yield return www.SendWebRequest()`로, 에러 체크는 `www.error` 대신 `www.result != UnityWebRequest.Result.Success`(신버전) 방식으로 바뀜 — Localization 프로젝트의 `CSVReader.ReadURL`(15-6번)이 정확히 이 마이그레이션 이후의 형태를 보여줌)
+- **최신 동향**: `WWW`/`WWWForm`은 Unity 공식 문서에서 Deprecated로 명시되어 있으며, 신규 프로젝트에서는 `UnityWebRequest`를 사용해야 한다.
+
+# 22. 다차원배열에디터 (바탕화면, 강사 예제)
+
+> `Assets/설명서.txt` 최상단에 "강사 선물"이라고 명시되어 있어, 이 프로젝트 3개 스크립트(528줄)는 학생이 직접 짠 코드가 아니라 강사가 완성해서 준 예제로 확인됨(사용자 확인). 아래는 "학습한 개념(출처: 강사 예제)"로 정리한다. 설명서 하단에는 "[학생 설명 핵심]"이라는 이름으로 인덱스 변환 공식에 대한 학생 본인의 이해 정리도 남아있다.
+
+## 22-1. 다차원 배열 인스펙터 미노출 문제의 실제 해결책
+
+- **한 줄 정의**: `bool[,]` 같은 사각 다차원 배열은 Unity 기본 직렬화기가 인스펙터에 노출하지 못하므로, 실제 저장은 `List<bool>` 같은 1차원 컬렉션으로 하고 `(x, y)` 좌표를 `index = y * width + x` 공식으로 1차원 인덱스로 변환해서 접근한다.
+- **왜 중요한가**: 12-7번(UnityDll)에서 "다차원 배열은 기본적으로 인스펙터에 노출되지 않는다"는 제약을 확인만 하고 "커스텀으로 노출시킬 수 있지만 아직은 참자"라고 코드 주석으로 미뤄뒀던 문제를, 이 프로젝트가 정확히 그 방식(1차원 배열로 우회 + 커스텀 에디터로 시각화)으로 실제로 풀어낸 사례.
+- **학습한 내용 (출처: 강사 예제)**: `Runtime/MultiArrayData.cs`
+  ```csharp
+  [SerializeField] private List<bool> cells = new List<bool>();
+
+  public int GetIndex(int x, int y) => y * width + x;   // (x, y) → 1차원 인덱스
+
+  public bool GetCell(int x, int y)
+  {
+      if (x < 0 || x >= width || y < 0 || y >= height) return false;
+      EnsureSize();
+      return cells[GetIndex(x, y)];
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - 왜 `width`가 아니라 `y * width + x` 순서인가? (행(row) 우선 저장 방식이라 한 행(y 고정)의 `width`개 칸을 다 채운 뒤 다음 행으로 넘어간다는 뜻 — `y`를 먼저 건너뛰는 폭만큼 곱하고 그 안에서 `x`만큼 더 이동)
+  - `EnsureSize()`는 왜 매번 호출하는가? (Inspector에서 `width`/`height`를 바꾼 직후에는 `cells.Count`가 아직 새 크기와 맞지 않을 수 있어, 접근 전에 항상 크기를 맞춰 인덱스 아웃오브레인지를 방지)
+- **최신 동향**: 확인 필요 없음 — 다차원 배열의 인스펙터 미지원과 1차원 배열 우회 관례는 Unity 직렬화기의 오래된 구조적 제약으로 최신 버전까지 동일하다.
+
+## 22-2. `ScriptableObject`로 그리드 데이터를 에셋화
+
+- **한 줄 정의**: `MultiArrayData`를 `ScriptableObject`로 선언하고 `[CreateAssetMenu]`를 붙여, 씬과 무관하게 격자 데이터 자체를 하나의 `.asset` 파일로 프로젝트에 저장한다.
+- **왜 중요한가**: 5-22번(St3-D `Item`/`Equipment`/`Weapon`)에서 다룬 "데이터를 씬이 아니라 에셋으로 분리"하는 패턴을, 이번엔 게임 아이템이 아니라 순수 2차원 격자 데이터에 적용한 사례 — 레벨 에디터, 타일맵, 미니게임 보드 등 어디에나 재사용 가능한 범용 데이터 컨테이너 설계.
+- **학습한 내용 (출처: 강사 예제)**: `Runtime/MultiArrayData.cs`
+  ```csharp
+  [CreateAssetMenu(fileName = "MultiArrayData", menuName = "Study/Multi Array Data")]
+  public class MultiArrayData : ScriptableObject
+  {
+      [Min(1)] public int width = 5;
+      [Min(1)] public int height = 5;
+      ...
+      private void OnValidate() { width = Mathf.Max(1, width); height = Mathf.Max(1, height); EnsureSize(); }
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: `OnValidate()`는 언제 호출되는가? (인스펙터에서 필드 값이 바뀔 때마다 에디터가 자동으로 호출 — 5-24번(Localization/St3-D)에서 다룬 것과 같은 훅이며, 여기선 `width`/`height` 변경 즉시 `EnsureSize()`로 리스트 크기를 맞추는 데 쓰임)
+- **최신 동향**: 확인 필요 없음 — `ScriptableObject` 기반 데이터 에셋 패턴은 Unity의 표준 데이터 주도 설계 기법으로 지금도 유효하다.
+
+## 22-3. `CustomEditor` + `SerializedProperty` — private 필드 직접 노출
+
+- **한 줄 정의**: `serializedObject.FindProperty("cells")`로 `private [SerializeField]` 필드를 이름 문자열로 찾아온 뒤, `EditorGUILayout.PropertyField`로 그리면 접기 가능한 리스트(Size + 각 Element)를 자동으로 그려준다.
+- **왜 중요한가**: 5-19번(St3-C `EditorCreate`)은 `target`을 직접 캐스팅해서 `public` 필드만 다뤘지만, 이번엔 `SerializedProperty` API로 `private` 필드까지 안전하게 다루고 `serializedObject.Update()`/`ApplyModifiedProperties()`로 값 동기화 타이밍까지 명시적으로 관리한다는 점에서 한 단계 더 깊은 인스펙터 커스터마이징 기법.
+- **학습한 내용 (출처: 강사 예제)**: `Editor/MultiArrayDataEditor.cs`
+  ```csharp
+  private SerializedProperty cellsProperty;
+  private void OnEnable() { cellsProperty = serializedObject.FindProperty("cells"); }
+
+  public override void OnInspectorGUI()
+  {
+      serializedObject.Update();                       // 최신 값 읽기
+      ...
+      EditorGUILayout.PropertyField(cellsProperty, true);   // 리스트를 접기 가능한 형태로 자동 렌더
+      if (serializedObject.ApplyModifiedProperties())       // 사용자가 리스트를 직접 고쳤으면
+      { data.EnsureSize(); EditorUtility.SetDirty(data); }
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: `target`을 직접 캐스팅하는 방식과 `SerializedProperty`를 쓰는 방식의 차이는? (직접 캐스팅은 간단하지만 Undo/멀티오브젝트 편집/프리팹 오버라이드 표시 같은 에디터 표준 기능이 자동으로 따라오지 않고, `SerializedProperty` 경로를 타면 이런 처리가 Unity 내부적으로 일관되게 보장된다 — 다만 이 프로젝트는 격자 자체는 `Undo.RecordObject`를 별도로 직접 호출해 절충함)
+- **최신 동향**: 확인 필요 없음 — `SerializedObject`/`SerializedProperty` API는 지금도 커스텀 에디터 작성의 표준 방식이다.
+
+## 22-4. 에디터 GUI에서 직접 마우스 이벤트 처리 — 드래그 페인팅 그리드
+
+- **한 줄 정의**: `GUILayoutUtility.GetRect`로 칸마다 사각 영역을 확보한 뒤, `Event.current.type`이 `MouseDown`/`MouseDrag`인지 직접 검사해서 격자를 마우스로 "칠하는" 인터랙션을 구현한다 — 일반 `GUILayout.Button`이 아니라 `GUI.Box`(순수 표시용)와 수동 이벤트 처리를 조합한 방식.
+- **왜 중요한가**: 지금까지 다룬 에디터 확장(5-18~5-19, 5-25)은 버튼 클릭 한 번으로 끝나는 단발성 상호작용이었지만, 이번엔 "누른 채 드래그"라는 연속 입력을 IMGUI 이벤트 시스템으로 직접 다룬 첫 사례 — 3-10번(ST_2)에서 다룬 씬 뷰의 `Handles`/마우스 이벤트 처리 감각을 인스펙터/에디터윈도우 GUI로 확장한 것.
+- **학습한 내용 (출처: 강사 예제)**: `Editor/MultiArrayDataEditor.cs`
+  ```csharp
+  if (currentEvent.type == EventType.MouseDown && currentEvent.button == 0 && cellRect.Contains(currentEvent.mousePosition))
+  {
+      isPainting = true;
+      paintValue = !currentValue;      // 클릭한 칸의 반대값으로 칠하기 시작
+      PaintCell(data, x, y, cellIndex);
+      currentEvent.Use();              // 이 이벤트를 소비했다고 표시 (다른 곳으로 전파 안 함)
+  }
+  if (currentEvent.type == EventType.MouseDrag && isPainting && cellRect.Contains(currentEvent.mousePosition))
+  { PaintCell(data, x, y, cellIndex); currentEvent.Use(); }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**:
+  - `currentEvent.Use()`를 호출하지 않으면 어떤 문제가 생기는가? (이벤트가 소비되지 않았다고 표시되어 같은 프레임에 다른 GUI 요소나 Unity 기본 처리로 이벤트가 계속 전파될 수 있고, 원치 않는 부가 동작(예: 다른 컨트롤 포커스 이동)으로 이어질 수 있음)
+  - `lastPaintedIndex`로 같은 칸 중복 처리를 막는 이유는? (드래그 중 마우스가 같은 칸 안에서 미세하게 움직일 때마다 `MouseDrag` 이벤트가 여러 번 들어올 수 있어, 매번 `SetDirty`/`Repaint`를 호출하면 불필요한 처리가 반복됨)
+  - 마우스를 뗐을 때 `isPainting`을 어떻게 끄는가? (`currentEvent.rawType == EventType.MouseUp`을 별도로 검사 — `rawType`은 다른 GUI 요소가 이벤트를 이미 소비했어도 원래 어떤 이벤트였는지 알려주므로, 격자 밖에서 마우스를 놓아도 페인팅 상태를 확실히 종료할 수 있음)
+- **최신 동향**: 확인 필요 없음 — IMGUI(`Event`/`EventType`) 기반 커스텀 마우스 인터랙션은 Unity 에디터 확장의 오래된 표준 기법으로 최신 버전까지 동일하게 쓰인다.
+
+## 22-5. `EditorWindow` 드래그앤드롭 연동
+
+- **한 줄 정의**: `DragAndDrop.objectReferences`를 순회해 Project 창에서 끌어온 오브젝트 중 원하는 타입(`MultiArrayData`)만 골라 `EditorWindow`의 필드에 연결한다.
+- **왜 중요한가**: 5-25번(St3-D `EditorWindow` 심화)은 창 인스턴스 관리(다중/싱글톤)까지만 다뤘는데, 이번엔 그 창 안에서 에셋을 마우스로 직접 끌어다 놓는 입력 방식까지 추가된 사례 — Object Field를 클릭해서 선택하는 것보다 더 직관적인 UX를 제공하는 실무 기법.
+- **학습한 내용 (출처: 강사 예제)**: `Editor/MultiArrayWindow.cs`
+  ```csharp
+  private void HandleAssetDragAndDrop()
+  {
+      Event currentEvent = Event.current;
+      if (currentEvent.type != EventType.DragUpdated && currentEvent.type != EventType.DragPerform) return;
+
+      foreach (Object draggedObject in DragAndDrop.objectReferences)
+      {
+          if (draggedObject is not MultiArrayData draggedData) continue;
+          DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
+          if (currentEvent.type == EventType.DragPerform)
+          { DragAndDrop.AcceptDrag(); data = draggedData; Repaint(); }
+          currentEvent.Use();
+          break;
+      }
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: `DragUpdated`와 `DragPerform` 두 이벤트를 왜 나눠서 처리하는가? (`DragUpdated`는 드래그 중 마우스가 창 위를 지나갈 때마다 반복 발생 — 여기서 `visualMode`를 설정해 "이 타입은 받을 수 있다"는 커서 표시를 해준다. `DragPerform`은 실제로 마우스를 놓는 순간 한 번만 발생 — 이때 `AcceptDrag()`로 드롭을 확정하고 데이터를 반영)
+- **최신 동향**: 확인 필요 없음 — `DragAndDrop` API는 Project/Hierarchy/커스텀 에디터 창 사이의 표준 드래그앤드롭 처리 방식으로 지금도 동일하다.
+
+## 22-6. `Undo`/`Dirty` 처리로 에디터 작업의 실행취소·저장 보장
+
+- **한 줄 정의**: 격자를 칠하거나 크기를 바꾸는 모든 편집 동작 앞에 `Undo.RecordObject(data, "설명")`을 호출해 Ctrl+Z로 되돌릴 수 있게 하고, 값이 바뀐 뒤에는 `EditorUtility.SetDirty(data)`로 "저장이 필요한 상태"임을 표시한다.
+- **왜 중요한가**: 5-19번 주의사항에서 "`SetDirty`를 안 부르면 씬을 저장 안 하고 닫을 때 값이 사라질 수 있다"고 짚었던 문제의 실전 적용 — 이 프로젝트는 거기서 한 걸음 더 나가 `Undo.RecordObject`까지 매 편집 동작마다 짝지어 호출해서, 실행취소 지원과 저장 보장을 함께 챙긴 완성도 있는 예제.
+- **학습한 내용 (출처: 강사 예제)**: `Editor/MultiArrayDataEditor.cs`
+  ```csharp
+  Undo.RecordObject(data, "Paint Multi Array Cells");   // 편집 전, 되돌릴 수 있는 지점 기록
+  isPainting = true;
+  paintValue = !currentValue;
+  PaintCell(data, x, y, cellIndex);
+  // PaintCell 내부에서: EditorUtility.SetDirty(data);   // 편집 후, 저장 필요 표시
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: `Undo.RecordObject`는 왜 값을 바꾸기 "전에" 호출해야 하는가? (이 함수는 호출 시점의 현재 상태를 스냅샷으로 저장해두는 것이라, 값을 바꾼 뒤에 호출하면 이미 바뀐 상태가 스냅샷으로 저장되어 Ctrl+Z를 눌러도 되돌아갈 원래 상태가 없음)
+- **최신 동향**: 확인 필요 없음 — `Undo`/`EditorUtility.SetDirty` 조합은 Unity 커스텀 에디터 툴 제작의 기본 관례로 최신 버전까지 동일하다.

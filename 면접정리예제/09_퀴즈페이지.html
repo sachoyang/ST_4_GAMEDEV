@@ -1,0 +1,513 @@
+<title>게임 클라이언트 면접 드릴 · 204문항</title>
+<style>
+:root{
+  --paper:#F2F5F6; --surface:#FFFFFF; --surface-2:#E9EEF0;
+  --ink:#151C22; --ink-2:#3D4C56; --muted:#67757F;
+  --line:#D5DEE1; --line-2:#C2CED3;
+  --accent:#0E6B62; --accent-soft:#DCECEA;
+  --gold:#8C6210; --gold-soft:#F5E9D2;
+  --shadow:0 1px 2px rgba(21,28,34,.06),0 8px 24px -16px rgba(21,28,34,.28);
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#0E1317; --surface:#161E23; --surface-2:#1E282E;
+    --ink:#E3EAED; --ink-2:#AEBEC6; --muted:#7C8C95;
+    --line:#27333A; --line-2:#35444C;
+    --accent:#45C4B4; --accent-soft:#12302E;
+    --gold:#DCA83E; --gold-soft:#33270F;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -16px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1317; --surface:#161E23; --surface-2:#1E282E;
+  --ink:#E3EAED; --ink-2:#AEBEC6; --muted:#7C8C95;
+  --line:#27333A; --line-2:#35444C;
+  --accent:#45C4B4; --accent-soft:#12302E;
+  --gold:#DCA83E; --gold-soft:#33270F;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -16px rgba(0,0,0,.7);
+}
+:root[data-theme="light"]{
+  --paper:#F2F5F6; --surface:#FFFFFF; --surface-2:#E9EEF0;
+  --ink:#151C22; --ink-2:#3D4C56; --muted:#67757F;
+  --line:#D5DEE1; --line-2:#C2CED3;
+  --accent:#0E6B62; --accent-soft:#DCECEA;
+  --gold:#8C6210; --gold-soft:#F5E9D2;
+  --shadow:0 1px 2px rgba(21,28,34,.06),0 8px 24px -16px rgba(21,28,34,.28);
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic","맑은 고딕",system-ui,sans-serif;
+  font-size:15px; line-height:1.68; letter-spacing:-.01em;
+}
+.mono{font-family:ui-monospace,"Cascadia Mono","Cascadia Code",Consolas,"D2Coding",monospace}
+
+/* ---------- header ---------- */
+header{
+  position:sticky; top:0; z-index:20;
+  background:color-mix(in srgb,var(--paper) 88%,transparent);
+  backdrop-filter:blur(12px); border-bottom:1px solid var(--line);
+}
+.hbar{max-width:1180px;margin:0 auto;padding:14px 20px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.brand{display:flex;flex-direction:column;gap:2px;margin-right:auto;min-width:0}
+.brand h1{margin:0;font-size:16px;font-weight:700;letter-spacing:-.02em;white-space:nowrap}
+.brand .sub{
+  font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);
+}
+.search{position:relative;flex:1 1 260px;max-width:420px}
+.search input{
+  width:100%;padding:9px 12px 9px 32px;border:1px solid var(--line-2);border-radius:7px;
+  background:var(--surface);color:var(--ink);font:inherit;font-size:14px;
+}
+.search input::placeholder{color:var(--muted)}
+.search input:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
+.search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;stroke:var(--muted);fill:none;stroke-width:2}
+.tools{display:flex;gap:6px}
+.btn{
+  padding:8px 11px;border:1px solid var(--line-2);border-radius:7px;background:var(--surface);
+  color:var(--ink-2);font:inherit;font-size:12.5px;cursor:pointer;white-space:nowrap;
+}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.btn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+
+/* ---------- shell ---------- */
+.shell{max-width:1180px;margin:0 auto;padding:22px 20px 72px;display:grid;grid-template-columns:214px 1fr;gap:28px;align-items:start}
+@media (max-width:820px){.shell{grid-template-columns:1fr;gap:18px}}
+
+/* ---------- rail ---------- */
+.rail{position:sticky;top:78px;display:flex;flex-direction:column;gap:14px}
+@media (max-width:820px){.rail{position:static}}
+.railhead{
+  font-family:ui-monospace,Consolas,monospace;font-size:10px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--muted);padding-left:2px;
+}
+.cats{display:flex;flex-direction:column;gap:1px;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--surface)}
+@media (max-width:820px){.cats{flex-direction:row;flex-wrap:wrap;border:none;background:none;gap:6px}}
+.cat{
+  display:flex;align-items:center;gap:9px;padding:9px 11px;border:none;
+  background:var(--surface);color:var(--ink-2);font:inherit;font-size:13.5px;
+  cursor:pointer;text-align:left;border-left:2px solid transparent;
+}
+@media (max-width:820px){.cat{border:1px solid var(--line);border-radius:999px;padding:6px 12px;border-left-width:1px}}
+.cat:hover{background:var(--surface-2)}
+.cat:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.cat[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);border-left-color:var(--accent);font-weight:600}
+@media (max-width:820px){.cat[aria-pressed="true"]{border-color:var(--accent)}}
+.cat .n{
+  margin-left:auto;font-family:ui-monospace,Consolas,monospace;font-size:11px;
+  color:var(--muted);font-variant-numeric:tabular-nums;
+}
+.cat[aria-pressed="true"] .n{color:var(--accent)}
+
+.legend{
+  border:1px solid var(--line);border-radius:9px;background:var(--surface);padding:11px 12px;
+  display:flex;flex-direction:column;gap:7px;font-size:12px;color:var(--ink-2);
+}
+.legend div{display:flex;gap:8px;align-items:center}
+.chip{
+  font-family:ui-monospace,Consolas,monospace;font-size:10px;padding:1px 6px;border-radius:4px;
+  letter-spacing:.04em;flex:none;
+}
+.chip.g{background:var(--gold-soft);color:var(--gold)}
+.chip.a{background:var(--accent-soft);color:var(--accent)}
+
+/* ---------- list ---------- */
+.meta{
+  display:flex;align-items:baseline;gap:10px;margin-bottom:12px;flex-wrap:wrap;
+  font-family:ui-monospace,Consolas,monospace;font-size:11.5px;color:var(--muted);
+  font-variant-numeric:tabular-nums;
+}
+.meta b{color:var(--ink);font-size:13px}
+.list{display:flex;flex-direction:column;gap:7px}
+
+.q{
+  border:1px solid var(--line);border-radius:9px;background:var(--surface);
+  overflow:hidden;transition:border-color .12s;
+}
+.q:hover{border-color:var(--line-2)}
+.q.star2{border-left:3px solid var(--gold)}
+.q.open{border-color:var(--accent);box-shadow:var(--shadow)}
+
+.qhead{
+  width:100%;display:flex;gap:11px;align-items:flex-start;padding:12px 13px;
+  background:none;border:none;color:inherit;font:inherit;text-align:left;cursor:pointer;
+}
+.qhead:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.qid{
+  font-family:ui-monospace,Consolas,monospace;font-size:11px;color:var(--muted);
+  padding-top:3px;flex:none;letter-spacing:-.02em;
+}
+.q.open .qid,.q.star2 .qid{color:var(--accent)}
+.q.star2 .qid{color:var(--gold)}
+.qtext{flex:1;min-width:0;font-size:14.5px;line-height:1.5;font-weight:500;text-wrap:pretty}
+.qmark{flex:none;font-size:10px;letter-spacing:.06em;padding-top:4px;color:var(--gold);font-family:ui-monospace,Consolas,monospace}
+.qmark.s1{color:var(--muted)}
+.caret{flex:none;width:13px;height:13px;margin-top:5px;stroke:var(--muted);fill:none;stroke-width:2.2;transition:transform .16s}
+.q.open .caret{transform:rotate(90deg);stroke:var(--accent)}
+
+.qbody{display:none;padding:0 13px 14px 13px}
+.q.open .qbody{display:block}
+.ans{
+  border-left:2px solid var(--accent);padding:2px 0 2px 13px;margin-left:2px;
+  color:var(--ink-2);font-size:14px;line-height:1.72;text-wrap:pretty;
+}
+.ans strong{color:var(--ink);font-weight:650}
+.src{
+  margin-top:10px;padding-left:15px;font-family:ui-monospace,Consolas,monospace;
+  font-size:10.5px;color:var(--muted);letter-spacing:-.01em;
+}
+.empty{padding:44px 16px;text-align:center;color:var(--muted);font-size:14px}
+footer{
+  max-width:1180px;margin:0 auto;padding:0 20px 40px;color:var(--muted);font-size:11.5px;
+  font-family:ui-monospace,Consolas,monospace;letter-spacing:-.01em;
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header>
+  <div class="hbar">
+    <div class="brand">
+      <h1>게임 클라이언트 면접 드릴</h1>
+      <span class="sub mono">204 questions · self-check</span>
+    </div>
+    <div class="search">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="질문 검색 (예: 박싱, 코루틴, TCP)" autocomplete="off">
+    </div>
+    <div class="tools">
+      <button class="btn" id="onlyStar" aria-pressed="false">★★ 실제 출제만</button>
+      <button class="btn" id="toggleAll">모두 펼치기</button>
+      <button class="btn" id="theme" title="테마 전환">◐</button>
+    </div>
+  </div>
+</header>
+
+<div class="shell">
+  <aside class="rail">
+    <div>
+      <div class="railhead">Category</div>
+      <div class="cats" id="cats"></div>
+    </div>
+    <div class="legend">
+      <div><span class="chip g">★★</span><span>실제 면접 출제</span></div>
+      <div><span class="chip a">★</span><span>수업 중 언급</span></div>
+      <div style="color:var(--muted);font-size:11.5px;line-height:1.5;padding-top:2px">
+        질문을 먼저 읽고 <b style="color:var(--ink-2)">속으로 답한 뒤</b> 펼쳐서 대조하세요. 상세 설명·꼬리질문은 각 md 파일에 있습니다.
+      </div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="meta"><b id="count">0</b><span id="countLabel">문항 표시 중</span><span id="starCount"></span></div>
+    <div class="list" id="list"></div>
+    <div class="empty" id="empty" hidden>검색 결과가 없습니다.</div>
+  </main>
+</div>
+
+<footer>C:\Study\ST_4_GAMEDEV\면접정리예제\ · 기술 사실은 Unity 6.3 LTS / C# 9 기준 검증 · 2026-07-29</footer>
+
+<script>
+const CATS=[
+ ["01","C / C++","01_C_CPP.md"],
+ ["02","C#","02_CSharp.md"],
+ ["03","Unity","03_Unity.md"],
+ ["04","자료구조 / 알고리즘","04_자료구조_알고리즘.md"],
+ ["05","그래픽스 / 수학","05_그래픽스_수학.md"],
+ ["06","CS 기본","06_CS기본.md"],
+ ["07","디자인 패턴","07_디자인패턴.md"],
+ ["08","인성 / 직무","08_인성_직무.md"]
+];
+// [id, 질문, 30초 답변 요지, star(2=★★,1=★,0)]
+const D={
+"01":[
+["Q1-01","문자열 상수와 문자열 변수의 차이는?","<strong>char* p=\"ABC\"</strong>는 읽기 전용 영역의 리터럴 주소를 가리켜 수정 시 크래시. <strong>char a[4]=\"ABC\"</strong>는 내용을 스택에 복사한 독립 배열이라 수정 가능. sizeof도 각각 포인터 크기 vs 4로 다르다.",1],
+["Q1-02","malloc/free와 new/delete의 차이는?","malloc은 라이브러리 <strong>함수</strong>, new는 <strong>연산자</strong>. 핵심은 new가 <strong>생성자를, delete가 소멸자를 호출</strong>한다는 것. malloc은 void* 반환이라 캐스팅·sizeof 필요, 실패 시 NULL vs bad_alloc 예외.",1],
+["Q1-03","얕은 복사와 깊은 복사의 차이는?","얕은 복사는 포인터 값만 복사해 두 객체가 같은 메모리를 가리켜 <strong>이중 해제</strong>가 난다. 깊은 복사는 복사 생성자에서 새로 할당하고 내용을 복사. C++ 기본 복사 생성자는 얕은 복사라 포인터 멤버가 있으면 직접 구현(Rule of Three).",1],
+["Q1-04","오버로딩이란?","같은 이름 함수를 <strong>매개변수 타입·개수·순서</strong>를 다르게 여러 개 정의하는 것. 컴파일 타임에 결정(정적 바인딩). <strong>반환형만 다른 건 오버로딩이 아니다.</strong> 네임 맹글링 덕분에 가능하며 C는 지원하지 않는다.",1],
+["Q1-05","오버라이딩이란?","부모의 <strong>virtual 함수를 같은 시그니처로 재정의</strong>하는 것. 부모 포인터로 자식 객체를 가리켜도 런타임에 자식 함수가 호출된다(동적 바인딩) — 다형성의 핵심. virtual이 없으면 오버라이딩이 아니라 이름 가리기.",1],
+["Q1-06","순수 가상 함수와 추상 클래스란?","<strong>virtual f()=0;</strong> 처럼 본문 없는 가상 함수가 순수 가상 함수. 하나라도 있으면 추상 클래스가 되어 <strong>그 자체로 객체 생성 불가</strong>, 자식이 전부 구현해야 인스턴스화된다. \"반드시 구현하라\"는 강제 장치.",1],
+["Q1-07","가상 소멸자는 왜 필요한가?","부모 포인터로 자식을 delete할 때 소멸자가 virtual이 아니면 <strong>부모 소멸자만 호출되어 자식 자원이 누수</strong>된다. 다형적으로 쓸 기반 클래스는 반드시 virtual 소멸자를 둔다.",0],
+["Q1-08","가상 함수 테이블(vtable)은 어떻게 동작하나?","클래스마다 함수 포인터 배열(vtable)을 만들고 객체에 <strong>vptr</strong>을 숨겨 넣는다. 가상 함수 호출 시 vptr→vtable→실제 주소로 두 번 간접 참조하므로 인라인이 불가하고 객체 크기도 포인터만큼 커진다.",0],
+["Q1-09","정적 바인딩과 동적 바인딩의 차이는?","정적은 <strong>컴파일 타임</strong>에 호출 대상이 결정(일반 함수·오버로딩·템플릿), 동적은 <strong>런타임</strong>에 객체의 실제 타입으로 결정(virtual). C++/C#은 기본이 정적이라 virtual을 명시해야 한다.",1],
+["Q1-10","객체지향의 4대 특성은?","<strong>추상화·캡슐화·상속·다형성</strong>. 필요한 특징만 뽑고, 데이터와 동작을 묶어 감추고, 기존 것을 물려받아 재사용하고, 같은 인터페이스로 다른 동작을 하게 한다.",0],
+["Q1-11","객체지향 설계 5원칙(SOLID)은?","<strong>SRP</strong>(단일 책임) <strong>OCP</strong>(확장엔 열고 수정엔 닫고) <strong>LSP</strong>(자식은 부모를 대체 가능) <strong>ISP</strong>(인터페이스 분리) <strong>DIP</strong>(구체가 아닌 추상에 의존).",0],
+["Q1-12","객체지향과 절차지향의 차이와 장단점은?","절차지향은 함수와 실행 순서 중심이라 단순·빠르지만 결합도가 높아 규모가 커지면 수정이 어렵다. 객체지향은 데이터와 동작을 객체로 묶어 재사용·유지보수에 유리하나 설계 비용과 약간의 런타임 오버헤드가 있다.",0],
+["Q1-13","클래스와 객체(오브젝트)의 차이는?","클래스는 <strong>설계도</strong>, 객체는 그 설계도로 메모리에 실제로 만들어진 <strong>실체</strong>. 클래스는 컴파일 타임 개념이고 객체는 런타임에 메모리를 차지하며 각자 다른 값을 갖는다.",0],
+["Q1-14","C++에서 struct와 class의 차이는?","<strong>기본 접근 지정자만 다르다</strong>(struct=public, class=private). 나머지 기능은 동일. 단 <strong>C#에서는 완전히 다르다</strong> — struct는 값 타입, class는 참조 타입.",0],
+["Q1-15","포인터와 배열의 차이는?","배열은 <strong>연속된 메모리 블록 자체</strong>, 포인터는 <strong>주소를 담는 변수</strong>. 배열 이름은 포인터로 붕괴하지만 sizeof는 전체 크기가 나오고 재대입이 불가하다. 함수 인자로 넘기면 크기 정보가 사라진다.",0],
+["Q1-16","참조자(&)와 포인터의 차이는?","참조자는 <strong>별명</strong>이라 선언 시 초기화 필수, 재대입 불가, null 불가. 포인터는 독립된 변수라 초기화를 미루고 재대입·null·산술 연산이 가능하다. 큰 객체는 const 참조로 넘기는 게 관용구.",0],
+["Q1-17","const는 붙는 위치에 따라 의미가 어떻게 달라지나?","*을 기준으로 <strong>왼쪽이면 가리키는 값이 상수</strong>, <strong>오른쪽이면 포인터 자체가 상수</strong>. 멤버 함수 뒤에 붙으면 멤버를 수정하지 않겠다는 약속이라 const 객체에서 호출 가능해진다.",0],
+["Q1-18","static 키워드의 용도는?","① 지역/전역에 붙으면 <strong>정적 저장 기간</strong>(프로그램 내내 유지) ② 파일 스코프에서는 <strong>내부 링크</strong> ③ 클래스 멤버면 <strong>클래스당 하나만 존재</strong>. 정적 멤버 함수는 this가 없다.",0],
+["Q1-19","namespace란 무엇인가?","이름 충돌을 막기 위해 식별자를 담는 <strong>논리적 영역</strong>. 여러 라이브러리나 협업 시 같은 이름이 겹치는 걸 방지한다. <strong>헤더에 using namespace를 쓰면 안 된다</strong>(오염 전파).",0],
+["Q1-20","메모리 4대 영역을 설명하라","<strong>코드</strong>(기계어) <strong>데이터</strong>(전역·정적) <strong>힙</strong>(동적 할당) <strong>스택</strong>(지역변수·매개변수·복귀주소). 힙은 위로, 스택은 아래로 자라며 마주 본다.",1],
+["Q1-21","스택과 힙의 차이는?","스택은 <strong>자동 할당·해제</strong>되고 매우 빠르지만 작고 컴파일 타임에 크기가 정해져야 한다. 힙은 <strong>직접 할당·해제</strong>하고 크고 유연하지만 느리며 누수·단편화 위험과 캐시 미스가 있다.",1],
+["Q1-22","왜 모든 데이터를 힙에 저장하지 않는가?","힙은 할당 시 빈 공간 탐색이 필요해 느리고, 직접 해제해야 하며 누수 위험이 있고, 메모리가 흩어져 <strong>캐시 지역성이 나쁘다</strong>. 수명이 짧고 크기가 고정된 데이터는 스택이 모든 면에서 유리하다.",1],
+["Q1-23","구조체 패딩(메모리 정렬)이란?","CPU가 효율적으로 읽도록 컴파일러가 멤버 사이에 <strong>빈 바이트를 끼워 넣는 것</strong>. 각 멤버는 자기 크기의 배수 주소에 놓인다. <strong>큰 멤버부터 나열하면 패딩이 줄어</strong> 메모리를 아낄 수 있다.",1],
+["Q1-24","C++의 캐스팅 4종을 설명하라","<strong>static_cast</strong>(컴파일 타임 일반 변환) <strong>dynamic_cast</strong>(런타임 상속 확인, 실패 시 nullptr) <strong>const_cast</strong>(const 제거) <strong>reinterpret_cast</strong>(비트 재해석, 가장 위험). C 스타일 캐스트는 의도가 안 드러나 지양.",0],
+["Q1-25","스마트 포인터란?","원시 포인터를 감싸 <strong>소멸자가 자동으로 해제</strong>해주는 클래스 템플릿. <strong>unique_ptr</strong>(단독 소유·기본 선택) <strong>shared_ptr</strong>(참조 카운팅) <strong>weak_ptr</strong>(소유하지 않는 관찰자, 순환 참조 해결).",0],
+["Q1-26","L-value와 R-value, Move Semantics란?","L-value는 이름과 주소가 있는 값, R-value는 곧 사라질 임시값. Move Semantics는 <strong>복사 대신 자원 소유권만 훔쳐오는</strong> 최적화. std::move는 실제로 옮기지 않고 <strong>R-value 참조로 캐스팅만</strong> 한다.",0],
+["Q1-27","템플릿의 장단점은?","타입 무관 코드를 한 번만 작성하고 <strong>런타임 오버헤드가 없다</strong>. 단점은 타입마다 코드가 복제되어 <strong>바이너리·컴파일 시간이 늘고</strong> 에러 메시지가 난해하며 구현을 헤더에 둬야 한다.",0],
+["Q1-28","vector, list, deque의 차이는?","vector는 연속 메모리라 <strong>인덱스 O(1)·순회 최고</strong>지만 중간 삽입 O(n). list는 이중 연결 리스트라 삽입·삭제 O(1)이나 임의 접근 불가·캐시 나쁨. deque는 양끝 O(1)+임의 접근 가능. <strong>실무 기본은 vector.</strong>",1],
+["Q1-29","map과 unordered_map의 차이는?","map은 <strong>레드-블랙 트리</strong>라 정렬 유지·범위 검색 가능·O(log n) 보장. unordered_map은 <strong>해시 테이블</strong>이라 평균 O(1)이지만 순서가 없고 충돌 시 최악 O(n).",0],
+["Q1-30","RAII란 무엇인가?","<strong>자원 획득을 객체 초기화에, 해제를 소멸에 묶는</strong> C++ 관용구. 스코프를 벗어나면 소멸자가 반드시 불리므로 예외가 나도 자원이 정리된다. 스마트 포인터·lock_guard가 전부 이 패턴이고, C#의 using이 같은 역할.",0],
+["Q1-31","메모리 누수와 댕글링 포인터란?","누수는 <strong>해제하지 않아 접근도 반환도 못 하는</strong> 메모리, 댕글링은 <strong>이미 해제된 메모리를 여전히 가리키는</strong> 포인터. 해제 후 즉시 nullptr 대입, 근본적으로는 스마트 포인터와 RAII로 해결한다.",0],
+["Q1-32","C와 C++의 차이는?","C는 절차지향, C++은 여기에 <strong>객체지향과 제네릭</strong>을 더한 멀티 패러다임 언어. 클래스·상속·다형성·템플릿·예외·참조자·오버로딩·STL이 추가됐다. 완전한 상위 집합은 아니다.",0]],
+"02":[
+["Q2-01","값 타입과 참조 타입의 차이는?","값 타입은 <strong>변수가 데이터를 직접</strong> 담아 대입 시 전체 복사, 참조 타입은 <strong>힙 객체의 주소</strong>를 담아 대입 시 참조만 복사된다. \"값 타입은 무조건 스택\"은 부정확 — <strong>선언된 곳에 그대로 저장</strong>된다.",1],
+["Q2-02","C#에서 struct와 class의 차이는?","C++과 달리 <strong>근본이 다르다.</strong> struct는 값 타입·상속 불가·GC 대상 아님, class는 참조 타입·힙 할당·상속 가능. 16바이트 이하로 작고 불변이며 수명이 짧으면 struct(Vector3가 그 예).",0],
+["Q2-03","박싱과 언박싱을 설명하라","박싱은 <strong>값 타입을 object 등 참조 타입으로 변환</strong>하며 힙에 새 객체를 만들어 복사하는 것, 언박싱은 그 반대. <strong>박싱은 암시적이라 안 보이고 힙 할당 → GC 부담</strong>을 유발하므로 제네릭으로 피한다.",2],
+["Q2-04","박싱을 피하려면 어떻게 해야 하나?","<strong>제네릭 사용</strong>이 기본 — ArrayList→List&lt;T&gt;, Hashtable→Dictionary. 그 외 문자열 결합 시 ToString() 명시, struct에 IEquatable&lt;T&gt; 구현, 인터페이스로 struct를 다루지 않기.",0],
+["Q2-05","실제로 박싱이 몰래 일어나는 경우는?","① struct를 <strong>인터페이스</strong>로 담을 때 ② <strong>params object[]</strong>(string.Format, Debug.Log 문자열 결합) ③ struct의 <strong>재정의 안 된 Equals</strong> ④ 비제네릭 컬렉션 foreach. Profiler의 GC Alloc으로 찾는다.",0],
+["Q2-06","C#의 특징과 가비지 컬렉터를 설명하라","CLR 위에서 IL→JIT으로 실행되는 관리형 언어. GC는 <strong>참조 카운트가 아니라 도달 가능성</strong> 기준으로, 루트에서 도달 못 하는 객체를 Mark-Sweep-Compact로 회수한다. 그래서 <strong>순환 참조도 정상 수거</strong>된다.",2],
+["Q2-07","어떤 메모리가 GC에 의해 해제되는가?","<strong>관리 힙에 있고 루트(스택·정적 필드·레지스터)에서 도달할 수 없는</strong> 객체. 스택의 값 타입, static이 붙든 객체, <strong>파일 핸들·소켓·Unity 네이티브 객체 같은 비관리 자원은 GC가 건드리지 않는다.</strong>",1],
+["Q2-08","세대별 GC(Generational GC)란?","\"대부분의 객체는 금방 죽는다\"를 이용해 힙을 <strong>Gen 0/1/2</strong>로 나누고 젊은 세대만 자주 검사하는 방식. Gen 2 수집이 full GC로 가장 비싸다. <strong>단 이건 .NET 얘기이고 Unity 기본 GC는 세대별이 아니다.</strong>",0],
+["Q2-09","Unity의 GC는 .NET의 GC와 어떻게 다른가?","Unity는 <strong>Boehm 방식의 보수적 GC</strong>라 ① 세대 구분이 없어 <strong>매번 힙 전체를 스캔</strong>하고 ② <strong>압축을 하지 않아 단편화가 누적</strong>되며 ③ 늘어난 힙이 OS에 잘 반환되지 않는다. 증분 GC는 작업을 여러 프레임에 나눌 뿐 총량은 그대로. (2026년 CoreCLR 전환 예정)",0],
+["Q2-10","LOH와 SOH란?","<strong>85,000바이트 이상</strong> 객체는 LOH(Large Object Heap)에 할당되며 복사 비용 때문에 <strong>기본적으로 압축하지 않는다.</strong> 그래서 단편화가 잘 생기고 수집이 Gen 2와 함께 일어나 비싸다. 큰 배열은 재사용·풀링한다.",0],
+["Q2-11","GC 부하를 줄이는 방법은?","핵심은 <strong>애초에 힙 할당을 만들지 않는 것</strong>. 오브젝트 풀링, 매 프레임 문자열 연결·LINQ·람다 캡처 제거, 제네릭 컬렉션, struct 활용, Capacity 미리 확보. 측정은 <strong>Profiler의 GC Alloc, 목표는 프레임당 0 B</strong>.",0],
+["Q2-12","인터페이스를 설명하라","구현 없이 <strong>규약만 정의</strong>하는 타입. 클래스는 단일 상속만 되지만 인터페이스는 <strong>여러 개 구현 가능</strong>해서, 계층이 다른 클래스에 같은 능력을 부여할 때 쓴다. 구체 타입 대신 인터페이스에 의존하면 결합도가 낮아진다.",1],
+["Q2-13","추상 클래스와 인터페이스의 차이는?","추상 클래스는 <strong>구현과 필드를 가질 수 있고 단일 상속</strong>이라 공통 코드·상태를 물려주는 \"is-a\". 인터페이스는 <strong>구현 없이 다중 구현 가능</strong>해 능력만 부여하는 \"can-do\". 공유할 코드가 있으면 추상 클래스.",1],
+["Q2-14","delegate와 event의 차이는?","delegate는 <strong>메서드를 담는 타입</strong>, event는 그것을 <strong>캡슐화한 것</strong>. delegate 필드는 외부에서 =로 덮어쓰거나 직접 호출할 수 있지만, event는 <strong>외부에서 +=/-=만 가능하고 호출은 선언한 클래스 안에서만</strong> 된다.",0],
+["Q2-15","람다식과 익명 메서드란?","이름 없이 그 자리에서 정의하는 함수. delegate(){} 가 익명 메서드, x=&gt;x*2 가 람다. <strong>외부 변수를 캡처하면 컴파일러가 클로저 객체를 힙에 만들어</strong> 할당이 생기므로 매 프레임 도는 코드에서는 주의한다.",0],
+["Q2-16","const와 readonly의 차이는?","const는 <strong>컴파일 타임 상수</strong>라 선언 시 값이 정해지고 암묵적 static이며 <strong>사용처에 값이 박제</strong>된다. readonly는 <strong>런타임 상수</strong>로 생성자에서 정할 수 있고 인스턴스마다 다를 수 있다. Vector3는 const 불가.",0],
+["Q2-17","C#의 string은 왜 특별한가?","참조 타입인데 <strong>불변(immutable)</strong>이고 <strong>==가 내용 비교</strong>로 오버로딩되어 있으며 동일 리터럴은 인터닝으로 공유된다. 불변이라 스레드 안전하고 해시 캐싱이 가능하지만, 조작할 때마다 새 객체가 생겨 가비지가 된다.",0],
+["Q2-18","반복문에서 문자열을 계속 더하면 왜 문제인가?","string이 불변이라 += 할 때마다 <strong>새 객체를 만들고 전체를 복사</strong>해 복사량이 O(n²)이 된다. 내부 버퍼를 재사용하는 <strong>StringBuilder</strong>를 쓰면 O(n). 단 2~3개 연결은 그냥 +가 낫다.",0],
+["Q2-19","char 타입과 string 타입의 차이는?","char는 <strong>2바이트 유니코드 문자 하나</strong>인 값 타입, string은 <strong>char의 시퀀스</strong>인 참조 타입. C의 char는 1바이트라 한글 처리에 인코딩 문제가 생기지만 C#의 char는 한글 한 글자를 담는다.",1],
+["Q2-20","프로퍼티(Property)란?","필드처럼 접근하지만 내부는 <strong>get/set 메서드</strong>로 동작하는 멤버. 유효성 검사나 부가 동작을 끼워 넣을 수 있고 내부 구현을 바꿔도 호출부가 안 깨진다. <strong>게터는 부작용이 없어야 한다.</strong> Unity에서는 기본적으로 직렬화되지 않는다.",0],
+["Q2-21","제네릭이란? C++ 템플릿과 뭐가 다른가?","타입을 매개변수로 받아 타입 안전성과 박싱 회피를 동시에 얻는 기능. C++ 템플릿은 <strong>컴파일 타임에 타입별 코드를 복제 생성</strong>하고, C# 제네릭은 <strong>런타임 CLR이 처리</strong>해 참조 타입끼리 코드를 공유하며 where 제약이 필수다.",0],
+["Q2-22","List&lt;T&gt;와 Dictionary&lt;K,V&gt;의 내부 구조는?","List는 <strong>이름과 달리 내부가 배열</strong>이라 인덱스 O(1), 중간 삽입 O(n), 가득 차면 2배로 재할당·복사. Dictionary는 <strong>해시 테이블</strong>로 평균 O(1)이며 순서를 보장하지 않는다.",0],
+["Q2-23","IEnumerable과 yield return이란?","IEnumerable은 foreach로 순회 가능하다는 규약, yield return은 <strong>값을 반환하고 그 지점 상태를 기억한 채 멈췄다 재개</strong>하는 문법이다(컴파일러가 상태 기계를 생성). <strong>Unity 코루틴이 정확히 이 문법을 활용한 것.</strong>",0],
+["Q2-24","async/await와 Task를 설명하라","Task는 <strong>비동기 작업 하나를 나타내는 객체</strong>, async/await는 완료를 기다리되 <strong>스레드를 붙잡지 않는</strong> 문법. 비동기≠멀티스레드다. Unity에서는 오브젝트가 파괴돼도 자동 취소되지 않아 CancellationToken 관리가 필요하다.",0],
+["Q2-25","스레드와 Task의 차이는?","Thread는 <strong>OS 스레드를 직접</strong> 만들어 비용이 크고 개수를 직접 관리해야 한다. Task는 <strong>작업 단위 추상화</strong>로 스레드 풀을 재사용해 저렴하고 반환값·예외 전파·취소·연속 작업이 기본 제공된다.",0],
+["Q2-26","LINQ란? 게임에서 써도 되나?","컬렉션을 SQL 비슷하게 질의하는 기능으로 지연 실행된다. 다만 <strong>열거자 객체와 람다 클로저가 힙에 할당</strong>되므로 <strong>Update처럼 매 프레임 도는 코드에서는 쓰지 않고</strong> 초기화·로딩에만 쓴다.",0],
+["Q2-27","예외 처리와 finally의 동작은?","finally는 <strong>예외 발생 여부와 무관하게, 중간에 return을 해도 반드시 실행</strong>된다. 예외는 스택 트레이스 수집 때문에 비싸므로 <strong>정상 흐름 제어에 쓰면 안 된다.</strong> 다시 던질 땐 throw e; 가 아니라 throw;",0],
+["Q2-28","IDisposable과 using 블록이란?","IDisposable은 <strong>명시적 정리가 필요한 자원</strong>을 나타내는 인터페이스, using은 블록을 벗어날 때 <strong>예외가 나도 Dispose()를 보장</strong>한다. GC는 비관리 자원의 해제 시점을 보장 못 하므로 필요하며, C++의 RAII에 대응한다.",0],
+["Q2-29","직렬화와 역직렬화란?","객체를 <strong>저장·전송 가능한 형태로 변환</strong>하는 것과 그 반대. Unity 직렬화기는 public 또는 [SerializeField] 필드만 대상이고 <strong>static·const·프로퍼티·다차원 배열·Dictionary는 지원하지 않는다.</strong> BinaryFormatter는 보안 문제로 사용 중단.",0],
+["Q2-30","접근 제한자 종류를 설명하라","private(같은 클래스) protected(+자식) <strong>internal(같은 어셈블리)</strong> protected internal(합집합) private protected(교집합) public(전체). Unity에서는 <strong>[SerializeField] private</strong>가 권장 패턴이다.",0],
+["Q2-31","var와 dynamic의 차이는?","var는 <strong>컴파일 타임에 타입이 확정</strong>되는 타입 추론이라 안전하고 성능 손해가 없다. dynamic은 <strong>타입 검사를 런타임으로 미뤄</strong> 잘못된 멤버 호출도 컴파일을 통과한다. IL2CPP에서는 dynamic을 사실상 쓸 수 없다.",0],
+["Q2-32","C#이 C++보다 느린가?","일반적으로 C++이 빠르나 차이가 항상 크진 않다. C#은 JIT 워밍업과 <strong>GC로 인한 예측 불가능한 스파이크</strong>가 있지만 힙 할당 자체는 포인터 이동이라 빠를 수도 있다. 게임에서 문제는 평균 속도가 아니라 <strong>최악 프레임</strong>이다.",0]],
+"03":[
+["Q3-01","MonoBehaviour 생명주기 순서를 설명하라","<strong>Awake → OnEnable → Start</strong>가 1회, 이후 매 프레임 <strong>FixedUpdate → Update → LateUpdate</strong>, 종료 시 <strong>OnDisable → OnDestroy</strong>. 핵심 규칙은 <strong>모든 오브젝트의 Awake가 끝난 뒤에야 Start가 시작</strong>된다는 것.",0],
+["Q3-02","Update/FixedUpdate/LateUpdate의 차이는?","Update는 매 프레임 1회(불규칙), FixedUpdate는 <strong>고정 간격</strong>이라 물리에 쓰며 <strong>프레임당 0~N번</strong> 호출된다. LateUpdate는 모든 Update 후라 카메라 추적에 쓴다. <strong>입력은 Update, 물리 적용은 FixedUpdate.</strong>",1],
+["Q3-03","Mono와 IL2CPP의 차이는? AOT와 JIT은?","Mono는 IL을 <strong>실행 중 JIT</strong>으로, IL2CPP는 IL을 <strong>C++로 변환해 AOT</strong> 컴파일한다. IL2CPP가 빠르고 코드 보호에 유리하며 iOS 필수지만 빌드가 매우 느리고 <strong>런타임 제네릭·리플렉션이 제한</strong>된다. GC는 둘 다 Boehm.",0],
+["Q3-04","Awake와 Start의 차이는?","Awake는 <strong>생성 직후 비활성 상태여도</strong> 호출, Start는 <strong>첫 Update 직전 활성일 때만</strong> 호출. 모든 Awake 후 Start가 돌기 때문에 <strong>자기 컴포넌트 캐싱은 Awake, 남의 오브젝트 참조는 Start</strong>가 안전하다.",0],
+["Q3-05","스크립트 실행 순서는 어떻게 정해지나?","<strong>기본적으로 정해져 있지 않다.</strong> Script Execution Order 설정이나 <strong>[DefaultExecutionOrder]</strong>로 지정하며 값이 작을수록 먼저. 다만 순서 의존 설계 자체를 줄이는 게 유지보수에 낫다.",0],
+["Q3-06","델타 타임이란? 왜 필요한가?","<strong>이전 프레임부터 현재까지 걸린 시간(초)</strong>. 이동량에 곱하면 \"초당 몇 유닛\"이 되어 프레임률과 무관하게 같은 속도가 된다. 안 곱하면 60fps가 30fps보다 두 배 빠르게 움직이는 버그가 된다.",0],
+["Q3-07","프로젝트에서 사용한 싱글턴에 대해 설명하라","인스턴스가 하나만 존재하도록 보장하고 전역 접근점을 제공하는 패턴. 저는 <strong>정적 필드 대입 → 중복 파괴+DontDestroyOnLoad → 제네릭 베이스 클래스</strong> 3단계로 발전시켰고, where T:MonoSingleton&lt;T&gt; 자기 참조 제약까지 사용했습니다.",2],
+["Q3-08","MonoBehaviour를 new로 만들면 왜 안 되나?","C# 객체와 <strong>엔진의 네이티브 객체가 짝을 이루는</strong> 구조라, new로 만들면 껍데기만 생겨 transform 접근이 실패하고 <strong>Awake/Start/Update가 전혀 호출되지 않는다.</strong> AddComponent나 Instantiate를 써야 한다.",0],
+["Q3-09","GetComponent는 왜 캐싱해야 하나?","컴포넌트 목록을 <strong>순회하며 타입을 검사</strong>하는 작업이라 공짜가 아니다. Update에서 매 프레임 부르면 누적 비용이 크므로 Awake에서 받아 필드에 저장한다. <strong>Find 계열은 씬 전체를 훑어 훨씬 더 비싸다.</strong>",0],
+["Q3-10","코루틴이란? 스레드와 뭐가 다른가?","실행을 멈췄다 재개할 수 있는 함수로, Unity가 매 프레임 MoveNext()를 불러주는 구조다. <strong>스레드가 아니라 메인 스레드에서 돌기 때문에</strong> 무거운 계산을 하면 여전히 프레임이 멈춘다.",0],
+["Q3-11","코루틴과 Invoke의 차이는?","Invoke는 <strong>메서드 이름을 문자열로 받아</strong> 일정 시간 뒤 1회 호출하는 단순 기능. 코루틴은 실행 흐름 자체를 제어해 복잡한 시간 로직을 표현한다. Invoke는 오타가 컴파일에 안 잡히고 <strong>IL2CPP 스트리핑 위험</strong>도 있다.",0],
+["Q3-12","콜라이더란?","오브젝트의 <strong>물리적 충돌 형태를 정의하는 컴포넌트</strong>. 보이는 메시와 별개로 단순한 도형을 쓰며, Mesh Collider보다 <strong>Box/Sphere/Capsule이 훨씬 저렴</strong>하다. 충돌 감지에는 <strong>적어도 한쪽에 Rigidbody가 필요</strong>하다.",2],
+["Q3-13","트리거와 콜리전의 차이는?","콜리전은 <strong>물리적으로 밀어내는</strong> 실제 충돌이라 접촉점·충격량 정보를 주고, 트리거는 isTrigger를 켜 <strong>통과하며 겹침만 감지</strong>한다. 아이템 획득 영역처럼 닿았는지만 알면 될 때 트리거를 쓴다.",0],
+["Q3-14","Rigidbody와 isKinematic을 설명하라","Rigidbody는 오브젝트를 <strong>물리 엔진의 제어 대상</strong>으로 만든다. isKinematic을 켜면 힘의 영향은 안 받지만 물리 시스템의 일부로 남아 다른 물체를 밀 수 있다. <strong>Dynamic Rigidbody를 transform으로 옮기면 안 된다.</strong>",0],
+["Q3-15","레이캐스트란?","특정 지점에서 방향으로 <strong>가상의 광선을 쏘아 무엇에 맞았는지</strong> 알아내는 기능. 맞은 지점·법선·거리·콜라이더를 얻는다. 총알 히트 판정, 접지 체크, 마우스 클릭 선택, 시야 확인에 쓰며 <strong>LayerMask로 대상을 좁히는 게 최적화의 핵심.</strong>",2],
+["Q3-16","오브젝트 풀링이란? 왜 필요한가?","Instantiate/Destroy 대신 <strong>미리 만들어두고 비활성화 상태로 재사용</strong>하는 기법. 생성 비용도 크지만 <strong>Destroy된 객체가 GC 가비지가 되어 프레임 스파이크를 유발</strong>하는 게 더 큰 문제다. Unity의 GC가 압축을 안 해서 특히 중요하다.",0],
+["Q3-17","드로우 콜과 배칭을 설명하라","드로우 콜은 <strong>CPU가 GPU에게 그리라고 명령하는 호출</strong>로, 많으면 CPU 병목이 된다. 배칭은 같은 재질을 묶어 한 번에 그리는 것. <strong>SRP Batcher는 드로우 콜 수가 아니라 렌더 상태 변경 비용을 줄인다.</strong>",0],
+["Q3-18","본인이 아는 최적화 방법을 설명하라","<strong>CPU/GPU/메모리 3축</strong>으로 본다. CPU는 Update 축소·GetComponent 캐싱·오브젝트 풀링·GC 감소, GPU는 배칭·아틀라스·LOD·컬링·오버드로우 감소, 메모리는 텍스처 압축·에셋 언로드. <strong>무엇보다 프로파일러로 병목을 먼저 측정한다.</strong>",1],
+["Q3-19","최적화는 어떻게 측정하나? (프로파일링)","Unity <strong>Profiler</strong>로 CPU/GPU/메모리와 <strong>GC Alloc</strong>을 본다. 드로우 콜은 Frame Debugger, 메모리 상세는 Memory Profiler. <strong>에디터가 아니라 실제 기기 Development Build에서 측정</strong>해야 의미가 있다.",0],
+["Q3-20","프러스텀 컬링과 오클루전 컬링이란?","프러스텀 컬링은 <strong>카메라 시야 밖</strong>을 제외하는 것으로 Unity가 자동으로 해주고, 오클루전 컬링은 <strong>다른 물체에 가려진</strong> 것을 제외하는 것으로 사전 베이크가 필요하다. 실내·도시처럼 가림이 많은 씬에서 효과적이다.",0],
+["Q3-21","ScriptableObject에 대해 아는가?","MonoBehaviour 대신 상속해 <strong>씬에 붙지 않고 데이터 자체를 .asset 파일로 저장</strong>하는 클래스. 여러 오브젝트가 참조해도 <strong>메모리를 공유</strong>한다. 단 <strong>빌드에서는 값 변경이 저장되지 않는다.</strong>",1],
+["Q3-22","프리팹(Prefab)이란?","게임오브젝트와 컴포넌트 구조를 <strong>재사용 가능한 템플릿</strong>으로 저장한 에셋. 원본을 수정하면 모든 인스턴스에 반영되고 개별 변경은 오버라이드로 기록된다. Unity는 <strong>파일명이 아니라 .meta의 guid로 참조</strong>를 관리한다.",0],
+["Q3-23","씬 전환과 DontDestroyOnLoad를 설명하라","LoadScene은 <strong>기존 씬의 모든 오브젝트를 파괴</strong>하고, DontDestroyOnLoad는 특수 영역으로 옮겨 살아남게 한다. 비동기 로드 시 <strong>progress가 0.9에서 멈추는 건</strong> 나머지 0.1이 씬 활성화 단계이기 때문이다.",0],
+["Q3-24","Resources, AssetBundle, Addressables의 차이는?","Resources는 <strong>전부 빌드에 포함되고 시작 시 인덱스를 로드</strong>해 비권장. AssetBundle은 별도 패키지로 원격 업데이트가 되지만 의존성을 직접 관리해야 한다. <strong>Addressables가 현재 표준</strong>으로 의존성·메모리를 자동 관리한다.",0],
+["Q3-25","Unity의 \"Fake Null\" 문제란?","Destroy 후에도 <strong>C# 객체는 남아있고</strong> Unity가 ==를 오버로딩해 null처럼 보이게 한다. 문제는 <strong>?.와 ??는 이 오버로딩을 무시</strong>하고 실제 참조만 보기 때문에 결과가 달라진다는 것. Unity 오브젝트엔 != null 을 써야 한다.",0],
+["Q3-26","Destroy와 DestroyImmediate의 차이는?","Destroy는 <strong>프레임 끝에 파괴를 예약</strong>하는 지연 방식이라 런타임에 안전하고, DestroyImmediate는 <strong>즉시 파괴</strong>라 순회 중 쓰면 상태가 꼬인다. DestroyImmediate는 <strong>에디터 스크립트 전용</strong>이다.",0],
+["Q3-27","Time.timeScale로 일시정지할 때 주의점은?","0으로 두면 deltaTime이 0이 되고 <strong>FixedUpdate가 호출되지 않으며</strong> WaitForSeconds도 멈춘다. 다만 <strong>Update와 입력은 계속 동작</strong>하므로, 일시정지 중 UI 연출에는 unscaledDeltaTime이나 WaitForSecondsRealtime을 쓴다.",0],
+["Q3-28","Animator와 Mecanim, StateMachineBehaviour란?","Animator Controller는 애니메이션을 <strong>상태와 전이로 구성한 상태 기계</strong>이고, 파라미터 값만 바꾸면 전환된다. StateMachineBehaviour는 각 상태에 붙는 스크립트로 OnStateEnter/Update/Exit를 제공한다. <strong>Has Exit Time을 안 끄면 반응이 늦는</strong> 문제가 흔하다.",0],
+["Q3-29","uGUI 캔버스 최적화 방법은?","핵심은 <strong>캔버스 분리</strong> — 요소 하나가 바뀌면 <strong>캔버스 전체가 리빌드</strong>되므로 자주 변하는 것과 정적인 것을 나눈다. 그 외 Raycast Target 해제, Layout Group 남용 금지, Sprite Atlas, 값이 바뀔 때만 텍스트 갱신.",0],
+["Q3-30","NGUI를 활용해본 적이 있는가?","<strong>직접 써본 적은 없습니다.</strong> Unity에 내장 UI가 없던 시절의 서드파티 에셋으로, 4.6에서 uGUI가 도입되며 대체됐습니다. 저는 uGUI와 TextMeshPro를 썼고 UI Toolkit도 에디터 확장으로 접해봤습니다. <strong>모르는 걸 아는 척하지 않는 게 최선.</strong>",2],
+["Q3-31","에디터 확장을 해본 적 있는가?","[MenuItem]으로 메뉴 추가, [CustomEditor]로 인스펙터 커스터마이징, EditorWindow로 도구 창, <strong>커스텀 PropertyDrawer로 조건부 필드 표시</strong>, SerializedProperty로 private 필드 다루기, Undo+SetDirty 짝지어 처리까지 해봤습니다.",0],
+["Q3-32","네트워크 동기화를 해본 적 있는가?","Photon PUN으로 <strong>PhotonView 소유권 기반 입력 분기, [PunRPC] 원격 호출, OnPhotonSerializeView 커스텀 동기화</strong>를 구현했고, 몬스터는 <strong>Master Client 권위 서버 + 페일오버</strong> 방식으로 처리했습니다.",0],
+["Q3-33","문자열 기반 API가 왜 위험한가?","SendMessage·StartCoroutine(\"이름\")·Invoke·SetBool(\"파라미터\")는 <strong>오타가 컴파일에 안 잡히고 런타임에 조용히 실패</strong>한다. 리팩터링에도 취약하고 리플렉션 기반이라 느리며 <strong>IL2CPP 스트리핑에 제거될 위험</strong>도 있다.",0],
+["Q3-34","Deprecated API 마이그레이션을 겪어봤는가?","<strong>6건 겪었습니다</strong> — Application.LoadLevel→SceneManager, WWW→UnityWebRequest, [PreferenceItem]→[SettingsProvider], AssetBundle WWW 계열, Input Manager→New Input System, Built-in RP→URP. API뿐 아니라 <strong>에러 체크 방식 같은 주변 규약까지 바뀐다</strong>는 걸 배웠습니다.",0],
+["Q3-35","현재 Unity 버전과 앞으로의 변화는?","<strong>Unity 6 계열이 LTS</strong>이고 C# 언어 버전은 <strong>C# 9</strong>까지다. 가장 큰 변화는 <strong>Mono→CoreCLR 전환</strong>(6.8, 2026 예정)으로 세대별 GC와 최신 .NET·C#을 쓸 수 있게 된다. 렌더링은 URP/HDRP가 표준.",0]],
+"04":[
+["Q4-01","스택과 큐의 차이는?","스택은 <strong>후입선출(LIFO)</strong>로 한쪽 끝에서만 넣고 빼며 함수 호출·되돌리기·DFS에 쓴다. 큐는 <strong>선입선출(FIFO)</strong>로 뒤에서 넣고 앞에서 빼며 작업 대기열·BFS에 쓴다. 둘 다 주요 연산이 O(1).",2],
+["Q4-02","배열과 리스트의 차이는?","배열은 <strong>연속 메모리·고정 크기</strong>라 인덱스 O(1)·캐시 효율 최고지만 중간 삽입 O(n). 연결 리스트는 크기가 유연하고 위치를 알면 삽입 O(1)이나 <strong>임의 접근 불가·캐시 나쁨</strong>. <strong>C#의 List&lt;T&gt;는 내부가 배열</strong>이다.",1],
+["Q4-03","이중 연결 리스트를 직접 구현해보라","각 노드가 <strong>데이터 + prev/next 포인터</strong>를 갖는 구조. 양방향 순회가 되고 노드를 알면 <strong>삭제가 O(1)</strong>. 구현 시 <strong>센티넬(더미) 노드</strong>를 앞뒤에 두면 맨앞·맨뒤·유일원소 분기가 사라져 버그가 크게 준다.",1],
+["Q4-04","원형 큐와 덱(Deque)이란?","원형 큐는 배열 끝과 시작을 이어 <strong>% 연산으로 순환</strong>시켜 공간 낭비 없이 O(1)을 유지한다. <strong>front==rear만으로는 가득참과 비어있음을 구분 못 해</strong> count를 두거나 한 칸을 비운다. 덱은 양끝 삽입·삭제가 가능하다.",0],
+["Q4-05","해시 테이블이란? 충돌은 어떻게 해결하나?","키를 <strong>해시 함수로 인덱스로 변환</strong>해 평균 O(1)에 접근하는 구조. 충돌 해결은 같은 버킷에 리스트로 매다는 <strong>체이닝</strong>과 빈 자리를 찾는 <strong>개방 주소법</strong>이 있다. 최악은 O(n)이라 해시 품질이 중요하다.",0],
+["Q4-06","\"오픈 서치\"란?","<strong>용어가 모호하다.</strong> ① 해시 충돌 해결의 <strong>개방 주소법(Open Addressing)</strong> ② A*의 <strong>Open List 기반 탐색</strong> ③ 검색엔진 OpenSearch. 면접에서는 <strong>\"어떤 맥락인지 되묻는 것\"이 최선</strong>이다.",2],
+["Q4-07","트리와 이진 탐색 트리(BST)를 설명하라","트리는 부모-자식 계층 구조, BST는 <strong>왼쪽&lt;부모&lt;오른쪽</strong> 규칙을 더해 평균 O(log n) 탐색을 얻는다. <strong>중위 순회하면 정렬된 순서</strong>로 나온다. 정렬된 데이터를 순서대로 넣으면 최악 O(n)이 된다.",0],
+["Q4-08","균형 이진 트리가 왜 필요한가?","일반 BST는 <strong>삽입 순서에 따라 한쪽으로 치우쳐 O(n)</strong>이 될 수 있어서다. 균형 트리는 회전으로 높이를 유지해 <strong>항상 O(log n)을 보장</strong>한다. AVL은 엄격해 탐색이 빠르고, 레드-블랙은 느슨해 삽입·삭제가 빠르다(STL map).",0],
+["Q4-09","힙과 우선순위 큐란?","<strong>부모가 자식보다 항상 크거나 작은 완전 이진 트리</strong>. 루트 조회 O(1), 삽입·삭제 O(log n). 완전 이진 트리라 <strong>포인터 없이 배열로 표현</strong>하며 부모=(i-1)/2, 자식=2i+1, 2i+2. Min↔Max는 <strong>비교 부등호만 뒤집으면</strong> 된다.",0],
+["Q4-10","그래프를 표현하는 두 가지 방법은?","<strong>인접 행렬</strong>은 V×V 배열로 연결 확인이 O(1)이나 메모리 O(V²). <strong>인접 리스트</strong>는 메모리 O(V+E)로 효율적이나 특정 연결 확인은 O(degree). <strong>간선이 적은 희소 그래프에는 인접 리스트</strong>가 유리하다.",0],
+["Q4-11","시간 복잡도와 빅오 표기법을 설명하라","입력 크기 n이 커질 때 <strong>연산 횟수의 증가율 상한</strong>을 나타낸다. 상수와 낮은 차수는 무시하므로 3n²+5n+10은 O(n²). 실제 실행 시간이 아니라 <strong>확장성</strong>을 비교하는 도구다.",0],
+["Q4-12","버블 정렬을 설명하라","인접한 두 원소를 비교해 순서가 틀리면 교환하는 것을 반복한다. 평균·최악 <strong>O(n²)</strong>, 교환 없으면 종료하는 최적화 시 최선 O(n). <strong>추가 공간 O(1)의 제자리·안정 정렬.</strong>",1],
+["Q4-13","퀵 정렬을 설명하라","<strong>피벗 기준으로 작은 값·큰 값을 분할한 뒤 양쪽을 재귀</strong>하는 분할 정복. 평균 O(n log n)이고 제자리 정렬이라 <strong>캐시 효율이 좋아 실무 표준</strong>. 정렬된 배열에 끝 피벗을 쓰면 <strong>최악 O(n²)</strong>이라 median-of-three나 무작위 피벗을 쓴다.",1],
+["Q4-14","병합 정렬을 설명하라","절반씩 계속 나눈 뒤 <strong>정렬된 두 부분을 병합</strong>하며 올라오는 분할 정복. <strong>어떤 입력에서도 O(n log n) 보장 + 안정 정렬</strong>이지만 <strong>추가 배열 O(n)</strong>이 필요하다. 연결 리스트 정렬에는 병합이 유리하다.",0],
+["Q4-15","정렬 알고리즘을 비교하라 / 안정 정렬이란?","안정 정렬은 <strong>값이 같은 원소의 원래 순서가 유지</strong>되는 것으로 다중 조건 정렬에 중요하다. 병합·삽입·버블은 안정, <strong>퀵·힙·선택은 불안정</strong>. C++ std::sort는 인트로 정렬(퀵+힙+삽입) 하이브리드다.",0],
+["Q4-16","이진 탐색을 설명하라","<strong>정렬된 배열</strong>에서 중간값과 비교해 범위를 절반씩 줄이는 O(log n) 알고리즘. mid는 <strong>(low+high)/2가 아니라 low+(high-low)/2</strong>로 계산해야 오버플로를 피한다. 100만 개도 약 20번이면 끝난다.",0],
+["Q4-17","DFS와 BFS의 차이는?","DFS는 <strong>스택·재귀</strong>로 갈 수 있는 데까지 파고들고, BFS는 <strong>큐</strong>로 가까운 곳부터 층별로 퍼진다. 핵심 차이는 <strong>무가중치 그래프에서 BFS만 최단 경로를 보장</strong>한다는 것. BFS는 큐에 넣을 때 방문 표시를 해야 한다.",0],
+["Q4-18","다익스트라 알고리즘이란?","가중치 그래프에서 <strong>한 점에서 모든 정점까지의 최단 거리</strong>를 구한다. 확정 안 된 것 중 거리가 최소인 것을 골라 확정하고 완화(relaxation)를 반복하며, 우선순위 큐로 O((V+E)log V). <strong>음수 가중치에는 쓸 수 없다.</strong>",0],
+["Q4-19","A* 알고리즘을 설명하라","다익스트라에 <strong>목표까지의 추정 거리(휴리스틱 H)</strong>를 더해 <strong>F = G + H</strong>가 최소인 노드부터 탐색하는 길찾기. 목표 방향으로 우선 탐색해 방문 노드가 훨씬 적다. <strong>휴리스틱이 실제 비용을 과대평가하지 않으면 최단 경로 보장</strong>, H=0이면 다익스트라와 같다.",0],
+["Q4-20","재귀와 반복 중 무엇을 써야 하나?","재귀는 문제를 같은 형태로 나눌 때 간결하지만 <strong>스택 프레임이 쌓여 깊어지면 스택 오버플로</strong>가 난다. 깊이가 얕고 예측 가능하면 재귀, 깊거나 예측 불가하면 <strong>명시적 스택을 쓴 반복</strong>이 안전하다.",0],
+["Q4-21","동적 계획법(DP)이란?","큰 문제를 작은 부분 문제로 나누되 <strong>답을 저장해두고 재사용</strong>해 중복 계산을 없애는 기법. <strong>최적 부분 구조 + 중복 부분 문제</strong>가 성립해야 쓸 수 있다. 재귀+캐시가 메모이제이션, 반복+표가 타뷸레이션.",0],
+["Q4-22","문자열에서 부분 문자열을 찾는 방법은?","브루트 포스는 모든 위치에서 비교해 O(n×m), <strong>KMP</strong>는 패턴의 접두사=접미사 정보를 미리 계산해 <strong>O(n+m)</strong>. 실무는 IndexOf/find를 쓰되 원리를 알면 성능 특성을 판단할 수 있다. <strong>15분 제한이면 브루트 포스부터 완성</strong>하는 게 정답.",2],
+["Q4-23","쿼드트리와 옥트리란?","<strong>공간을 재귀적으로 4개(2D)·8개(3D)로 분할</strong>해 저장하는 트리. 전부 검사하는 O(n²)을 피해 \"이 근처에 뭐가 있나\"를 빠르게 찾는다. 충돌 검사·컬링·근접 탐색 최적화에 쓴다.",0],
+["Q4-24","게임에서 충돌 검사를 어떻게 최적화하나?","<strong>브로드 페이즈</strong>(공간 분할·AABB로 후보 추리기) → <strong>내로우 페이즈</strong>(정밀 검사) 2단계. Unity 실전에서는 <strong>Layer Collision Matrix로 검사 자체를 끄는 게 가장 효과적</strong>이고, 거리 비교는 <strong>sqrMagnitude</strong>로 제곱근을 피한다.",0],
+["Q4-25","캐시 지역성이 자료구조 선택에 어떤 영향을 주나?","CPU는 메모리를 <strong>캐시 라인(64바이트) 단위로 통째로</strong> 읽으므로 연속 메모리 순차 접근이 압도적으로 빠르다. 캐시 미스는 <strong>수십~수백 배 느리다.</strong> 그래서 복잡도가 같거나 불리해도 <strong>배열 기반이 실측에서 이기는 경우가 많다.</strong>",0]],
+"05":[
+["Q5-01","렌더링 파이프라인을 설명하라","정점이 화면 픽셀이 되기까지의 과정 — <strong>로컬→월드→뷰→클립 변환 → 클리핑 → 원근 나눗셈 → 백페이스 컬링 → 뷰포트 변환 → 래스터라이즈 → 픽셀 셰이더 → 깊이·스텐실·블렌딩</strong>. 프로그래머블 단계는 버텍스·프래그먼트 셰이더 두 곳이다.",1],
+["Q5-02","셰이더란?","<strong>GPU에서 실행되어 화면에 그려질 내용을 계산하는 프로그램</strong>. 정점 위치를 변환하는 버텍스 셰이더와 픽셀 색을 결정하는 프래그먼트 셰이더가 핵심이며, 조명·텍스처·특수효과가 전부 여기서 계산된다. GPU가 수천 코어로 병렬 처리한다.",2],
+["Q5-03","버텍스 셰이더와 프래그먼트 셰이더의 역할은?","버텍스는 <strong>정점당 1회</strong> 실행되어 좌표를 변환하고, 프래그먼트는 <strong>픽셀 조각마다 1회</strong> 실행되어 최종 색을 결정한다. 정점보다 픽셀이 훨씬 많으므로 <strong>무거운 계산은 버텍스로 옮기는 게 최적화의 기본</strong>이다.",0],
+["Q5-04","ShaderLab의 구조를 설명하라","<strong>Shader → SubShader → Pass</strong> 3단 구조. Shader가 이름과 Properties를, SubShader가 하드웨어별 대안을, Pass가 실제 그리기 1회를 담당한다. Tag의 <strong>Queue로 그리기 순서</strong>를 지정한다.",0],
+["Q5-05","좌표계 변환 과정을 설명하라","<strong>로컬 → 월드 → 뷰 → 클립 → NDC → 스크린</strong> 순서로 변환된다. 각 변환은 4×4 행렬 곱셈이고, MVP 행렬로 미리 합쳐 정점마다 한 번만 곱한다. <strong>원근 나눗셈이 원근감의 핵심</strong>이다.",0],
+["Q5-06","DirectX의 좌표계를 설명하라","DirectX는 <strong>왼손 좌표계</strong>로 X 오른쪽, Y 위, <strong>Z가 화면 안쪽</strong>. OpenGL은 오른손이라 Z가 바깥쪽이다. <strong>Unity도 왼손</strong>이고 Unreal은 왼손이지만 Z가 위쪽이다. 모델 임포트 시 축이 안 맞는 문제의 원인.",1],
+["Q5-07","오일러 각과 쿼터니언의 차이는?","오일러는 <strong>직관적이지만 짐벌 락</strong>이 있고 회전 순서에 따라 결과가 달라지며 보간이 부자연스럽다. 쿼터니언은 4개 성분으로 <strong>짐벌 락이 없고 Slerp 보간이 자연스럽고 연산이 효율적</strong>. <strong>Unity는 내부적으로 모든 회전을 쿼터니언으로 저장</strong>한다.",2],
+["Q5-08","짐벌 락이란?","오일러 각에서 <strong>두 축이 정렬되어 회전 자유도 하나를 잃는</strong> 현상. Y를 90도 돌리면 X와 Z 회전이 같은 결과가 되어 3차원이 2차원으로 준다. 오일러가 <strong>축을 순차 적용</strong>하기 때문이며 쿼터니언에는 없다.",0],
+["Q5-09","벡터의 내적(Dot)은 어디에 쓰나?","두 벡터의 <strong>방향이 얼마나 비슷한지</strong>를 주는 스칼라. 정규화 시 <strong>1=같은 방향, 0=수직, -1=반대</strong>. 앞뒤 판정, 시야각 판정, 램버트 조명(N·L), 벡터 투영에 쓴다. <strong>각도 변환 없이 cos 값으로 비교</strong>하는 게 빠르다.",0],
+["Q5-10","벡터의 외적(Cross)은 어디에 쓰나?","두 벡터 <strong>모두에 수직인 벡터</strong>를 만든다. 크기는 평행사변형 넓이, 방향은 좌표계의 손 법칙을 따른다. <strong>삼각형 법선 계산</strong>, 좌우 판정, 회전축 구하기에 쓴다. <strong>A×B ≠ B×A</strong>.",0],
+["Q5-11","행렬은 그래픽스에서 왜 쓰이나?","이동·회전·크기를 <strong>하나의 행렬로 합쳐 한 번의 곱셈으로 적용</strong>할 수 있어서다. <strong>4×4 동차 좌표를 쓰면 이동까지 곱셈으로 표현</strong>된다(3×3으로는 불가). 곱셈 순서가 결과를 바꾼다.",0],
+["Q5-12","Lerp와 Slerp의 차이는?","Lerp는 <strong>직선 보간</strong>, Slerp는 <strong>구면을 따라 일정한 각속도</strong>로 보간한다. 위치는 Lerp, <strong>회전은 Slerp</strong>가 원칙 — 회전에 Lerp를 쓰면 중간에서 각속도가 불균등해진다.",0],
+["Q5-13","포워드 렌더링과 디퍼드 렌더링의 차이는?","포워드는 오브젝트마다 조명을 계산해 <strong>광원이 많으면 비용이 급증</strong>한다. 디퍼드는 G-buffer에 정보를 저장해두고 <strong>화면 픽셀당 한 번만</strong> 조명을 계산해 광원이 많아도 효율적이나, <strong>반투명을 처리 못 하고</strong> 대역폭을 많이 써 모바일에 부적합하다.",0],
+["Q5-14","알파 블렌딩과 알파 테스트의 차이는?","블렌딩은 <strong>배경과 비율대로 섞어</strong> 반투명을 표현하며 뒤→앞 정렬과 ZWrite Off가 필요하다. 알파 테스트는 <strong>기준 미만 픽셀을 discard</strong>해 완전 투명/불투명만 있는 나뭇잎·철망에 쓰며 정렬이 필요 없다.",0],
+["Q5-15","RenderQueue로 그리기 순서를 어떻게 제어하나?","Queue 태그 값이 <strong>작을수록 먼저</strong> 그려진다. Geometry 2000, AlphaTest 2450, <strong>Transparent 3000</strong>. <strong>2500 이하는 앞→뒤(early-Z로 오버드로우 감소), 초과는 뒤→앞</strong>(블렌딩을 위해)으로 정렬된다.",0],
+["Q5-16","Z버퍼란? Z파이팅은 왜 생기나?","Z버퍼는 <strong>픽셀마다 깊이를 저장</strong>해 그리는 순서와 무관하게 앞뒤를 맞춘다. Z파이팅은 두 면의 깊이가 거의 같아 <strong>정밀도 한계로 판정이 흔들리는</strong> 현상이며, 원인은 대개 <strong>Near 평면을 너무 작게</strong> 잡아서다.",0],
+["Q5-17","백페이스 컬링이란?","삼각형의 <strong>뒷면을 그리지 않고 버리는</strong> 최적화로, 화면 공간에서 정점의 <strong>감김 방향</strong>으로 판정한다. 처리할 삼각형이 대략 절반으로 준다. 나뭇잎처럼 두께 없는 평면은 Cull Off가 필요하다.",0],
+["Q5-18","텍스처 압축 포맷을 왜 신경 써야 하나?","텍스처가 <strong>게임 메모리와 빌드 크기의 대부분</strong>을 차지하기 때문. 핵심은 <strong>GPU가 압축 상태 그대로 읽는 포맷</strong>(ASTC/ETC2/BC)을 쓰는 것 — <strong>PNG/JPG는 로드 시 풀려 메모리 이득이 없다.</strong>",0],
+["Q5-19","밉맵(Mipmap)이란?","원본을 절반씩 줄인 버전을 미리 만들어 <strong>멀수록 작은 것을 쓰는</strong> 기법. 원거리 앨리어싱(지글거림)을 없애고 <strong>텍스처 캐시 효율이 좋아져 오히려 빨라진다.</strong> 메모리는 약 33% 증가. UI에는 보통 끈다.",0],
+["Q5-20","노멀 맵이란?","표면의 <strong>법선 정보를 RGB로 저장한 텍스처</strong>. 정점을 늘리지 않고 픽셀 단위로 법선을 바꿔 요철이 있는 것처럼 보이게 한다. 파란빛인 건 대부분 법선이 <strong>탄젠트 공간의 +Z</strong>를 향하기 때문. <strong>실루엣은 바뀌지 않는다.</strong>",0],
+["Q5-21","Built-in RP, URP, HDRP의 차이는?","Built-in은 커스터마이징이 어려운 <strong>레거시</strong>, <strong>URP가 현재 표준</strong>으로 모바일~콘솔을 폭넓게 커버하며 SRP Batcher·Shader Graph를 쓴다. HDRP는 고사양 PC/콘솔 전용이라 모바일 불가. <strong>파이프라인 전환은 셰이더를 전부 다시 써야 한다.</strong>",0],
+["Q5-22","메시(Mesh)는 무엇으로 구성되나?","<strong>정점(vertices) 배열 + 삼각형 인덱스(triangles) 배열</strong>이 핵심이고, 법선·UV·탄젠트가 정점 수만큼 병렬로 붙는다. 인덱스 3개가 삼각형 1개이며 <strong>그 순서가 감김 방향과 법선 방향을 결정</strong>한다.",0]],
+"06":[
+["Q6-01","메모리 종류를 말해보라 (RAM, ROM 등)","<strong>휘발성/비휘발성</strong>으로 나뉜다. RAM은 휘발성 주기억장치, ROM은 비휘발성으로 펌웨어가 들어간다. 속도 순으로 <strong>레지스터 &gt; 캐시(L1/L2/L3) &gt; RAM &gt; SSD/HDD</strong>이고 빠를수록 작고 비싸다.",2],
+["Q6-02","캐시 메모리와 L1/L2/L3란?","CPU와 RAM의 <strong>속도 차이를 메우는 고속 완충 메모리</strong>. L1이 가장 작고 빠르며 코어 전용, L3는 크고 여러 코어가 공유한다. <strong>캐시 라인 64바이트 단위</strong>로 읽어오므로 순차 접근이 빠르다.",0],
+["Q6-03","캐시 히트와 미스란?","필요한 데이터가 캐시에 <strong>있으면 히트, 없어서 하위 계층까지 가면 미스</strong>. 미스는 수십~수백 사이클을 낭비한다. 캐시는 <strong>시간 지역성과 공간 지역성</strong>을 전제로 하므로 <strong>배열을 행 우선으로 순차 순회</strong>하면 히트율이 오른다.",0],
+["Q6-04","프로세스와 스레드의 차이는?","프로세스는 <strong>독립된 메모리 공간</strong>을 갖는 실행 단위, 스레드는 프로세스 안의 실행 흐름으로 <strong>코드·데이터·힙을 공유하고 스택과 레지스터만 각자</strong> 갖는다. 그래서 통신은 빠르지만 <strong>동기화가 필수</strong>다.",0],
+["Q6-05","컨텍스트 스위칭이란?","실행 중인 스레드를 멈추고 <strong>상태를 저장한 뒤 다른 스레드 상태를 복원</strong>하는 과정. 그 자체도 오버헤드지만 <strong>캐시와 TLB가 무효화</strong>되어 실제 비용은 더 크다. 그래서 스레드를 무작정 많이 만들면 느려진다.",0],
+["Q6-06","뮤텍스와 세마포어의 차이는?","뮤텍스는 <strong>한 번에 하나만 허용하고 잠근 스레드만 해제</strong>할 수 있다(소유권). 세마포어는 <strong>N개까지 허용하는 카운터</strong>로 소유권이 없어 다른 스레드가 신호를 줄 수 있다. 상호 배제 vs 자원 개수 제한.",0],
+["Q6-07","데드락이란? 어떻게 막나?","두 스레드가 <strong>서로의 자원을 기다리며 영원히 멈추는</strong> 상태. <strong>상호배제·점유대기·비선점·순환대기</strong> 4조건이 모두 성립해야 발생하며 하나만 깨면 된다. 실무에선 <strong>락 획득 순서를 전역적으로 통일</strong>하는 게 가장 현실적이다.",0],
+["Q6-08","경쟁 상태(Race Condition)란?","여러 스레드가 공유 자원에 동시 접근해 <strong>실행 순서에 따라 결과가 달라지는</strong> 상황. count++ 는 읽기·증가·쓰기 3단계라 겹치면 증가가 유실된다. 락이나 <strong>Interlocked 같은 원자적 연산</strong>으로 해결하며, <strong>volatile은 해결책이 아니다.</strong>",0],
+["Q6-09","가상 메모리와 페이징이란?","<strong>물리 메모리보다 큰 주소 공간</strong>을 프로세스마다 제공하는 기법. 페이지 단위로 물리 메모리에 매핑하고 안 쓰는 건 디스크로 내린다. 프로세스 격리 효과도 있다. <strong>모바일은 스왑이 없어 메모리 초과 시 앱이 강제 종료</strong>된다.",0],
+["Q6-10","CPU 스케줄링 알고리즘에는 뭐가 있나?","<strong>FCFS</strong>(선착순, 호위 효과) <strong>SJF</strong>(짧은 것 우선) <strong>라운드 로빈</strong>(타임 퀀텀 순환, 대화형에 적합) <strong>우선순위</strong>(기아 위험→에이징). 현대 OS는 이를 조합한 다단계 피드백 큐를 쓰며 선점형이다.",0],
+["Q6-11","메모리 단편화란?","<strong>외부 단편화</strong>는 빈 공간이 잘게 쪼개져 총량은 충분한데 연속 블록을 못 잡는 것, <strong>내부 단편화</strong>는 요청보다 큰 블록을 줘 남는 것. 대응은 <strong>메모리 풀</strong>. <strong>Unity의 GC는 압축을 안 해 특히 문제</strong>가 된다.",0],
+["Q6-12","리틀 엔디언과 빅 엔디언이란?","여러 바이트 값의 <strong>저장 순서</strong>. 리틀은 낮은 자리를 낮은 주소에(x86/ARM), 빅은 높은 자리를 낮은 주소에(<strong>네트워크 표준</strong>). 서로 다른 시스템 간 이진 데이터 교환 시 변환이 필요해 <strong>구조체를 그대로 전송하면 안 된다.</strong>",0],
+["Q6-13","커널 모드와 유저 모드란?","CPU의 <strong>권한 수준</strong>. 커널 모드는 하드웨어에 직접 접근하는 최고 권한, 유저 모드는 제한된 권한. 응용 프로그램은 <strong>시스템 콜</strong>로 커널에 요청해야 하며 <strong>모드 전환에 비용</strong>이 든다. 그래서 I/O는 버퍼에 모아 처리하는 게 빠르다.",0],
+["Q6-14","컴파일과 링크 과정을 설명하라","<strong>전처리 → 컴파일 → 어셈블 → 링크</strong>. 링커가 여러 목적 파일과 라이브러리를 묶어 <strong>심볼 참조를 실제 주소로 연결</strong>한다. \"정의되지 않은 외부 심볼\"이 대표적 링크 에러이고, <strong>선언은 컴파일러가, 정의는 링커가</strong> 필요로 한다.",0],
+["Q6-15","32비트와 64비트의 차이는?","<strong>주소 공간</strong>이 4GB vs 사실상 무제한이고 <strong>포인터가 4바이트 vs 8바이트</strong>다. 포인터가 커지면 구조체 크기와 메모리 사용량이 늘고 캐시 효율도 나빠진다. 모바일 스토어는 <strong>64비트 지원이 필수</strong>다.",0],
+["Q6-16","TCP와 UDP의 차이는? 게임은 뭘 쓰나?","TCP는 연결 지향으로 <strong>순서·재전송을 보장</strong>하지만 느리고, UDP는 비연결형이라 <strong>빠르지만 손실·순서를 직접 처리</strong>해야 한다. 게임은 <strong>실시간 위치 동기화는 UDP, 로그인·거래·채팅은 TCP</strong>로 나눠 쓴다.",0],
+["Q6-17","TCP 3-way handshake를 설명하라","<strong>SYN → SYN+ACK → ACK</strong> 세 번으로 연결을 맺으며 서로의 시퀀스 번호를 교환한다. 종료는 <strong>4-way</strong>인데, 한쪽이 FIN을 보내도 <strong>상대는 보낼 데이터가 남아있을 수 있어</strong> ACK와 FIN을 나누기 때문이다.",0],
+["Q6-18","소켓이란?","통신의 <strong>끝점(IP+포트)</strong>을 나타내는 추상화. TCP 서버는 <strong>socket→bind→listen→accept</strong>, 클라이언트는 socket→connect. 대규모 서버는 스레드 대신 <strong>IOCP(Windows)·epoll(Linux)</strong> 같은 비동기 I/O 다중화를 쓴다.",0],
+["Q6-19","HTTP와 HTTPS, REST API를 설명하라","HTTP는 요청-응답 기반 <strong>무상태 프로토콜</strong>, HTTPS는 여기에 <strong>TLS 암호화</strong>를 더한 것. REST는 리소스를 URL로 표현하고 <strong>GET/POST/PUT/DELETE로 동작을 구분</strong>하는 규약. 무상태라 로그인 유지는 토큰으로 한다.",0],
+["Q6-20","게임 서버 구조에는 어떤 것들이 있나?","<strong>P2P</strong>(서버 비용 없음·치팅 취약) <strong>릴레이</strong>(중계만·판정은 클라) <strong>데디케이티드</strong>(서버가 모든 판정·치팅에 강함·비용 높음). 경쟁 게임은 데디케이티드를 쓰고, 호스트 이탈 시 <strong>페일오버</strong>로 권한을 이어받는다.",0],
+["Q6-21","네트워크 지연을 어떻게 보완하나?","<strong>클라이언트 예측</strong>(입력 즉시 반영) + <strong>서버 보정</strong>(차이 수정) + <strong>보간</strong>(다른 플레이어를 부드럽게) + <strong>추측 항법</strong>(패킷 지연 시 예측). 히트 판정에는 <strong>지연 보상</strong>으로 과거 시점 기준 판정을 쓰기도 한다.",0],
+["Q6-22","기본키와 외래키란?","기본키는 각 행을 <strong>유일하게 식별</strong>하며 중복·NULL 불가, 테이블당 하나. 외래키는 <strong>다른 테이블의 기본키를 참조</strong>해 관계를 표현하고 참조 무결성을 보장한다.",0],
+["Q6-23","정규화란?","<strong>데이터 중복과 이상 현상을 없애기 위해 테이블을 분해</strong>하는 과정. 1NF(원자값) 2NF(부분 종속 제거) 3NF(이행 종속 제거). 성능이 필요하면 <strong>의도적으로 역정규화</strong>해 JOIN을 줄이기도 한다.",0],
+["Q6-24","인덱스란? 왜 빨라지나?","특정 컬럼에 <strong>정렬된 B+트리를 별도로 만들어 두는 것</strong>. 풀 스캔 O(n)이 O(log n)이 된다. 대신 저장 공간을 쓰고 <strong>삽입·수정·삭제 시 인덱스도 갱신</strong>해야 해 쓰기가 느려진다.",0],
+["Q6-25","트랜잭션과 ACID란?","여러 작업을 묶어 <strong>전부 성공하거나 전부 취소</strong>되게 하는 것. <strong>원자성·일관성·격리성·지속성</strong>. 아이템 거래 중 서버가 죽어도 골드만 빠지는 사고를 막으며, <strong>아이템 복사 버그는 격리성이 깨질 때</strong> 생긴다.",0],
+["Q6-26","RDB와 NoSQL의 차이는?","RDB는 고정 스키마·SQL·<strong>강한 트랜잭션</strong>, NoSQL은 유연한 스키마·<strong>수평 확장</strong>에 강하나 조인과 강한 일관성이 약하다. 게임에서는 <strong>계정·결제는 RDB, 랭킹·세션은 Redis</strong> 식으로 나눠 쓴다.",0],
+["Q6-27","깃으로 버전 관리를 해보았나?","네, add/commit/push/pull 기본 흐름과 <strong>브랜치 분리·병합·충돌 해결</strong>까지 다뤄봤습니다. Unity 프로젝트는 <strong>.meta 파일과 씬 파일 충돌</strong> 같은 특유의 주의점이 있어 .gitignore와 병합 전략을 신경 써야 합니다.",2],
+["Q6-28","merge와 rebase의 차이는?","merge는 <strong>병합 커밋을 만들어 분기 이력을 보존</strong>하고, rebase는 커밋을 떼어 대상 브랜치 끝에 다시 붙여 <strong>히스토리를 일직선</strong>으로 만든다. <strong>커밋 해시가 바뀌므로 이미 공유된 브랜치에는 rebase 금지.</strong>",0],
+["Q6-29","Unity 프로젝트에서 Git을 쓸 때 주의점은?","① <strong>.meta를 반드시 커밋</strong>(guid로 참조를 관리하므로 빠지면 참조가 전부 끊김) ② <strong>Library/ 등 자동 생성 폴더 제외</strong> ③ 씬·프리팹은 병합이 어려우니 <strong>Force Text 직렬화</strong>를 켜고 담당자를 나눈다. 대용량은 Git LFS.",0],
+["Q6-30","분업은 어떻게 했나?","<strong>기능 단위로 담당을 나누고 브랜치를 분리</strong>했으며, 씬처럼 충돌이 잦은 파일은 한 사람만 수정하도록 미리 정했습니다. 공통 부분은 <strong>인터페이스를 먼저 합의</strong>한 뒤 각자 구현했고, 데이터를 구글 시트/ScriptableObject로 분리해 기획 쪽 병목도 줄였습니다.",2]],
+"07":[
+["Q7-01","디자인 패턴이란? 왜 알아야 하나?","반복되는 설계 문제에 대한 <strong>검증된 해결 방식</strong>. 매번 고민하지 않아도 되고, 무엇보다 <strong>팀원과 구조를 공유하는 공통 어휘</strong>가 된다. 다만 패턴은 목적이 아니라 도구다.",0],
+["Q7-02","싱글턴 패턴을 설명하라","인스턴스가 <strong>하나만 존재하도록 보장하고 전역 접근점을 제공</strong>하는 생성 패턴. 생성자를 감추고 정적 프로퍼티로만 얻게 한다. <strong>전역 상태를 만들어 결합도를 높이고 테스트를 어렵게</strong> 하므로 남용 금지.",2],
+["Q7-03","옵저버 패턴을 설명하라","한 객체의 상태가 바뀌면 <strong>구독 중인 여러 객체에 자동으로 알리는</strong> 패턴. 발행자가 구독자를 몰라도 되어 결합도가 낮아진다. C#의 <strong>delegate/event</strong>가 언어 차원의 지원이며, <strong>구독 해제를 빠뜨리면 메모리 누수</strong>가 된다.",0],
+["Q7-04","상태(State) 패턴을 설명하라","<strong>상태를 각각 클래스로 분리하고 객체를 교체해 행동을 바꾸는</strong> 패턴. if/else 분기가 상태가 늘수록 감당 안 되는 문제를 해결하며, <strong>새 상태는 클래스만 추가하면 되어 OCP를 만족</strong>한다.",0],
+["Q7-05","전략(Strategy) 패턴을 설명하라","<strong>알고리즘을 인터페이스 뒤로 캡슐화해 런타임에 교체</strong>하는 패턴. 상태 패턴과 구조는 비슷하지만 <strong>상태는 스스로 다음을 결정하고 전략은 외부에서 골라 넣어준다.</strong> 메서드 하나면 델리게이트로도 충분하다.",0],
+["Q7-06","팩토리 패턴을 설명하라","<strong>객체 생성 로직을 별도로 분리</strong>하는 생성 패턴. 사용하는 쪽이 구체 클래스를 몰라도 되고, 생성 방식이 바뀌어도 팩토리만 고치면 된다. 프리팹 참조·초기 스탯·풀에서 꺼내기를 한 곳에 모을 수 있다.",0],
+["Q7-07","오브젝트 풀 패턴을 설명하라","객체를 생성·파괴하는 대신 <strong>미리 만들어두고 재사용</strong>하는 패턴. GC 환경에서는 <strong>가비지 자체를 만들지 않아 프레임 스파이크를 막는</strong> 게 핵심 이점이다. 재사용 시 <strong>상태 초기화</strong>를 빠뜨리면 버그가 된다.",0],
+["Q7-08","컴포넌트 패턴이란? Unity와 무슨 관계인가?","기능을 독립 컴포넌트로 나누고 <strong>객체는 필요한 것을 조합</strong>하는 패턴. 상속 계층 대신 조합을 써서 \"날면서 헤엄치는 적\" 문제를 푼다. <strong>Unity의 GameObject+Component 구조가 바로 이 패턴</strong>이고 아키텍처의 근간이다.",0],
+["Q7-09","커맨드 패턴을 설명하라","<strong>요청을 객체로 캡슐화</strong>해 실행을 미루거나 저장하거나 되돌릴 수 있게 하는 패턴. Execute/Undo를 갖게 하면 실행 취소가 자연스럽고, 큐에 담으면 리플레이·매크로가 된다. <strong>Unity 에디터의 Undo가 이 응용</strong>이다.",0],
+["Q7-10","MVC / MVP / MVVM의 차이는?","셋 다 <strong>데이터와 화면을 분리</strong>하는 아키텍처. MVC는 Controller가 중재, MVP는 <strong>Presenter가 View와 Model을 완전히 분리</strong>, MVVM은 <strong>데이터 바인딩으로 자동 연결</strong>. Unity는 바인딩 지원이 제한적이라 MVP 계열을 많이 쓴다.",0],
+["Q7-11","어댑터 / 퍼사드 패턴을 설명하라","<strong>어댑터</strong>는 호환되지 않는 인터페이스를 원하는 형태로 변환하는 중간 계층으로, <strong>서드파티 SDK를 감싸두면 교체 비용이 한 클래스로 국한</strong>된다. <strong>퍼사드</strong>는 복잡한 서브시스템을 단순한 인터페이스 하나로 감싼다.",0],
+["Q7-12","널 오브젝트 패턴을 설명하라","null 대신 <strong>아무것도 하지 않는 기본 구현 객체를 반환</strong>해 null 체크를 없애는 패턴. 코드가 단순해지지만 <strong>진짜 오류까지 조용히 넘어가게</strong> 만들 수 있어 남용하면 디버깅이 어렵다.",0],
+["Q7-13","패턴을 남용하면 어떤 문제가 생기나?","문제 규모에 비해 구조가 과도해져(<strong>over-engineering</strong>) 오히려 이해와 수정이 어려워진다. 상태 2개에 State 패턴을 쓰면 파일만 는다. <strong>패턴을 아는 것보다 언제 쓰지 않을지 아는 게 더 중요</strong>하며, 실제로 통증이 나타났을 때 리팩터링하는 게 맞다.",0]],
+"08":[
+["Q8-01","짧게 자기소개 해주세요","<strong>30초~1분.</strong> 살아온 이야기가 아니라 \"이 자리에 왜 내가 맞는가\"를 압축한 3문장 — ① 나를 한 문장으로 규정 ② 뒷받침하는 <strong>구체적 근거 1개</strong> ③ 여기서 뭘 하고 싶은지. <strong>면접관이 더 묻고 싶어지는 미끼를 하나 심는다.</strong>",2],
+["Q8-02","우리 회사에 어떻게 지원하게 되었나요?","<strong>\"어느 회사에나 통하는 답\"이면 실패한 답.</strong> 반드시 그 회사만의 구체적인 것을 언급해야 한다 — 대표작을 직접 플레이한 감상, 기술 스택, 최근 업데이트. 그리고 <strong>내가 가진 것 중 무엇이 이 자리와 맞는지</strong>로 이어간다.",2],
+["Q8-03","왜 게임 클라이언트 개발자인가요?","\"게임을 좋아해서\"만으로는 부족하다. <strong>만드는 쪽을 택한 이유</strong>를 구체적 순간으로 말한다 — 결과가 화면에 바로 보이는 매력, 16.6ms 제약 안에서의 최적화 문제, 조작감·연출을 직접 만드는 것 중 본인에게 맞는 축을 고른다.",0],
+["Q8-04","본인의 단점 3가지를 말해보세요","<strong>위장 장점 금지</strong>(\"완벽주의라 힘듭니다\"), <strong>직무 치명상 금지</strong>(\"꼼꼼하지 못합니다\"). 공식은 <strong>솔직한 단점 + 그로 인해 실제 겪은 일 + 지금 하는 개선 노력.</strong> \"그 단점으로 문제가 생긴 적 있나요?\"가 거의 반드시 따라온다.",2],
+["Q8-05","본인의 장점은 무엇인가요?","형용사가 아니라 <strong>행동</strong>으로 말한다. \"꼼꼼합니다\"가 아니라 \"무엇을 어떻게 했다\"를 말하면 꼼꼼함은 저절로 전달된다. 검증하는 습관, 같은 문제를 여러 방식으로 풀어본 경험, 출처를 확인하는 습관 중 근거가 있는 것을 고른다.",0],
+["Q8-06","프로젝트를 하며 가장 힘들었던 점은?","<strong>STAR 구조</strong> — 상황·과제·내가 한 것·결과와 배운 것. 힘들었다는 사실보다 <strong>어떻게 접근해 풀었는지</strong>가 평가 대상이다. \"밤새웠다\"는 감점. <strong>\"다시 한다면?\"</strong> 꼬리질문을 반드시 준비한다.",2],
+["Q8-07","프로젝트 중 갈등이 있었을 텐데 어떻게 해결했나요?","<strong>\"갈등이 없었습니다\"가 최악의 답.</strong> 평가 포인트는 ① 상대를 탓하지 않는가 ② <strong>사람이 아니라 사안 중심</strong>으로 다루는가 ③ 팀에 도움이 되었는가. \"말로 안 되니 각자 프로토타입으로 비교하자\"처럼 <strong>판단 기준을 만든 과정</strong>을 말한다.",2],
+["Q8-08","가장 좋아하는 사람 유형과 싫어하는 사람 유형은?","<strong>조직 적응력</strong>을 보는 질문. 좋아하는 유형은 구체적으로, <strong>싫어하는 유형은 \"행동\" 중심으로 완만하게</strong> 말하고 <strong>\"그래도 이렇게 맞춰가려 한다\"</strong>로 마무리한다. 특정 직군·집단 지목은 즉시 탈락 사유.",2],
+["Q8-09","꿈이 뭔가요? (입사 후 포부)","<strong>회사에서의 성장 경로</strong>로 답한다. \"창업하겠다\"는 솔직해도 금방 나갈 사람으로 들린다. <strong>단기(적응·전력화) → 중기(어떤 영역에서 신뢰받을지) → 장기(어떤 개발자로 남을지)</strong> 3단계로 구성한다.",2],
+["Q8-10","새로운 기술은 어떻게 학습하나요?","추상적인 답 대신 <strong>실제 절차</strong>를 말한다 — 공식 문서로 개념을 잡고 <strong>가장 작은 예제를 직접 만들어 확인</strong>한다. 특히 <strong>버전에 따라 달라지는 부분은 공식 문서로 확인</strong>한다는 점을 덧붙이면 좋다. 최근 관심 기술 하나는 준비해 간다.",0],
+["Q8-11","실패했던 경험이 있나요?","실패 자체보다 <strong>인정 → 원인 분석 → 개선</strong> 사이클이 도는지를 본다. 포장하려 들면 오히려 나쁘다. 구조는 ① 무엇을 실패했는가(변명 없이) ② 스스로 분석한 원인 ③ <strong>그래서 무엇을 바꿨는가</strong>.",0],
+["Q8-12","가장 자신 있는 프로젝트를 설명해보세요","<strong>기능 나열이 아니라 \"어떤 문제를 어떻게 풀었는가\"</strong>. 2분 구성 — ① 프로젝트와 내 역할 ② 기술적으로 가장 어려웠던 지점 ③ <strong>어떻게 해결했고 왜 그 방법인지</strong> ④ <strong>지금 다시 만든다면 뭘 바꿀지</strong>(거의 반드시 나오는 질문).",0],
+["Q8-13","5년 뒤 본인의 모습은?","직급보다 <strong>어떤 역할을 하고 있을지</strong>로 답한다. \"이렇게 하면 되나요?\"를 묻는 단계에서 <strong>\"이 방법과 저 방법이 있고 이런 이유로 이걸 택하자\"고 근거를 들어 제안</strong>할 수 있는 사람으로. 후배에게 시행착오를 전달할 수 있으면 더 좋다.",0],
+["Q8-14","마지막으로 질문 있으신가요?","<strong>\"없습니다\"가 최악.</strong> 2~3개를 준비한다. 좋은 질문은 <strong>잘 적응하고 기여하고 싶다는 게 드러나는 것</strong> — 신입이 처음 맡는 업무, 미리 공부해두면 좋을 영역, 코드 리뷰 문화, 제 이력의 보완점. <strong>연봉·복지를 첫 질문으로 하지 않는다.</strong>",0],
+["Q8-15","면접 전체에 적용되는 원칙","① <strong>모르면 모른다고 한다</strong>(아는 척은 꼬리질문 두세 번이면 무너진다) ② 모든 기술 답변에 <strong>\"제 프로젝트에서는…\"</strong>을 붙인다 ③ <strong>포트폴리오에서 직접 짠 부분을 정확히 구분</strong>해둔다 ④ 답변은 30초~1분 ⑤ 못 한 질문이 있어도 태도를 유지한다.",0]]
+};
+
+const CATNAME={}, CATFILE={};
+CATS.forEach(([k,n,f])=>{CATNAME[k]=n;CATFILE[k]=f});
+
+const ALL=[];
+for(const k of Object.keys(D)) for(const r of D[k]) ALL.push({cat:k,id:r[0],q:r[1],a:r[2],s:r[3]});
+
+let active=null, onlyStar=false, term="", allOpen=false;
+const $=s=>document.querySelector(s);
+const listEl=$("#list"), emptyEl=$("#empty"), catsEl=$("#cats");
+
+// rail
+const allBtn=document.createElement("button");
+allBtn.className="cat"; allBtn.setAttribute("aria-pressed","true");
+allBtn.innerHTML='<span>전체</span><span class="n">'+ALL.length+'</span>';
+allBtn.onclick=()=>{active=null;render()};
+catsEl.appendChild(allBtn);
+CATS.forEach(([k,n])=>{
+  const b=document.createElement("button");
+  b.className="cat"; b.dataset.k=k; b.setAttribute("aria-pressed","false");
+  b.innerHTML='<span>'+n+'</span><span class="n">'+D[k].length+'</span>';
+  b.onclick=()=>{active=(active===k?null:k);render()};
+  catsEl.appendChild(b);
+});
+
+function esc(s){return s.replace(/&(?!(amp|lt|gt|quot|#\d+);)/g,"&amp;")}
+
+function render(){
+  [...catsEl.children].forEach(b=>b.setAttribute("aria-pressed",String(b===allBtn?active===null:b.dataset.k===active)));
+  const t=term.trim().toLowerCase();
+  const rows=ALL.filter(r=>
+    (!active||r.cat===active) &&
+    (!onlyStar||r.s===2) &&
+    (!t || r.q.toLowerCase().includes(t) || r.a.toLowerCase().includes(t) || r.id.toLowerCase().includes(t))
+  );
+  $("#count").textContent=rows.length;
+  const sc=rows.filter(r=>r.s===2).length;
+  $("#starCount").textContent = sc?("· ★★ "+sc+"개 포함"):"";
+  listEl.innerHTML="";
+  emptyEl.hidden=rows.length>0;
+  for(const r of rows){
+    const d=document.createElement("div");
+    d.className="q"+(r.s===2?" star2":"")+(allOpen?" open":"");
+    d.innerHTML=
+      '<button class="qhead" aria-expanded="'+allOpen+'">'+
+        '<span class="qid">'+r.id+'</span>'+
+        '<span class="qtext">'+esc(r.q)+'</span>'+
+        (r.s?'<span class="qmark'+(r.s===1?" s1":"")+'">'+(r.s===2?"★★":"★")+'</span>':'')+
+        '<svg class="caret" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>'+
+      '</button>'+
+      '<div class="qbody"><div class="ans">'+r.a+'</div>'+
+      '<div class="src">'+CATFILE[r.cat]+' · '+r.id+'</div></div>';
+    const btn=d.querySelector(".qhead");
+    btn.onclick=()=>{const o=d.classList.toggle("open");btn.setAttribute("aria-expanded",String(o))};
+    listEl.appendChild(d);
+  }
+}
+
+$("#q").addEventListener("input",e=>{term=e.target.value;render()});
+$("#onlyStar").addEventListener("click",e=>{
+  onlyStar=!onlyStar; e.currentTarget.setAttribute("aria-pressed",String(onlyStar)); render();
+});
+$("#toggleAll").addEventListener("click",e=>{
+  allOpen=!allOpen; e.currentTarget.textContent=allOpen?"모두 접기":"모두 펼치기"; render();
+});
+$("#theme").addEventListener("click",()=>{
+  const cur=document.documentElement.getAttribute("data-theme");
+  const sysDark=window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const next=cur?(cur==="dark"?"light":"dark"):(sysDark?"light":"dark");
+  document.documentElement.setAttribute("data-theme",next);
+});
+document.addEventListener("keydown",e=>{
+  if(e.key==="/"&&document.activeElement!==$("#q")){e.preventDefault();$("#q").focus()}
+});
+render();
+</script>
