@@ -31,7 +31,7 @@
 | 17 | `ShaderST` | 2026-07-07 | ✅ 완료 |
 | 18 | `Localization` | 2026-07-14 | ✅ 완료 |
 | 19 | `Crypt` | 2026-07-21 | ✅ 완료 |
-| 20 | `Art` | 2026-07-23 | ✅ 완료 |
+| 20 | `Art` | 2026-07-23 | ✅ 완료 (2026-07-30 추가 작업분 반영 — 17-9~17-14 신규, 17-4/17-6/17-8 정정) |
 | 21 | `Astar`(바탕화면) | 불확실 | ✅ 완료 |
 | 22 | `St5`(바탕화면) | 불확실 | 🔗 별도 정리 안 함(zombieStudy(8번)의 더 이른/작은 스냅샷으로 확인 — zombieStudy 섹션 상단 노트 참고) |
 | 23 | `우선순위HeapSort`(바탕화면) | 불확실 | ✅ 완료 |
@@ -3378,7 +3378,8 @@ St3 전체(60개 스크립트, 6676줄, 5단계)를 관통해서 반복적으로
 
 # 17. Art (2026-07-23)
 
-> `C:\Study\Unity\Art\Assets` — 다른 프로젝트들과 성격이 다른, **코드보다 아트/에디터 작업이 중심**인 실습. 스크립트는 `PlayerController.cs`(20줄)와 `ChangeSprite.cs`(9줄) 딱 2개뿐이고, 실제 작업 비중은 스프라이트 리깅·Animator 그래프·파티클 시스템 구성에 있다. 세 모듈로 구성: `00_Character_Complete`(2D 캐릭터 파츠 리깅+스킨 교체), `01_Ui_Complete`(Animator 기반 UI 버튼 상태 애니메이션+폰트), `02_ParticleSystem_Complete`(파티클 모듈 스터디+상자 오픈/레벨업 이펙트 합성).
+> `C:\Study\Unity\Art\Assets` — 다른 프로젝트들과 성격이 다른, **코드보다 아트/에디터 작업이 중심**인 실습. 스크립트는 `PlayerController.cs`(20줄)·`ChangeSprite.cs`(9줄)·`ExpGain.cs`(27줄) 3개뿐이고, 실제 작업 비중은 스프라이트 리깅·Animator 그래프·파티클 시스템 구성에 있다. 세 모듈로 구성: `00_Character_Complete`(2D 캐릭터 파츠 리깅+스킨 교체), `01_Ui_Complete`(Animator 기반 UI 버튼 상태 애니메이션+폰트), `02_ParticleSystem_Complete`(파티클 모듈 스터디+상자 오픈/경험치 흡수 이펙트 합성).
+> **📌 2026-07-30 추가 작업분 반영(17-9~17-14)**: 이 섹션을 처음 정리한 뒤(2026-07-29) 사용자가 `02_ExpAttractor_Complete` 씬(햄스터 경험치 흡수 연출)을 새로 만들고 상자 씬도 갱신했다. 핵심 변화는 **서드파티 uGUI 파티클 패키지(mob-sakai `ParticleEffectForUGUI`)를 git URL로 도입해 캔버스 위에서 파티클을 렌더링하게 된 것**이며, 17-4·17-8에도 그에 맞춰 정정을 반영했다.
 > **원본 강의자료 PDF는 없다.** (`Assets/TextMesh Pro/Documentation/`의 PDF는 TextMesh Pro 패키지 자체 가이드, 패키지 캐시의 PDF는 Code Coverage 워크시트 — `00_작업계획.md`에서 "진짜 강의자료일 가능성"으로 남겨뒀던 마지막 항목이었지만 실제로 열어본 결과 이번에도 같은 오판 패턴(8번째)으로 결론남. 이걸로 "패키지에 딸려온 PDF ≠ 강의자료" 패턴은 이 정리 작업 전체에서 완전히 확정됨.)
 
 ## 17-1. 2D 캐릭터 파츠 리깅 + Sprite Library를 이용한 스킨 교체 시스템
@@ -3436,6 +3437,10 @@ St3 전체(60개 스크립트, 6676줄, 5단계)를 관통해서 반복적으로
 - **한 줄 정의**: `pnl_UI_Chest.controller`(`UI_Chest_Down`/`UI_Chest_Open` 두 상태, `Open`/`Down` 파라미터)로 상자 뚜껑 스프라이트를 여닫는 것과 동시에, 코인(`Fx_Coin`)·반짝임(`Fx_GlowStar`)·연기(`Fx_Cloud`)·빛줄기(`Fx_StretchRay`)·궤적선(`Fx_Line`) 등 서로 다른 파티클 이펙트 5종을 겹쳐서 하나의 "보상 연출"을 완성했다.
 - **왜 중요한가**: 화려한 게임 이펙트는 파티클 시스템 하나로 만드는 게 아니라, 단순한 이펙트 여러 개를 레이어처럼 겹쳐서 합성하는 경우가 대부분이라는 실무적 감각을 보여주는 사례 — Animator(오브젝트 상태 전환)와 Particle System(시각 효과) 두 시스템을 같은 타이밍에 맞춰 트리거하는 협업 구조.
 - **내 코드에서 어떻게 썼는지**: `02_ParticleSystem_Complete/01_Chest_Complete_Material/`(`Fx_Cloud.mat`/`Fx_Coin.mat`/`Fx_GlowStar.mat`/`Fx_Line.mat`/`Fx_StretchRay.mat`) + `Texture/Chest/`(`Chest_lid_Closed.png`/`Chest_lid_Open.png`/`Coin_Rotation.png`/`GlowStar.png` 등 이펙트별 전용 텍스처)
+- **📌 이후 갱신분(2026-07-30 확인)**: 이 항목을 처음 쓴 뒤 상자 씬이 더 다듬어졌다. 아래 세 가지가 추가로 확인됨.
+  1. `pnl_UI_Chest.controller`가 **2상태 → 4상태**로 확장됨: `UI_Chest_Idle`(기본 대기 루프 — 상자가 살짝 흔들리고 `img_empty_UIFX_Ray`가 계속 도는 연출) / `UI_Chest_None`(빈 상태) / `UI_Chest_Down`(누를 때 눌리는 반응) / `UI_Chest_Open`(열리는 연출). 파라미터는 여전히 `Open`/`Down` 트리거 2개뿐이고, `Open` 이후 다음 상태로는 **`m_HasExitTime: 1` 전이(애니메이션이 끝나면 자동 복귀)** 를 써서 "복귀용 트리거"를 따로 만들지 않았다.
+  2. 씬의 **버튼 2개가 스크립트를 전혀 거치지 않는다** — `btn_Open` → `Animator.SetTrigger("Open")`, `Btn_Box` → `Animator.SetTrigger("Down")`을 인스펙터 `OnClick`에 직접 연결. 즉 이 씬의 C# 코드는 0줄이다.
+  3. 상자 씬에도 **`UIParticle` 컴포넌트가 3개** 붙었다(`img_empty_UIFX_Smoke`/`img_empty_UIFX_Ray`/`img_empty_UIFX_Coin`) — 원래 일반 파티클로 만들었던 연출을 uGUI 캔버스 위에서 제대로 그리도록 옮긴 것. 자세한 내용은 17-9 참고.
 - **주의할 점 / 자주 나오는 꼬리 질문**: 이펙트를 하나의 복잡한 파티클 시스템으로 만들지 않고 여러 개로 쪼개서 합성하는 이유는? (개별 이펙트를 독립적으로 켜고 끄고 타이밍을 조절할 수 있어 재사용성과 튜닝 편의성이 훨씬 좋음 — 예를 들어 "코인만 다른 상황에서 재사용"하거나 "빛줄기 타이밍만 늦추기" 같은 조정이 하나의 거대한 파티클 시스템보다 훨씬 쉬움)
 - **최신 동향**: 확인 필요 없음 — 여러 파티클 시스템을 레이어링해서 합성 이펙트를 만드는 방식은 지금도 게임 VFX 제작의 기본 접근법이다.
 
@@ -3452,6 +3457,7 @@ St3 전체(60개 스크립트, 6676줄, 5단계)를 관통해서 반복적으로
 - **한 줄 정의**: 진행형 게이지 UI(슬라이더, `Silider_BG`/`Silider_Blue`)에 아이콘·글로우 텍스처(`icon_Exp`/`Glow`/`Icon_Upgrade`)와 "LEVEL UP!" 텍스트 이미지를 겹쳐서 레벨업 순간의 연출을 만든 세트(`Texture/Exp/`).
 - **왜 중요한가**: 17-4번의 "상자 오픈"이 순간적인 폭발형 연출이라면, 이건 "진행 상태를 보여주는 UI(슬라이더)"에 이펙트를 얹는 다른 결의 합성 사례 — 게임 UI에서 이펙트가 붙는 두 가지 대표적인 상황(순간 이벤트 vs 진행 상태 강조)을 한 프로젝트에서 비교해볼 수 있다.
 - **내 코드에서 어떻게 썼는지**: `Texture/Exp/Silider_BG.png`/`Silider_Blue.png`(게이지) + `Glow.png`/`icon_Exp.png`/`Icon_Upgrade.png`(강조 요소) + `LEVEL UP!.png`(연출 텍스트 이미지)
+- **📌 이 항목은 "에셋만 있던 단계"의 기록이다.** 정리 시점(2026-07-29)에는 텍스처만 임포트돼 있었고 실제 씬이 없었는데, 이후 `02_ExpAttractor_Complete.unity`로 **동작하는 연출**이 완성됐다 — 실제 구현 내용은 **17-11~17-13**에서 다룬다.
 - **주의할 점 / 자주 나오는 꼬리 질문**: 해당 없음(에셋 구성 기록).
 - **최신 동향**: 확인 필요 없음.
 
@@ -3465,11 +3471,156 @@ St3 전체(60개 스크립트, 6676줄, 5단계)를 관통해서 반복적으로
 
 ## 17-8. (참고) 코드보다 아트/에디터 작업이 중심인 프로젝트
 
-- **한 줄 정의**: 이 프로젝트의 스크립트는 `PlayerController.cs`(20줄)와 `ChangeSprite.cs`(9줄) 단 2개뿐이며, 둘 다 Animator 파라미터를 세팅하거나 Sprite Library를 교체하는 최소한의 연결 코드 역할만 한다. 실제 결과물의 대부분은 스프라이트 리깅, Animator 그래프 설계, 파티클 모듈 튜닝, UI 이펙트 합성 같은 코드 밖 에디터/아트 작업에 있다.
+- **한 줄 정의**: 이 프로젝트의 스크립트는 `PlayerController.cs`(20줄)·`ChangeSprite.cs`(9줄)·`ExpGain.cs`(27줄) **단 3개, 합쳐서 56줄**뿐이며, 셋 다 Animator 파라미터를 세팅하거나 Sprite Library를 교체하거나 Slider 값을 올리는 최소한의 연결 코드 역할만 한다. 실제 결과물의 대부분은 스프라이트 리깅, Animator 그래프 설계, 파티클 모듈 튜닝, UI 이펙트 합성 같은 코드 밖 에디터/아트 작업에 있다.
 - **왜 중요한가**: 지금까지 다룬 대다수 Unity 프로젝트가 "스크립트 코드"를 중심으로 정리됐다면, 이 프로젝트는 반대로 "결과물의 완성도가 코드가 아니라 에디터에서 만든 애니메이션/이펙트/UI 구성에 있다"는 걸 명시적으로 구분해두는 게 포트폴리오에서 이 프로젝트의 성격을 정확히 전달하는 데 필요하다(사용자가 이 프로젝트를 정리할 때 직접 강조한 지점).
+- **📌 정정 + 오히려 강화된 결론(2026-07-30)**: 이후 `ExpGain.cs`가 추가되면서 스크립트가 2개 → 3개가 됐지만, **"코드보다 아트/에디터 중심"이라는 성격은 오히려 더 뚜렷해졌다.** 새로 만든 경험치 흡수 연출에서 실제 로직 흐름(파티클 발사 → 목표 지점 흡수 → 도착 시점에 수치 증가 → 레벨업 연출)은 전부 **패키지 컴포넌트 설정 + 인스펙터 UnityEvent 배선 + 애니메이션 클립 커브**로 조립돼 있고, C# 코드가 맡은 건 "슬라이더 값을 0.01 올린다"는 한 줄짜리 계산뿐이다(17-11·17-12 참고). 상자 씬은 아예 C# 코드가 0줄이다(17-4 갱신분).
 - **내 코드에서 어떻게 썼는지**: (해당 없음 — 프로젝트 성격 기록)
 - **주의할 점 / 자주 나오는 꼬리 질문**: 해당 없음.
 - **최신 동향**: 해당 없음.
+
+## 17-9. `UIParticle` — Screen Space-Overlay 캔버스 위에 파티클 그리기
+
+- **한 줄 정의**: uGUI 캔버스가 **Screen Space - Overlay**(`Canvas.m_RenderMode: 0`)면 일반 `ParticleSystem`은 UI보다 항상 뒤에 그려져 사실상 보이지 않는데, 서드파티 패키지 **`ParticleEffectForUGUI`(mob-sakai)** 의 `UIParticle` 컴포넌트를 파티클의 부모에 붙이면 파티클 메시를 `CanvasRenderer`로 베이킹해서 **UI 계층(형제 순서) 규칙을 그대로 따르는 UI 요소처럼** 렌더링해준다.
+- **왜 중요한가**: "게임 UI에 이펙트를 얹는다"는 요구는 실무에서 아주 흔한데, Overlay 캔버스에서는 파티클이 UI 뒤로 숨어버리는 게 초심자가 반드시 부딪히는 벽이다. 해결책은 세 가지인데 — (a) 캔버스를 Screen Space-Camera/World Space로 바꾸고 파티클을 카메라 거리로 정렬, (b) 이펙트 전용 카메라 + 별도 캔버스를 겹치기, (c) `UIParticle` 같은 패키지로 파티클을 UI 드로우콜에 편입 — 이 프로젝트는 (c)를 골랐다. **UI 레이아웃 구조(마스킹·정렬·스케일)를 건드리지 않고 이펙트만 끼워넣을 수 있다**는 게 (c)의 핵심 장점이다.
+- **내 코드에서 어떻게 썼는지**: 두 씬 모두 **"UIParticle 홀더 오브젝트 + 실제 파티클 자식"** 이라는 일관된 네이밍 규칙으로 구성돼 있다.
+  ```
+  img_empty_UIFX_Exp        ← UIParticle 컴포넌트 (CanvasRenderer 있음, UI 계층 소속)
+    └ real_empty_PS_Exp     ← 실제 ParticleSystem (렌더링은 부모가 대신 함)
+  ```
+  - 접두사 규칙: `img_` = 캔버스에 그려지는 UI 요소, `real_` = 진짜 파티클 실체, `empty_` = 렌더러 없는 구조용 빈 오브젝트. 상자 씬 3개(`img_empty_UIFX_Smoke`/`_Ray`/`_Coin`), 경험치 씬 2개(`img_empty_UIFX_Exp`/`img_empty_UIFX_ProgressBar`)가 전부 이 규칙을 따른다.
+  - `m_Scale3D`로 캔버스 스케일 보정: 경험치 구슬 쪽은 `100`, 게이지 위 불꽃 쪽은 `10`. 파티클은 월드 단위(1 = 1m), UI는 픽셀 단위라 이 배율을 맞춰주지 않으면 파티클이 점처럼 보이거나 화면을 덮어버린다.
+  - `m_Particles` 배열에 여러 파티클을 등록할 수 있다 — `img_empty_UIFX_ProgressBar` 하나가 `real_empty_PS_Fire`와 `real_empty_PS_Glow` **2개를 함께** 관리한다(합성 이펙트를 UI 요소 하나로 묶는 방식).
+- **주의할 점 / 자주 나오는 꼬리 질문**: 파티클 머티리얼에 아무 셰이더나 써도 되나? (안 된다. 패키지 README가 명시하듯 **`UI/Default`(알파 블렌드) 또는 패키지가 함께 제공하는 `UI/UIAdditive`(가산 블렌드, 스텐실 마스킹 지원)** 를 써야 한다 — 일반 `Particles/Additive` 같은 셰이더는 캔버스의 마스킹/클리핑 스텐실 처리를 지원하지 않아 마스크 밖으로 새어나오거나 아예 안 그려진다. 이 프로젝트도 정확히 이 두 가지만 쓴다: 코인·경험치 구슬처럼 형태가 뚜렷한 건 `UI/Default`, 불꽃·글로우·연기처럼 빛나야 하는 건 `UIAdditive`. 17-14 참고)
+- **최신 동향**: `ParticleEffectForUGUI`는 지금도 활발히 유지보수되는 사실상 표준 OSS다. 다만 Unity 6의 **UI Toolkit**은 uGUI와 렌더링 파이프라인이 달라 이 패키지가 적용되지 않으므로, UI Toolkit 기반 프로젝트라면 별도 방법(렌더 텍스처 등)이 필요하다.
+
+## 17-10. Package Manager에 git URL로 서드파티 패키지 추가
+
+- **한 줄 정의**: Unity 레지스트리에 없는 OSS 패키지를 `Packages/manifest.json`에 **GitHub 주소를 버전 문자열 자리에 적는 방식**으로 의존성에 추가했다.
+- **왜 중요한가**: Package Manager 창에서 검색되는 공식 패키지만 쓸 줄 아는 것과, 필요한 OSS를 직접 찾아 프로젝트에 물려 쓸 줄 아는 것은 실무에서 체감 차이가 크다. 에셋스토어 `.unitypackage`를 임포트하는 것과 달리 **패키지는 `Assets/` 폴더를 오염시키지 않고**(`Library/PackageCache`에 따로 보관), 버전 갱신·제거가 manifest 한 줄로 끝난다.
+- **내 코드에서 어떻게 썼는지**: `Packages/manifest.json`
+  ```json
+  "com.coffee.ui-effect":   "https://github.com/mob-sakai/UIEffect.git?path=Packages/src#5.9.0",
+  "com.coffee.ui-particle": "https://github.com/mob-sakai/ParticleEffectForUGUI.git",
+  ```
+  - `?path=Packages/src` — 저장소 루트가 아니라 **하위 폴더가 실제 패키지**일 때 그 경로를 지정하는 문법(모노레포 형태 OSS에서 흔함).
+  - `#5.9.0` — git 태그/브랜치/커밋으로 **버전을 고정**하는 문법.
+  - 실제 임포트 결과는 `Library/PackageCache/com.coffee.ui-particle@5a305705f8`처럼 **커밋 해시가 붙은 폴더명**으로 확인된다.
+- **주의할 점 / 자주 나오는 꼬리 질문**: 위 두 줄의 결정적 차이는? (**UIEffect는 `#5.9.0`으로 버전을 고정했지만 UIParticle은 고정하지 않았다.** 고정하지 않으면 패키지를 다시 받을 때마다 그 시점의 최신 커밋을 가져오므로, 다른 사람이 클론했을 때 또는 캐시를 지우고 다시 받았을 때 **버전이 달라져 빌드가 깨질 수 있다**. 팀 프로젝트라면 git URL 의존성은 반드시 태그나 커밋 해시로 고정하는 게 원칙이다. 이건 이 프로젝트에서 실제로 고쳐야 할 부분이다.)
+  - 또 하나: `com.coffee.ui-effect`(UIEffect)는 **설치만 되어 있고 씬/프리팹 어디에서도 실제로 사용하지 않는다**(전 씬·프리팹 검색 결과 참조 0건). 써보려고 받아뒀다가 안 쓴 상태로 남은 것으로, 정리한다면 manifest에서 빼는 게 맞다.
+- **최신 동향**: git URL 의존성은 Unity Package Manager의 공식 지원 기능이며 지금도 유효하다. 다만 git 의존성은 **버전 해석(semver)을 하지 않고 그냥 그 커밋을 가져올 뿐**이라, 의존성 충돌 해결이 안 된다는 제약은 여전하다 — 그래서 진짜 배포용 패키지는 OpenUPM 같은 스코프 레지스트리로 받는 방식도 많이 쓴다.
+
+## 17-11. `UIParticleAttractor` — 햄스터에게 경험치 구슬이 빨려 들어가는 연출
+
+- **한 줄 정의**: 화면 아래 아이템(젬) 버튼을 누르면 경험치 구슬이 터져 나와 **위쪽 캐릭터(햄스터)의 경험치 게이지로 빨려 올라가고**, 구슬이 하나씩 도착할 때마다 게이지가 차오르다가 가득 차면 "LEVEL UP!" 연출이 뜨는 흐름 — 방치형/로그라이크 게임에서 흔히 보는 그 연출을, 흡수 이동 자체는 **코드 한 줄 없이** `UIParticleAttractor` 컴포넌트 설정만으로 구현했다.
+- **왜 중요한가**: "재화가 UI로 날아가 흡수되는" 연출은 획득감을 만드는 대표적인 게임 UX인데, 직접 구현하려면 파티클을 개별 추적해 목표 지점으로 보간하고 도착 판정을 하는 코드가 필요하다. 이 패키지는 그걸 컴포넌트 파라미터로 노출해두고, **도착 시점을 `UnityEvent`로 되돌려준다**(17-12) — 즉 "이펙트 연출"과 "게임 수치 변화"를 정확히 같은 타이밍에 묶을 수 있는 구조를 얻는다.
+- **내 코드에서 어떻게 썼는지**: `02_ExpAttractor_Complete.unity`의 실제 하이어라키와 흐름은 다음과 같다.
+  ```
+  02_ExpAttractor_Complete_Canvas   (Screen Space - Overlay)
+  └ pnl_UI_Exp
+    ├ img_BG_Exp                    ← Animator(BG_Exp.controller) + ExpGain.cs
+    │ ├ Slider                      (경험치 게이지)
+    │ │ ├ empty_Particle Attractor  ← UIParticleAttractor  ※게이지 중앙 (0, 0)
+    │ │ ├ img_Chr_hamster           (0, 135)  경험치를 받는 캐릭터(햄스터 초상화)
+    │ │ ├ img_Upgrade               (-170, -2)
+    │ │ └ Background / Fill Area/Fill / Handle Slide Area/Handle
+    │ │                                └ img_empty_UIFX_ProgressBar ← UIParticle
+    │ │                                   ├ real_empty_PS_Fire   (루프, 게이지 끝에서 계속 타오름)
+    │ │                                   └ real_empty_PS_Glow   (0.1초 원샷 번쩍임)
+    │ ├ img_LevelUp / img_Frame_Chr
+    └ empty_Item                    (0, -609)  화면 아래 아이템
+      ├ img_empty_UIFX_Exp          ← UIParticle (Scale3D 100)
+      │ └ real_empty_PS_Exp         (0.3초 원샷, Velocity + Trail)
+      └ btn_exp                     ← Button.onClick → UIParticle.Play()
+  ```
+  동작 순서: **`btn_exp` 클릭 → `img_empty_UIFX_Exp`의 `UIParticle.Play()` → 아래쪽에서 경험치 구슬 방출(0.3초, 궤적 Trail 포함) → 게이지 중앙의 Attractor가 구슬을 끌어당김 → 구슬 도착마다 `OnAttracted` 이벤트 → 게이지 증가 + 바운스 애니메이션 → 게이지 가득 참 → 레벨업 연출**.
+  `empty_Particle Attractor`의 인스펙터 설정값:
+  ```
+  m_ParticleSystems : [real_empty_PS_Exp]   // 끌어당길 대상 파티클
+  m_DestinationRadius : 0.1                 // 이 반경 안에 들어오면 "도착" 판정
+  m_DelayRate : 0.6                         // 파티클 수명 중 60% 지난 뒤부터 끌려오기 시작
+  m_MaxSpeed : 2                            // 흡수 최대 속도
+  m_Movement : Smooth                       // 이동 곡선 (Linear / Smooth / Sphere 중)
+  m_UpdateMode : Normal                     // Time.timeScale 영향 받음 (vs UnscaledTime)
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: `DelayRate`를 0이 아니라 0.6으로 준 이유는? (0이면 구슬이 나오자마자 곧장 목표로 직진해버려서 "터져 나왔다가 빨려 들어간다"는 두 박자가 사라지고 밋밋해진다. 파티클 수명의 앞 60% 동안은 `Velocity` 모듈이 만든 원래 궤적대로 흩어지게 두고, 뒤 40%에서만 흡수가 개입하게 해서 **"방출 → 흡수" 두 단계 연출**을 만든 것. 흡수 연출의 손맛은 대부분 이 지연 타이밍에서 나온다.)
+  - 꼬리질문: `UpdateMode`를 `UnscaledTime`으로 바꿔야 하는 상황은? (`Time.timeScale = 0`으로 게임을 멈춘 상태에서도 UI 연출은 계속 돌아야 할 때 — 예: 일시정지 메뉴나 전투 종료 후 결과 팝업에서 보상이 흡수되는 연출. 3-7에서 다룬 `timeScale` 일시정지와 직접 연결되는 지점이다.)
+- **최신 동향**: 확인 필요 없음 — `UIParticleAttractor`는 이 패키지의 현행 기능이며, 흡수 연출 자체는 지금도 모바일 게임 UI의 표준 문법이다.
+
+## 17-12. `OnAttracted` UnityEvent — 이펙트 도착 타이밍에 게임 로직을 붙이기
+
+- **한 줄 정의**: 파티클 하나가 목표 지점에 도착할 때마다 `UIParticleAttractor`가 발생시키는 `OnAttracted` 이벤트에, 인스펙터에서 **`ExpGain.GainExperience()`(경험치 +0.01)와 `Animator.SetTrigger("Gain")`(게이지 바운스) 두 개를 나란히 연결**해서, 이펙트와 수치 변화와 UI 반응이 자동으로 같은 타이밍에 일어나게 했다.
+- **왜 중요한가**: 이걸 코드로 하려면 "구슬이 도착했는지"를 매 프레임 거리 계산으로 판정하거나, 연출 길이에 맞춰 `Invoke`/코루틴으로 지연 호출을 흉내내야 한다. 후자는 연출을 조금만 손대도 코드의 지연 시간을 같이 고쳐야 하는 **아트-코드 결합**을 만든다. 이벤트 방식은 연출 쪽 타이밍이 바뀌어도 코드는 그대로다 — 4-7에서 다룬 `Invoke` 지연 실행의 한계를 실제로 넘어선 사례.
+- **내 코드에서 어떻게 썼는지**: 씬 YAML에 기록된 `m_OnAttracted`의 영구 호출(Persistent Call) 목록 — **호출 대상이 두 개**다.
+  ```yaml
+  m_OnAttracted:
+    m_Calls:
+    - m_Target: (img_BG_Exp의 ExpGain)      m_MethodName: GainExperience
+    - m_Target: (img_BG_Exp의 Animator)     m_MethodName: SetTrigger
+      m_Mode: 5                             # string 인자 모드
+      m_StringArgument: Gain                # → SetTrigger("Gain")
+  ```
+  그리고 실제 C# 코드는 이게 전부다 — `02_ParticleSystem_Complete/ExpGain.cs` (27줄):
+  ```csharp
+  public class ExpGain : MonoBehaviour
+  {
+      public Slider experienceBar;               // 경험치 바(Slider)
+      public float experienceGainAmount = 0.01f; // 구슬 하나당 증가량
+      public Animator animator;
+
+      public void GainExperience()               // ← OnAttracted가 호출
+      {
+          experienceBar.value += experienceGainAmount;
+          if (experienceBar.value >= 1f)
+              TriggerLevelUpAnimation();
+      }
+
+      private void TriggerLevelUpAnimation()
+      {
+          animator.SetTrigger("Complete");        // → UI_Exp_Complete 애니메이션
+      }
+  }
+  ```
+- **주의할 점 / 자주 나오는 꼬리 질문**: **이 코드에는 실제 결함이 있다.** 게이지가 1f에 도달한 뒤에도 남은 구슬이 계속 도착하면 `GainExperience()`가 계속 호출되고, `value`는 Slider가 1에서 클램프하지만 `>= 1f` 조건은 계속 참이라 **`SetTrigger("Complete")`가 매번 다시 발사된다**. 레벨업 연출이 구슬 개수만큼 겹쳐 재생되는 셈이다. 제대로 하려면 (a) 레벨업 처리 후 `experienceBar.value -= 1f`로 초과분을 이월시키고, (b) `bool isLevelingUp` 같은 플래그나 `value` 리셋으로 중복 진입을 막아야 한다. `experienceGainAmount = 0.01f`(= 구슬 100개로 레벨업)가 인스펙터 하드코딩인 것도, 실제 게임이라면 레벨별 요구 경험치 테이블에서 와야 할 값이다.
+  - 꼬리질문: 인스펙터에서 `UnityEvent`로 연결하는 방식의 장단점은? (장점 — 코드 수정 없이 기획/아트가 연출 반응을 바꿀 수 있고, 호출자가 피호출자 타입을 몰라도 된다. 단점 — **연결이 씬/프리팹 데이터 안에 숨어 있어 코드 검색(`Find References`)으로는 호출 지점을 못 찾고**, 대상 오브젝트 이름을 바꾸거나 메서드명을 리팩터링하면 참조가 조용히 끊긴다. 그래서 실무에서는 "연출 연결은 인스펙터, 핵심 게임 로직은 코드"로 선을 긋는 경우가 많다. 8-12에서 짚은 `SendMessage`의 문자열 결합 문제와 같은 계열의 트레이드오프다.)
+- **최신 동향**: 확인 필요 없음 — `UnityEvent` 인스펙터 바인딩은 uGUI의 기본 설계다.
+
+## 17-13. 연출 오케스트레이션을 애니메이션 클립에 넣기 — `m_IsActive` 커브와 2단 트리거 구조
+
+- **한 줄 정의**: 이펙트 오브젝트를 켜고 끄는 일을 코드의 `SetActive()`/`Play()`로 하지 않고, **애니메이션 클립 안에서 `m_IsActive`(활성 상태) 커브를 키프레임으로 찍어** 처리했다 — 연출 타이밍 전체를 애니메이션 창에서 눈으로 보며 맞추는 방식.
+- **왜 중요한가**: 연출은 "0.12초에 반짝이고 0.3초에 연기가 사라진다" 같은 감각적인 타이밍 싸움인데, 이걸 코드의 `yield return new WaitForSeconds(0.12f)`로 관리하면 한 프레임 당길 때마다 코드를 고치고 재컴파일해야 한다. 클립 안에 넣으면 **플레이 중에도 타임라인을 드래그하며 즉시 조정**할 수 있다. 앞서 2-5에서 다룬 애니메이션 이벤트가 "애니메이션 → 코드" 방향이라면, 이건 "애니메이션이 아예 연출 오브젝트까지 직접 지휘"하는 한 단계 더 나아간 형태다.
+- **내 코드에서 어떻게 썼는지**: 클립 4개가 모두 이 방식을 쓴다.
+  - `UI_Exp_Gain.anim` / `UI_Exp_Complete.anim` — 애니메이션 대상 경로가 `Slider`, `Slider/img_Upgrade`, `Slider/Background/Fill Area/Fill`, `img_LevelUp`이고, 커브 종류는 `m_IsActive`(오브젝트 on/off) + `m_LocalScale`(바운스) + `m_Color.r/g/b/a`(점멸/페이드) + `m_AnchoredPosition`(튀어오름) 조합.
+  - 바운스 스케일 커브의 실제 키프레임 값 — `Gain`: 1 → 1.15(0.033초) → 0.9(0.083초) → 1.1(0.133초) → 1, `Complete`: 1 → 1.18(0.083초) → 0.9(0.167초) → 1.1(0.25초) → 1(0.333초). **오버슛 → 언더슛 → 작은 오버슛 → 정착**이라는 전형적인 탄성(bounce) 곡선이고, `Complete` 쪽이 더 크고(1.18) 더 길게(0.33초) 튄다 — "한 칸 획득"과 "레벨업"의 연출 강도를 의도적으로 차등한 것.
+  - `BG_Exp.controller`의 그래프 구조:
+    ```
+    파라미터: Gain(Trigger), Complete(Trigger)
+    상태: Default(모션 없음) / UI_Exp_Gain / UI_Exp_Complete
+    Gain 트리거     → UI_Exp_Gain     (구슬 도착 때마다)
+    Complete 트리거 → UI_Exp_Complete (AnyState 전이 — 어느 상태에 있든 즉시 레벨업 연출로)
+    ```
+    "자주 반복되는 작은 반응(Gain)"과 "언제든 끼어들 수 있는 큰 연출(Complete)"을 **일반 전이 vs AnyState 전이**로 구분한 게 핵심이다.
+  - 상자 쪽 `UI_Chest_Open.anim`/`UI_Chest_None.anim`도 동일하게 `img_empty_UIFX_Coin`/`img_empty_UIFX_Smoke` 같은 **파티클 홀더 오브젝트의 `m_IsActive`를 클립이 직접 토글**한다.
+- **주의할 점 / 자주 나오는 꼬리 질문**: 오브젝트를 껐다 켜는 방식으로 파티클을 재생할 때의 함정은? (`ParticleSystem`의 `playOnAwake`가 켜져 있어야 활성화 시점에 자동 재생되고, 꺼져 있으면 아무 일도 안 일어난다. 또 `SetActive(false)`는 **진행 중인 파티클을 즉시 잘라내므로**, 자연스럽게 사라져야 하는 연기·잔광은 클립에서 바로 끄지 말고 파티클 수명이 끝날 시간을 준 뒤에 꺼야 한다. 실제로 이 프로젝트도 `real_empty_PS_Fire`만 `playOnAwake: 1`+루프이고, 원샷 이펙트들은 `playOnAwake: 0`으로 두고 `UIParticle.Play()`나 클립 토글로 시점을 제어한다.)
+  - 꼬리질문: AnyState 전이를 남발하면 안 되는 이유는? (AnyState는 **자기 자신에게서도** 전이가 걸릴 수 있어(`m_CanTransitionToSelf`) 트리거가 연달아 들어오면 연출이 계속 처음부터 재시작된다. 17-12에서 지적한 `Complete` 트리거 중복 발사 문제가 정확히 이 조합에서 눈에 보이는 버그로 나타난다.)
+- **최신 동향**: 확인 필요 없음. 다만 이 정도로 여러 오브젝트의 타이밍을 지휘하는 연출은 **Timeline** 패키지(프로젝트에 `com.unity.timeline`이 이미 들어와 있다)가 더 적합한 도구다 — Animator 클립은 "한 오브젝트 계층의 상태"에, Timeline은 "여러 오브젝트를 아우르는 컷 연출"에 강하다.
+
+## 17-14. 파티클 3종의 역할 분담과 UI 전용 셰이더 선택
+
+- **한 줄 정의**: 경험치 씬의 파티클 3개는 **재생 방식도 모듈 구성도 셰이더도 전부 다르게** 세팅돼 있고, 그 차이가 각자 맡은 연출 역할에서 그대로 도출된다.
+- **왜 중요한가**: 17-5의 "모듈별 스터디 그리드"에서 하나씩 따로 실험해본 모듈들이, 여기서는 **실제 연출 목적에 맞게 조합되어** 나타난다 — 학습이 적용으로 넘어간 지점이라 포트폴리오에서 짚을 만하다.
+- **내 코드에서 어떻게 썼는지**:
+
+  | 파티클 | 재생 방식 | 활성 모듈 | 머티리얼 / 셰이더 | 역할 |
+  |---|---|---|---|---|
+  | `real_empty_PS_Exp` | 0.3초 원샷 (`playOnAwake: 0`, 버튼이 `Play()`) | Initial, Shape, Emission, **Velocity**, **Trail** | `Fx_Exp` + `Fx_TrailBlank` / `UI/Default` + `UIAdditive` | 아이템에서 터져 나와 궤적을 그리며 날아가는 경험치 구슬 |
+  | `real_empty_PS_Fire` | 루프 + `prewarm: 1` + `playOnAwake: 1` | Initial, Shape, Emission, **UV(텍스처 시트 애니메이션)** | `Fx_Fire` / `UIAdditive` | 게이지 끝(Handle)에서 상시 타오르는 불꽃 |
+  | `real_empty_PS_Glow` | 0.1초 원샷 (버스트 1회) | Initial, Shape, Emission, **Color**, **Force**, **Noise** | `UI_Glow` / `UIAdditive` | 게이지가 찰 때 순간적으로 번쩍이는 빛 |
+
+  - **`prewarm: 1`의 의미**: 루프 파티클이 씬 시작 순간부터 "이미 한참 타오르고 있던 상태"로 보이게 미리 한 주기를 시뮬레이션해두는 옵션. 이게 없으면 화면에 들어오는 순간 불꽃이 텅 빈 상태에서 서서히 차오르는 게 보인다. (루프가 아닌 파티클에는 적용되지 않는다.)
+  - **`moveWithTransform: 0`(= Simulation Space World)**: 게이지가 차오르며 Handle이 오른쪽으로 이동할 때 불꽃 파티클이 부모를 따라 통째로 끌려가지 않고 **발생한 자리에 남아 흩날리게** 하는 설정 — 17-5에서 비교했던 Local/World 선택이 실제 연출 판단으로 쓰인 사례다.
+  - **셰이더 선택 기준**: 형태가 뚜렷하게 보여야 하는 것(경험치 구슬 `Fx_Exp`, 상자 씬의 코인 `Fx_Coin`·`Fx_SmallCircle`)은 알파 블렌드인 **`UI/Default`**, 빛나야 하는 것(불꽃·글로우·궤적·빛줄기)은 가산 블렌드인 **`UI/UIAdditive`**(UIParticle 패키지가 함께 제공하는 셰이더). 이 프로젝트의 파티클 머티리얼은 예외 없이 이 둘 중 하나다.
+- **주의할 점 / 자주 나오는 꼬리 질문**: 가산 블렌드(Additive)와 알파 블렌드의 차이와 선택 기준은? (가산은 뒤 색에 픽셀 값을 **더하기만** 하므로 검은색이 투명처럼 처리되고 겹칠수록 밝아져 발광체 표현에 적합하지만, 밝은 배경 위에서는 효과가 묻히고 어두운 색을 표현할 수 없다. 알파 블렌드는 뒤 색을 **덮어쓰므로** 형태와 색이 정확히 나오지만 겹쳐도 밝아지지 않아 빛 표현에는 약하다. 불꽃·글로우 = 가산, 코인·구슬·연기 = 알파가 기본 공식이다.)
+- **최신 동향**: 확인 필요 없음 — 빌트인 Particle System(Shuriken)의 모듈 구성과 블렌드 모드 선택 기준은 계속 유효하다.
 
 ---
 
