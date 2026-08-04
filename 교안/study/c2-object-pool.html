@@ -1,0 +1,936 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>C-2 오브젝트 관리와 메모리 풀 — 게임 클라이언트 교안</title>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/site.js"></script>
+<script src="../assets/widgets.js"></script>
+</head>
+<body data-root="../" data-section="study" data-chapter="c2">
+
+<div id="site-header"></div>
+
+<div class="layout">
+<nav id="side-toc"></nav>
+<main class="doc">
+
+<p class="eyebrow">C-2 · 게임 런타임 구조</p>
+<h1>오브젝트 관리와 메모리 풀</h1>
+<p class="lede">화면에 탄이 5000발 떠 있는 게임을 만든다고 하자.
+탄은 계속 태어나고 계속 죽는다. 이걸 <code>new</code>와 <code>delete</code>로 그대로 옮기면
+게임은 <strong>느려지는 게 아니라 불규칙하게 끊긴다</strong>.
+이 장은 그 이유와, 게임이 30년째 쓰고 있는 해법인 <strong>오브젝트 풀</strong>의 원리를 다룬다.</p>
+
+<div class="box core">
+<span class="box-t">이 장의 결론 먼저</span>
+<p>오브젝트 풀은 "메모리를 아끼는 기법"이 아니다. <strong>메모리 할당이라는 예측 불가능한 작업을
+게임 루프 밖으로 몰아내는 기법</strong>이다. 아끼는 건 부수 효과고, 진짜 목적은
+<strong>프레임 시간의 일정함</strong>이다.</p>
+<p style="margin-bottom:0">그래서 풀의 핵심 질문은 "얼마나 아끼나"가 아니라 세 가지다 —
+① 메모리를 언제 잡아둘 것인가 ② 빈 자리를 어떻게 <span class="mono">O(1)</span>에 찾을 것인가
+③ 다 찼을 때 무엇을 포기할 것인가.</p>
+</div>
+
+
+<h2 id="s1">1. 문제 — 매 프레임 수천 번의 new</h2>
+
+<h3>수치로 보기</h3>
+<p>탄막 슈팅에서 동시에 살아있는 탄을 5000발로 잡고, 탄 하나의 평균 수명을 1초라고 하자.
+그러면 <strong>1초에 5000번 생성 + 5000번 소멸</strong>이 일어난다.
+60프레임으로 나누면 프레임당 약 167번의 <code>new</code>와 167번의 <code>delete</code>다.
+적, 이펙트, 파편까지 더하면 실제로는 이보다 훨씬 많다.</p>
+
+<p>167번이 많은 숫자인가? 그 자체로는 아니다. 문제는 <strong>167번이 항상 167번어치 시간이 걸리지 않는다</strong>는 것이다.</p>
+
+<h3>new가 실제로 하는 일</h3>
+<p><code>new</code> 한 줄은 다음 세 가지를 순서대로 한다.</p>
+<ol>
+  <li><strong>메모리 확보</strong> — 힙 할당자에게 "N바이트짜리 빈 자리를 달라"고 요청한다.</li>
+  <li><strong>생성자 호출</strong> — 그 자리에 객체를 만든다.</li>
+  <li>(실패 시 예외 처리)</li>
+</ol>
+<p>비용이 튀는 건 1번이다. 힙 할당자는 자유 블록 목록을 뒤져서 요청 크기에 맞는 자리를 찾는데,
+이 탐색 시간이 <strong>힙의 현재 상태에 따라 달라진다</strong>. 운이 좋으면 즉시 끝나고,
+운이 나쁘면 목록을 한참 걷는다. 심지어 맞는 자리가 없으면 OS에게 페이지를 더 달라고 요청하고,
+이건 <strong>시스템 콜</strong>이라 수 마이크로초 단위로 뛴다.</p>
+
+<span class="seealso"><code>new</code>/<code>malloc</code>이 내부에서 하는 일, 힙 단편화, 정렬(alignment)의 자세한 원리는
+<a href="a3-allocation-cost.html">A-3 동적 할당의 진짜 비용</a>에서 다룬다. 이 장에서는 결과만 쓴다.</span>
+
+<h3>진짜 문제는 평균이 아니라 최악값</h3>
+<p>게임은 <strong>매 프레임 16.6ms 안에 모든 일을 끝내야 한다</strong>(60fps 기준).
+평균 5ms에 끝나던 프레임이 어쩌다 한 번 20ms가 걸리면, 그 한 프레임이 눈에 보이는 <strong>끊김(hitch)</strong>이 된다.
+사람 눈은 평균 프레임률보다 <strong>튀는 프레임</strong>에 훨씬 민감하다.</p>
+
+<div class="box why">
+<span class="box-t">왜 게임만 유별난가</span>
+<p style="margin-bottom:0">웹 서버는 요청 하나가 10ms 늦어도 아무도 모른다. 게임은 프레임 하나가 늦으면
+화면이 멈춘 것처럼 보인다. <strong>게임은 처리량(throughput)이 아니라 지연 시간의 일정함(latency consistency)을
+목표로 하는 소프트웨어</strong>다. 이 한 문장이 게임 프로그래밍의 거의 모든 "이상한" 관행을 설명한다 —
+풀링, 고정 타임스텝, GC 회피, 미리 로딩, 전부 같은 이유다.</p>
+</div>
+
+<h3>비용의 네 갈래</h3>
+<div class="table-wrap">
+<table>
+<thead><tr><th>비용</th><th>무엇이</th><th>왜 게임에서 치명적인가</th></tr></thead>
+<tbody>
+<tr><td>할당 시간</td><td>자유 블록 탐색, 락, 최악의 경우 시스템 콜</td><td>실행 시간이 힙 상태에 좌우돼 <strong>예측 불가</strong></td></tr>
+<tr><td>단편화</td><td>크기가 다른 객체가 뒤섞여 생기는 구멍</td><td>오래 켜둘수록 악화. 총 여유 메모리는 충분한데 할당이 실패</td></tr>
+<tr><td>캐시 미스</td><td>객체들이 메모리 여기저기 흩어짐</td><td>매 프레임 전부 순회하는데 <strong>순회 자체가 느려짐</strong></td></tr>
+<tr><td>GC 압력</td><td>(C#/Unity) 죽은 객체가 쌓여 수집기를 깨움</td><td>수집이 도는 프레임만 통째로 튐</td></tr>
+</tbody>
+</table>
+</div>
+
+<span class="seealso">캐시 미스가 왜 그렇게 큰가는 <a href="b1-array-vs-list.html">B-1 배열 vs 연결 리스트</a>,
+GC 압력은 <a href="d2-gc.html">D-2 가비지 컬렉션</a>에서 다룬다.</span>
+
+
+<h2 id="s2">2. 해법의 원리 — 만들지 말고 빌려 쓴다</h2>
+
+<p>오브젝트 풀의 발상은 한 문장이다.</p>
+
+<div class="box core">
+<span class="box-t">오브젝트 풀</span>
+<p style="margin-bottom:0">필요한 만큼의 객체 자리를 <strong>미리 한 번에 확보해두고</strong>,
+런타임에는 <strong>만들고 지우는 대신 빌려주고 돌려받는다</strong>.
+객체는 죽지 않는다 — 다만 "지금 쓰이는 중"과 "지금 노는 중" 사이를 오갈 뿐이다.</p>
+</div>
+
+<p>그러면 앞의 네 가지 비용이 이렇게 바뀐다.</p>
+<ul>
+  <li><strong>할당 시간</strong> → 목록에서 하나 떼어내는 포인터 조작 몇 줄. 항상 같은 시간.</li>
+  <li><strong>단편화</strong> → 슬롯 크기가 전부 같으므로 구멍이 생기지 않는다. 반납한 자리는 정확히 다음 대여자가 쓴다.</li>
+  <li><strong>캐시 미스</strong> → 한 덩어리 버퍼에 몰아넣으면 순회가 연속 메모리 접근이 된다.</li>
+  <li><strong>GC 압력</strong> → 쓰레기가 아예 안 생긴다.</li>
+</ul>
+
+<div class="widget" data-widget="pool"></div>
+
+<h3>이 기법이 성립하는 전제</h3>
+<p>풀은 공짜가 아니다. 성립하려면 <strong>동시에 존재할 수 있는 개수의 상한을 미리 알아야</strong> 한다.
+그런데 게임에서는 이게 대체로 알 수 있다 — 아니, <strong>알아야만 한다</strong>.
+"탄이 무한히 늘어날 수 있는 게임"은 언젠가 반드시 프레임이 무너지기 때문에,
+상한을 정하는 것 자체가 이미 올바른 게임 설계다.</p>
+
+<div class="box game">
+<span class="box-t">게임 설계와 맞물리는 지점</span>
+<p style="margin-bottom:0">풀 크기는 기술적 결정처럼 보이지만 실제로는 <strong>기획 수치</strong>다.
+"동시 탄 5000발"은 곧 "이 게임에서 화면에 나올 수 있는 최대 탄 수"라는 게임 규칙이다.
+풀이 다 찼을 때 무엇을 할지(발사 무시 / 가장 오래된 탄 재활용 / 풀 증설)도 마찬가지로 기획 결정에 가깝다.</p>
+</div>
+
+<h3>다 찼을 때의 세 가지 정책</h3>
+<div class="table-wrap">
+<table>
+<thead><tr><th>정책</th><th>동작</th><th>쓰는 곳</th></tr></thead>
+<tbody>
+<tr><td><strong>거절</strong></td><td>대여 실패를 반환. 그냥 안 나감</td><td>탄, 파티클처럼 하나쯤 빠져도 티 안 나는 것</td></tr>
+<tr><td><strong>가장 오래된 것 재활용</strong></td><td>제일 먼저 빌려간 것을 강제로 회수해서 넘김</td><td>발소리·타격음 같은 짧은 효과음, 데미지 텍스트</td></tr>
+<tr><td><strong>증설</strong></td><td>새 덩어리를 추가로 할당해 풀을 키움</td><td>상한 예측이 어려운 경우. 단 증설되는 프레임은 튄다</td></tr>
+</tbody>
+</table>
+</div>
+<p>어떤 정책이든 <strong>"조용히 실패해서 아무도 모르게 이상해지는 것"만은 피해야 한다</strong>.
+뒤에서 볼 실물 코드가 정확히 이 함정에 빠져 있다.</p>
+
+
+<h2 id="s3">3. 풀 설계의 세 가지 축</h2>
+
+<p>세상의 모든 오브젝트 풀은 아래 세 축의 조합으로 설명된다. 구현을 외울 필요는 없고,
+"이 풀은 어느 조합인가"를 읽어낼 수 있으면 된다.</p>
+
+<h3>축 1 — 저장소: 한 덩어리인가, 흩어져 있는가</h3>
+<div class="table-wrap">
+<table>
+<thead><tr><th></th><th>연속 버퍼 방식</th><th>개별 할당 방식</th></tr></thead>
+<tbody>
+<tr><th>구조</th><td>큰 배열 하나를 슬롯 크기로 자름</td><td>객체를 미리 <code>new</code>해서 목록에 담아둠</td></tr>
+<tr><th>순회 성능</th><td><strong>좋음</strong> — 연속 접근, 캐시 친화적</td><td>나쁨 — 주소가 흩어짐</td></tr>
+<tr><th>슬롯 크기</th><td>가장 큰 타입에 맞춰 고정 → 낭비 발생</td><td>타입별 실제 크기</td></tr>
+<tr><th>구현 난이도</th><td>높음 — 정렬, 생성/소멸 시점을 직접 관리</td><td>낮음</td></tr>
+<tr><th>대표 사례</th><td>C++ 엔진의 커스텀 할당자, 아래 <strong>TTT</strong></td><td>Unity에서 흔히 쓰는 <code>Queue&lt;GameObject&gt;</code> 풀</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>축 2 — 가용 목록: 빈 자리를 어떻게 O(1)에 찾는가</h3>
+<p>가장 흔한 세 가지다.</p>
+<ul>
+  <li><strong>프리 리스트(free list)</strong> — 노는 슬롯들을 서로 연결해 사슬로 만든다.
+      <em>핵심 트릭</em>: 노는 슬롯의 내용은 어차피 쓸모없으므로, <strong>그 공간 자체를 다음 슬롯을 가리키는 포인터로 재사용</strong>한다.
+      별도 관리용 메모리가 0바이트로 끝난다.</li>
+  <li><strong>인덱스 스택</strong> — 비어 있는 슬롯 번호를 스택에 쌓아둔다. 이해하기 쉽고 디버깅이 편하다.</li>
+  <li><strong>비트맵</strong> — 슬롯마다 1비트로 사용 여부를 표시. 메모리는 가장 적지만 빈 자리 찾기가 <span class="mono">O(n/64)</span>이라 대여가 잦으면 불리하다.</li>
+</ul>
+
+<h3>축 3 — "지금 살아있는 것들"의 순회</h3>
+<p>풀에서 놓치기 쉬운 축이다. 대여는 빨라졌는데 <strong>"살아있는 것만 골라 매 프레임 갱신"</strong>이
+느리면 아무 의미가 없다. 방법은 둘로 갈린다.</p>
+<ul>
+  <li><strong>전체 순회 + 플래그 검사</strong> — 슬롯 전부를 돌면서 <code>if (!alive) continue;</code>.
+      단순하지만 5000개 중 10개만 살아있어도 5000번 돈다. 대신 접근이 완전히 연속적이라 의외로 빠를 때가 많다.</li>
+  <li><strong>활성 목록 유지</strong> — 살아있는 것만 따로 연결 리스트로 묶는다. 순회량은 정확히 살아있는 수만큼이지만,
+      포인터를 따라가므로 캐시 지역성은 포기한다.</li>
+</ul>
+<p>아래에서 볼 TTT는 <strong>연속 버퍼 + 프리 리스트 + 활성 리스트</strong>, 즉 각 축에서
+"고전적인 C++ 방식"을 하나씩 고른 조합이다.</p>
+
+
+<h2 id="s4">4. 실물 해부 — TTT 프레임워크의 구조</h2>
+
+<div class="box why">
+<span class="box-t">이 코드의 출처</span>
+<p>바탕화면 <code>TTT/</code>에 있는 탄막 슈팅 게임의 오브젝트 관리 뼈대다.
+소스 타임스탬프는 2024-03이고, 빌드 산출물에 남은 원본 경로가
+<code>c:\users\<strong>dnvmf</strong>\onedrive\project\wooprogameproject\...</code>(다른 사용자 계정, VS2019 툴셋)라
+<strong>외부에서 받은 예제</strong>로 보인다. 이후 <code>C:\Study\TTT</code>에서 VS2022 툴셋으로 다시 빌드한 흔적이 있다.</p>
+<p style="margin-bottom:0">코드 곳곳에 <code>std::cout &lt;&lt; "New"</code>, <code>"테스크 생성"</code> 같은 추적 출력이 박혀 있는데,
+게임에 필요한 코드가 아니라 <strong>"이 함수가 언제 불리는지 눈으로 확인하려고" 넣은 학습 흔적</strong>이다.
+실제로 이 프레임워크는 호출 순서가 헷갈리기 쉬운 구조라, 이렇게 찍어보는 접근 자체는 정확한 판단이었다.</p>
+</div>
+
+<h3>등장인물 셋</h3>
+<div class="table-wrap">
+<table>
+<thead><tr><th>클래스</th><th>역할</th><th>비유</th></tr></thead>
+<tbody>
+<tr><td><code>CTaskList</code></td><td>메모리 소유자 + 풀 관리자</td><td>주차장</td></tr>
+<tr><td><code>CTask</code></td><td>풀에 들어갈 수 있는 것들의 공통 기반. 리스트 연결 고리를 들고 있음</td><td>주차 가능한 차</td></tr>
+<tr><td><code>CTaskIter</code></td><td>살아있는 것들을 순회하는 반복자</td><td>순찰 도는 관리인</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>하나의 버퍼, 두 개의 리스트</h3>
+<p>이 설계의 전부라고 해도 되는 그림이다.</p>
+
+<div class="diagram">
+<svg viewBox="0 0 720 300" role="img" aria-label="버퍼를 슬롯으로 자르고 활성 리스트와 프리 리스트로 나눈 구조">
+  <text x="14" y="20" class="d-ink" font-size="13" font-weight="700">① 버퍼 한 번 할당 → 고정 크기로 자름</text>
+  <text x="14" y="38" class="d-soft" font-size="11">new char[TaskSize × (TaskCount + 2)] — 프로그램 시작 시 단 한 번</text>
+
+  <g>
+    <rect x="14" y="50" width="690" height="46" rx="6" class="d-fill-a d-stroke" stroke-width="1"/>
+    <g class="d-stroke" stroke-width="1">
+      <line x1="100" y1="50" x2="100" y2="96"/><line x1="186" y1="50" x2="186" y2="96"/>
+      <line x1="272" y1="50" x2="272" y2="96"/><line x1="358" y1="50" x2="358" y2="96"/>
+      <line x1="444" y1="50" x2="444" y2="96"/><line x1="530" y1="50" x2="530" y2="96"/>
+      <line x1="616" y1="50" x2="616" y2="96"/>
+    </g>
+    <rect x="14" y="50" width="86" height="46" rx="6" class="d-fill-b"/>
+    <rect x="100" y="50" width="86" height="46" class="d-fill-b"/>
+    <text x="57"  y="72" text-anchor="middle" class="d-accent" font-size="11" font-weight="700">슬롯 0</text>
+    <text x="57"  y="87" text-anchor="middle" class="d-accent" font-size="9.5">활성 센티넬</text>
+    <text x="143" y="72" text-anchor="middle" class="d-accent" font-size="11" font-weight="700">슬롯 1</text>
+    <text x="143" y="87" text-anchor="middle" class="d-accent" font-size="9.5">프리 센티넬</text>
+    <text x="229" y="78" text-anchor="middle" class="d-ink" font-size="11">슬롯 2</text>
+    <text x="315" y="78" text-anchor="middle" class="d-ink" font-size="11">슬롯 3</text>
+    <text x="401" y="78" text-anchor="middle" class="d-ink" font-size="11">슬롯 4</text>
+    <text x="487" y="78" text-anchor="middle" class="d-ink" font-size="11">슬롯 5</text>
+    <text x="573" y="78" text-anchor="middle" class="d-ink" font-size="11">슬롯 6</text>
+    <text x="660" y="78" text-anchor="middle" class="d-soft" font-size="11">…</text>
+  </g>
+  <text x="229" y="114" class="d-soft" font-size="10">← 실제 태스크가 들어가는 자리 TaskCount개 →</text>
+
+  <text x="14" y="152" class="d-ink" font-size="13" font-weight="700">② 같은 슬롯들을 두 개의 논리적 리스트로 나눠 관리</text>
+
+  <!-- 활성 리스트 -->
+  <text x="14" y="180" class="d-soft" font-size="11" font-weight="700">활성 리스트 — 원형 이중 연결</text>
+  <g class="d-stroke" stroke-width="1.3" fill="none">
+    <rect x="14"  y="190" width="72" height="34" rx="5" class="d-fill-b d-stroke"/>
+    <rect x="126" y="190" width="72" height="34" rx="5" class="d-fill-a d-stroke"/>
+    <rect x="238" y="190" width="72" height="34" rx="5" class="d-fill-a d-stroke"/>
+    <path d="M86 200 L126 200" marker-end="url(#ar)"/>
+    <path d="M198 200 L238 200" marker-end="url(#ar)"/>
+    <path d="M126 214 L86 214" marker-end="url(#ar)"/>
+    <path d="M238 214 L198 214" marker-end="url(#ar)"/>
+    <path d="M310 207 C 340 207, 340 250, 175 250 C 40 250, 40 232, 50 226" marker-end="url(#ar)"/>
+  </g>
+  <text x="50"  y="211" text-anchor="middle" class="d-accent" font-size="10" font-weight="700">센티넬</text>
+  <text x="162" y="211" text-anchor="middle" class="d-ink" font-size="10">내 함선</text>
+  <text x="274" y="211" text-anchor="middle" class="d-ink" font-size="10">적</text>
+  <text x="176" y="268" text-anchor="middle" class="d-soft" font-size="9.5">끝이 다시 센티넬로 — 경계 분기가 사라진다</text>
+
+  <!-- 프리 리스트 -->
+  <text x="400" y="180" class="d-soft" font-size="11" font-weight="700">프리 리스트 — 단방향</text>
+  <g class="d-stroke" stroke-width="1.3" fill="none">
+    <rect x="400" y="190" width="72" height="34" rx="5" class="d-fill-b d-stroke"/>
+    <rect x="512" y="190" width="72" height="34" rx="5" class="d-fill-a d-stroke"/>
+    <rect x="624" y="190" width="72" height="34" rx="5" class="d-fill-a d-stroke"/>
+    <path d="M472 207 L512 207" marker-end="url(#ar)"/>
+    <path d="M584 207 L624 207" marker-end="url(#ar)"/>
+  </g>
+  <text x="436" y="211" text-anchor="middle" class="d-accent" font-size="10" font-weight="700">센티넬</text>
+  <text x="548" y="211" text-anchor="middle" class="d-soft" font-size="10">빈 슬롯</text>
+  <text x="660" y="211" text-anchor="middle" class="d-soft" font-size="10">빈 슬롯</text>
+  <text x="548" y="250" text-anchor="middle" class="d-soft" font-size="9.5">되돌아올 일이 없으니 Prev가 필요 없다</text>
+
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" class="d-soft"/>
+    </marker>
+  </defs>
+</svg>
+</div>
+
+<p>여기서 읽어야 할 설계 판단이 네 가지다.</p>
+
+<h3>판단 1 — 슬롯을 <em>객체</em>가 아니라 <em>바이트 덩어리</em>로 잡는다</h3>
+<p>버퍼는 <code>char</code> 배열이다. 즉 프로그램 시작 시점에 만들어지는 것은
+<strong>객체가 아니라 "객체가 들어갈 크기의 빈 공간"</strong>뿐이다.
+생성자는 실제로 빌려 갈 때 비로소 돌고, 소멸자는 반납할 때 돈다.</p>
+<p>이건 "객체를 미리 다 만들어두고 껐다 켠다"는 흔한 방식(Unity의 <code>SetActive</code> 풀)과
+<strong>결정적으로 다른 선택</strong>이다. 미리 만들어두는 방식은 구현이 쉽지만,
+객체가 <em>죽은 상태로도 계속 살아있어서</em> 이전 사용자의 값이 남는 문제가 생긴다.
+바이트 덩어리 방식은 매번 생성자가 돌기 때문에 항상 깨끗한 초기 상태로 시작한다.</p>
+
+<h3>판단 2 — 리스트를 두 개로 나눈다</h3>
+<p><strong>활성 리스트</strong>는 매 프레임 순회 대상이라 앞뒤로 오갈 수 있어야 하고(삭제할 때 이전 노드가 필요하다),
+<strong>프리 리스트</strong>는 "아무거나 하나 꺼내고 아무 데나 도로 넣는" 용도라 한 방향이면 충분하다.
+그래서 활성은 이중 연결, 프리는 단방향이다. <strong>필요한 만큼만 자료구조를 쓴 것</strong>이다.</p>
+
+<h3>판단 3 — <code>Prev == NULL</code>을 "지금 노는 중" 표식으로 겸용한다</h3>
+<p>슬롯마다 "사용 중/노는 중" 플래그를 따로 두지 않는다.
+프리 리스트에 들어간 노드는 <code>Prev</code>를 쓸 일이 없으므로, 그 자리를 <code>NULL</code>로 두고
+<strong>그 자체를 상태 표식으로 재사용</strong>한다. 실제로 반납 함수에 이런 검사가 있다.</p>
+<pre><code>void CTaskList::Delete(void* p) {
+    CTask* task = (CTask*)p;
+    assert(task-&gt;Prev != NULL);   // Prev가 NULL이면 이미 반납된 것 → 이중 반납 탐지
+    task-&gt;Prev = NULL;            // 반납 표시
+    task-&gt;Next = FreeTask-&gt;Next;  // 프리 리스트 맨 앞에 끼움
+    FreeTask-&gt;Next = task;
+}</code></pre>
+<p>메모리 한 바이트도 더 쓰지 않고 <strong>이중 반납(double free)이라는 대표적 버그를 잡아내는</strong> 장치가 생겼다.
+"이미 있는 필드의 의미 없는 상태를 표식으로 쓴다"는 건 저수준 코드에서 자주 보는 관용구다.</p>
+
+<h3>판단 4 — 센티넬 노드로 경계 분기를 없앤다</h3>
+<p>슬롯 0과 1은 실제 데이터가 아니라 <strong>머리 역할만 하는 가짜 노드</strong>다.
+덕분에 "리스트가 비어 있는가", "맨 앞인가", "맨 뒤인가" 같은 특수 케이스가 코드에서 사라진다.
+삽입은 언제나 "어떤 노드 앞에 끼운다", 삭제는 언제나 "앞뒤를 이어준다"로 통일된다.</p>
+
+<span class="seealso">센티넬 패턴 자체의 원리와 없을 때 코드가 어떻게 복잡해지는지는
+<a href="b1-array-vs-list.html">B-1 배열 vs 연결 리스트</a>에서 다룬다.
+내 실습 코드의 다른 사례는 <code>cpp_핵심정리.md</code> 19번(<code>cDouble_LinkedList</code>)에도 있다.</span>
+
+<h3>대여와 반납의 실제 비용</h3>
+<pre><code>void* CTaskList::New(size_t size) {
+    assert(size &lt;= TaskSize);
+    if (FreeTask-&gt;Next == FreeTask) return NULL;  // 다 찼다
+    CTask* task = FreeTask-&gt;Next;
+    FreeTask-&gt;Next = task-&gt;Next;                  // 사슬에서 떼어냄
+    return task;
+}</code></pre>
+<p>비교 한 번, 대입 두 번. <strong>힙 탐색도, 시스템 콜도, 락도 없다.</strong>
+어떤 상황에서 호출해도 걸리는 시간이 같다 — 1절에서 말한 "예측 불가능성"이 사라졌다는 뜻이고,
+이게 풀을 쓰는 진짜 이유다.</p>
+
+
+<h2 id="s5">5. 할당 경로 바꿔치기 — <code>operator new</code> 오버로딩</h2>
+
+<p>풀을 만들었으면 이제 <code>CBullet</code>이 풀에서 태어나게 해야 한다. 방법은 둘이다.</p>
+<ol>
+  <li>팩토리 함수를 만들어 <code>BulletPool.Create(...)</code>처럼 부른다 — 명시적이지만 <strong>호출부 코드가 전부 바뀐다</strong>.</li>
+  <li><code>new CBullet(...)</code>이라는 문법은 그대로 두고, <strong>그 안에서 메모리를 어디서 가져올지만 바꿔치기한다</strong>.</li>
+</ol>
+<p>C++은 2번을 언어 차원에서 지원한다. 이게 <strong>클래스별 <code>operator new</code> 오버로딩</strong>이다.</p>
+
+<h3>먼저: <code>new</code>라는 키워드는 사실 두 가지 일이다</h3>
+
+<div class="diagram">
+<svg viewBox="0 0 700 210" role="img" aria-label="new 표현식이 operator new와 생성자 호출 두 단계로 나뉘는 그림">
+  <text x="14" y="20" class="d-ink" font-size="13" font-weight="700">new CBullet(...) 이 실제로 하는 일</text>
+
+  <rect x="14" y="36" width="150" height="42" rx="6" class="d-fill-b d-stroke" stroke-width="1"/>
+  <text x="89" y="55" text-anchor="middle" class="d-accent" font-size="11.5" font-weight="700">new 표현식</text>
+  <text x="89" y="70" text-anchor="middle" class="d-soft" font-size="9.5">소스에 쓴 것</text>
+
+  <path d="M164 57 L214 57" class="d-stroke" stroke-width="1.3" fill="none" marker-end="url(#ar2)"/>
+
+  <rect x="214" y="26" width="220" height="30" rx="5" class="d-fill-a d-stroke" stroke-width="1"/>
+  <text x="324" y="45" text-anchor="middle" class="d-ink" font-size="11">① operator new(sizeof) — 메모리 확보</text>
+  <rect x="214" y="60" width="220" height="30" rx="5" class="d-fill-a d-stroke" stroke-width="1"/>
+  <text x="324" y="79" text-anchor="middle" class="d-ink" font-size="11">② 생성자 호출 — 그 자리에 객체 생성</text>
+
+  <path d="M434 41 L490 41" class="d-stroke" stroke-width="1.3" fill="none" marker-end="url(#ar2)"/>
+  <rect x="490" y="26" width="200" height="30" rx="5" class="d-fill-b d-stroke" stroke-width="1"/>
+  <text x="590" y="45" text-anchor="middle" class="d-accent" font-size="10.5" font-weight="700">여기만 바꿔치기한다</text>
+  <text x="590" y="76" text-anchor="middle" class="d-soft" font-size="10">②는 손대지 않는다</text>
+
+  <text x="14" y="122" class="d-ink" font-size="13" font-weight="700">delete pBullet — 정확히 역순</text>
+  <rect x="214" y="132" width="220" height="30" rx="5" class="d-fill-a d-stroke" stroke-width="1"/>
+  <text x="324" y="151" text-anchor="middle" class="d-ink" font-size="11">① 소멸자 호출</text>
+  <rect x="214" y="166" width="220" height="30" rx="5" class="d-fill-a d-stroke" stroke-width="1"/>
+  <text x="324" y="185" text-anchor="middle" class="d-ink" font-size="11">② operator delete — 메모리 반납</text>
+  <text x="452" y="185" class="d-soft" font-size="10">← 풀로 되돌아간다</text>
+
+  <defs>
+    <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" class="d-soft"/>
+    </marker>
+  </defs>
+</svg>
+</div>
+
+<p>여기서 <code>operator new</code>는 <strong>"메모리를 어디서 가져올까"만 담당하는 함수</strong>다.
+객체 생성과는 아무 상관이 없다. 그래서 이걸 클래스마다 다시 정의하면
+<strong>"이 클래스는 이 풀에서 태어난다"</strong>를 선언할 수 있다.</p>
+
+<pre><code>class CBullet : public CMover {
+public:
+    void* operator new(size_t n);      // 이 클래스 전용 메모리 공급처
+    void  operator delete(void* p);
+};
+
+void* CBullet::operator new(size_t n) { return BulletList-&gt;New(n); }
+void  CBullet::operator delete(void* p) {        BulletList-&gt;Delete(p); }</code></pre>
+
+<p>이제 게임 코드 어디서든 그냥 <code>new CBullet(...)</code>이라고 쓰면 되고,
+<strong>호출부는 풀의 존재를 전혀 몰라도 된다</strong>. 나중에 할당 전략을 바꿔도 호출부는 그대로다.</p>
+
+<div class="box core">
+<span class="box-t">꼭 알아야 할 규칙 네 가지</span>
+<ul style="margin-bottom:0">
+<li>클래스 안에 쓴 <code>operator new</code>/<code>delete</code>는 <code>static</code>을 안 붙여도 <strong>자동으로 정적 멤버</strong>다.
+    객체가 아직 없는 시점(또는 이미 사라진 시점)에 불리므로 당연히 그래야 한다.</li>
+<li><strong>파생 클래스가 상속받는다.</strong> 재정의하지 않으면 부모 것이 쓰인다 —
+    이건 편리하면서 동시에 <em>부모 풀에 자식이 들어가버리는</em> 버그의 원인이 된다.</li>
+<li>인자 <code>size_t n</code>은 컴파일러가 <strong>실제 생성할 타입의 크기</strong>를 넣어준다.
+    부모 것을 상속받아 쓰면 자식 크기가 들어온다.</li>
+<li>배열 <code>new[]</code> / <code>delete[]</code>는 <strong>완전히 별개의 함수</strong>다. 풀 방식에서는 보통 쓰지 않는다.</li>
+</ul>
+</div>
+
+<h3>기반 클래스의 <code>operator new</code>를 막아두는 이유</h3>
+<p>TTT의 <code>CTask</code>는 <code>operator new</code>를 <strong><code>private</code>으로</strong> 선언해뒀다.
+얼핏 이상해 보이지만 의도가 분명하다 — <strong>"<code>CTask</code>나 <code>CMover</code>를 직접
+<code>new</code>하지 마라. 어느 풀에 넣을지 정해지지 않았으니까."</strong>라는 봉인이다.
+실제로 풀은 <code>CMyShip</code>·<code>CEnemy</code>·<code>CBullet</code> 세 개로 나뉘어 있고,
+어느 것에도 속하지 않는 중간 클래스를 직접 만드는 건 말이 안 된다.</p>
+<p>다만 <em>봉인하는 방법</em>이 낡았다. 지금이라면 이렇게 쓴다.</p>
+<pre><code>// TTT의 방식 — 본문이 비어 있어 값을 반환하지 않는다 (호출되면 정의되지 않은 동작)
+void* operator new(size_t n) {}
+
+// C++11 이후의 정석 — 호출 자체를 컴파일 에러로 만든다
+void* operator new(size_t) = delete;</code></pre>
+<p>TTT 코드가 지금까지 문제없이 돌아간 건 <strong>그 함수가 한 번도 호출되지 않았기 때문</strong>이다.
+호출되지 않으면 컴파일러가 코드를 생성하지 않고, 그래서 "값을 반환하지 않음" 경고조차 뜨지 않는다.
+<strong>"경고가 없다 = 안전하다"가 아니라는 좋은 예</strong>다.</p>
+
+<h3>빠져 있는 조각 — placement new</h3>
+<p>풀 방식에는 원래 짝이 되는 문법이 하나 더 있다. <strong>이미 확보된 메모리 위에 객체만 생성하는</strong>
+<code>placement new</code>다.</p>
+<pre><code>void* mem = pool.Allocate();     // 자리만 얻고
+CBullet* b = new (mem) CBullet(...);   // 그 자리에 생성자만 돌린다
+b-&gt;~CBullet();                    // 반납 전엔 소멸자를 직접 부른다
+pool.Free(mem);</code></pre>
+<p>TTT는 <code>operator new</code> 오버로딩으로 같은 효과를 냈기 때문에 본체 객체에는 필요 없다.
+문제는 <strong>센티넬 노드</strong>다. 센티넬은 버퍼의 원시 바이트를 <code>CTask*</code>로 캐스팅해서
+멤버에 바로 접근하는데, 그 자리에서는 <strong>생성자가 한 번도 돌지 않았다</strong>.
+언어 규칙상 아직 객체가 존재하지 않는 메모리를 객체처럼 다루는 셈이라 형식적으로는 미정의 동작이고,
+<code>CTask</code>가 가상 함수를 가진 클래스라 <strong>가상 함수 테이블 포인터가 초기화되지 않은 채로 남는다</strong>.
+지금은 센티넬에 대해 가상 함수를 부르지 않아서 드러나지 않을 뿐이다.</p>
+
+
+<h2 id="s6">6. 등록과 해제를 언어에 맡기기 — 생성자와 소멸자</h2>
+
+<p>객체를 만들었으면 활성 리스트에 넣어야 하고, 없앨 땐 빼야 한다.
+이걸 호출부가 직접 하면 반드시 언젠가 빠뜨린다. TTT는 이 일을 <strong>기반 클래스의 생성자와 소멸자에 넣었다</strong>.</p>
+
+<pre><code>CTask::CTask(CTaskList* list) {          // 태어나면 자동으로 활성 리스트에 등록
+    Prev = list-&gt;ActiveTask-&gt;Prev;
+    Next = list-&gt;ActiveTask;
+    Prev-&gt;Next = Next-&gt;Prev = this;
+}
+CTask::~CTask() {                        // 죽으면 자동으로 빠짐
+    Prev-&gt;Next = Next;
+    Next-&gt;Prev = Prev;
+}</code></pre>
+
+<div class="box core">
+<span class="box-t">여기서 얻는 보장</span>
+<p style="margin-bottom:0"><strong>"객체가 살아있다"와 "리스트에 들어있다"가 같은 뜻이 된다.</strong>
+둘이 어긋날 방법이 없다 — 생성자를 건너뛰고 객체를 만들 수는 없기 때문이다.
+등록을 깜빡하는 버그, 해제를 깜빡하는 버그가 <strong>존재할 수 없는 구조</strong>가 된다.</p>
+</div>
+
+<p>이게 C++의 <strong>RAII</strong>(Resource Acquisition Is Initialization) 사고방식이다.
+흔히 "메모리·파일·락을 자동으로 해제하는 기법"으로만 소개되지만,
+본질은 더 넓다 — <strong>"어떤 상태를 객체의 수명에 묶어서, 언어가 강제하게 만든다"</strong>이다.
+여기서 묶은 자원은 메모리가 아니라 <em>리스트 멤버십</em>이다.</p>
+
+<span class="seealso">RAII의 일반 원리와 소멸자 호출 시점(스택 풀림 포함)은
+<a href="a4-oop-memory.html">A-4 객체지향의 메모리 모델</a>에서 다룬다.</span>
+
+<div class="box game">
+<span class="box-t">Unity에서는 이 자리에 무엇이 오는가</span>
+<p style="margin-bottom:0">C#에는 결정적 소멸자가 없어서 같은 방식을 못 쓴다. 대신 Unity는
+<code>OnEnable</code>/<code>OnDisable</code>이 그 역할을 한다 — 오브젝트를 켤 때 매니저에 등록하고 끌 때 해제하는 패턴이
+Unity 풀링 코드의 표준 관용구인 이유가 이것이다. 다만 <strong>C++의 소멸자와 달리 "반드시 불린다"는 보장이 약하다</strong>
+(씬 전환, 애플리케이션 종료 순서 등). 자세한 차이는 <a href="c3-component-update.html">C-3</a>에서 다룬다.</p>
+</div>
+
+
+<h2 id="s7">7. 순회 도중의 삭제 — 게임 루프의 고질적 문제</h2>
+
+<p>게임 루프의 뼈대는 늘 같다.</p>
+<pre><code>살아있는 것 전부에 대해:
+    갱신한다
+    죽었으면 목록에서 뺀다</code></pre>
+<p>문제는 <strong>"목록을 순회하는 도중에 목록이 바뀐다"</strong>는 것이다.
+그것도 남이 바꾸는 게 아니라 <em>순회 중인 그 코드 자신이</em> 바꾼다.
+탄이 적을 맞히면 탄과 적이 동시에 죽고, 적이 죽으면서 폭발 이펙트를 새로 만들기도 한다.</p>
+
+<h3>왜 위험한가 — 반복자 무효화</h3>
+<p>지금 가리키고 있는 노드를 지워버리면, 다음으로 넘어갈 때 참조할 <code>Next</code>가
+<strong>이미 해제된 메모리</strong>가 된다. 배열이었다면 원소를 지운 순간 뒤의 것들이 앞으로 밀려
+<strong>한 개를 건너뛰고 지나가는</strong> 조용한 버그가 생긴다. 이걸 <strong>반복자 무효화(iterator invalidation)</strong>라 한다.</p>
+<p>언어마다 대처가 다르다.</p>
+<ul>
+  <li><strong>C++ STL</strong> — <code>erase()</code>가 다음 유효한 반복자를 반환한다. 받아쓰지 않으면 그대로 터진다.</li>
+  <li><strong>C#</strong> — <code>foreach</code> 도중 컬렉션을 수정하면 <code>InvalidOperationException</code>을 던져 <em>알려준다</em>.</li>
+  <li><strong>직접 만든 리스트</strong> — 아무도 안 알려준다. 알아서 설계해야 한다.</li>
+</ul>
+
+<h3>TTT의 해법 — 커서를 한 칸 물리고 지운다</h3>
+<pre><code>void CTaskIter::Remove() {
+    Task = Task-&gt;Prev;      // 커서를 이전 노드로 되돌리고
+    delete Task-&gt;Next;      // 방금까지 보고 있던 노드를 지운다
+}</code></pre>
+
+<div class="diagram">
+<svg viewBox="0 0 700 230" role="img" aria-label="순회 중 삭제 시 커서가 이전 노드로 물러난 뒤 삭제하는 3단계">
+  <g font-size="10.5">
+  <!-- step 1 -->
+  <text x="14" y="20" class="d-soft" font-size="11" font-weight="700">① 커서가 B를 보고 있다. B가 죽었다.</text>
+  <g class="d-stroke" stroke-width="1.2" fill="none">
+    <rect x="30"  y="30" width="60" height="30" rx="5" class="d-fill-a d-stroke"/>
+    <rect x="130" y="30" width="60" height="30" rx="5" class="d-fill-b d-stroke"/>
+    <rect x="230" y="30" width="60" height="30" rx="5" class="d-fill-a d-stroke"/>
+    <path d="M90 45 L130 45" marker-end="url(#ar3)"/><path d="M190 45 L230 45" marker-end="url(#ar3)"/>
+  </g>
+  <text x="60"  y="50" text-anchor="middle" class="d-ink">A</text>
+  <text x="160" y="50" text-anchor="middle" class="d-ink">B</text>
+  <text x="260" y="50" text-anchor="middle" class="d-ink">C</text>
+  <text x="160" y="78" text-anchor="middle" class="d-accent" font-weight="700">▲ 커서</text>
+
+  <!-- step 2 -->
+  <text x="14" y="112" class="d-soft" font-size="11" font-weight="700">② 커서를 A로 물린다 (Task = Task-&gt;Prev)</text>
+  <g class="d-stroke" stroke-width="1.2" fill="none">
+    <rect x="30"  y="122" width="60" height="30" rx="5" class="d-fill-b d-stroke"/>
+    <rect x="130" y="122" width="60" height="30" rx="5" class="d-fill-a d-stroke"/>
+    <rect x="230" y="122" width="60" height="30" rx="5" class="d-fill-a d-stroke"/>
+    <path d="M90 137 L130 137" marker-end="url(#ar3)"/><path d="M190 137 L230 137" marker-end="url(#ar3)"/>
+  </g>
+  <text x="60"  y="142" text-anchor="middle" class="d-ink">A</text>
+  <text x="160" y="142" text-anchor="middle" class="d-ink">B</text>
+  <text x="260" y="142" text-anchor="middle" class="d-ink">C</text>
+  <text x="60"  y="170" text-anchor="middle" class="d-accent" font-weight="700">▲ 커서</text>
+
+  <!-- step 3 -->
+  <text x="380" y="20" class="d-soft" font-size="11" font-weight="700">③ delete Task-&gt;Next → 소멸자가 B를 이어붙여 뺀다</text>
+  <g class="d-stroke" stroke-width="1.2" fill="none">
+    <rect x="396" y="30" width="60" height="30" rx="5" class="d-fill-b d-stroke"/>
+    <rect x="596" y="30" width="60" height="30" rx="5" class="d-fill-a d-stroke"/>
+    <path d="M456 45 L596 45" marker-end="url(#ar3)"/>
+  </g>
+  <text x="426" y="50" text-anchor="middle" class="d-ink">A</text>
+  <text x="626" y="50" text-anchor="middle" class="d-ink">C</text>
+  <text x="426" y="78" text-anchor="middle" class="d-accent" font-weight="700">▲ 커서</text>
+  <text x="526" y="50" text-anchor="middle" class="d-soft" font-size="9.5">B 반납됨</text>
+
+  <text x="380" y="122" class="d-ink" font-size="11" font-weight="700">결과</text>
+  <text x="380" y="142" class="d-soft">커서는 A에 있고, 다음 Next() 호출은 C로 간다.</text>
+  <text x="380" y="160" class="d-soft">하나도 건너뛰지 않고, 해제된 메모리도 만지지 않는다.</text>
+  <text x="380" y="186" class="d-soft">순회 코드는 삭제가 일어났는지조차 알 필요가 없다.</text>
+  </g>
+  <defs>
+    <marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" class="d-soft"/>
+    </marker>
+  </defs>
+</svg>
+</div>
+
+<p>이 두 줄이 성립하는 건 앞의 설계 판단들이 전부 맞물려 있기 때문이다 —
+<strong>센티넬</strong>이 있어서 A가 첫 노드여도 <code>Prev</code>가 항상 유효하고,
+<strong>소멸자</strong>가 알아서 앞뒤를 이어주며,
+<strong>가상 소멸자</strong>라서 <code>delete</code>가 실제 타입(<code>CBullet</code> 등)의 소멸자와
+그 타입의 <code>operator delete</code>를 정확히 호출해 <em>올바른 풀로</em> 되돌린다.</p>
+
+<div class="box warn">
+<span class="box-t">여기서 가상 소멸자가 없다면</span>
+<p style="margin-bottom:0"><code>CTask*</code>로 <code>delete</code>했을 때 <code>CBullet</code>의 소멸자가 불리지 않고,
+<code>operator delete</code>도 <code>CTask</code>의 것(비어 있는 그 함수)이 불려서
+<strong>탄이 영원히 프리 리스트로 돌아오지 못한다</strong>. 몇 초 만에 풀이 고갈되고 탄이 안 나가기 시작한다.
+"가상 소멸자를 왜 쓰나"라는 면접 질문에, 교과서적인 "파생 클래스 소멸자가 안 불려서요" 대신
+<strong>이 시나리오</strong>를 말할 수 있으면 완전히 다른 답변이 된다.</p>
+</div>
+
+<h3>다른 해법들 — 실무에서 더 흔한 것들</h3>
+<div class="table-wrap">
+<table>
+<thead><tr><th>방식</th><th>동작</th><th>장단점</th></tr></thead>
+<tbody>
+<tr><td><strong>죽음 플래그 + 사후 정리</strong></td>
+    <td>순회 중엔 <code>alive=false</code>만 찍고, 루프가 끝난 뒤 한 번에 정리</td>
+    <td>가장 안전하고 가장 흔하다. 삭제가 프레임 경계로 미뤄져 <strong>동작이 예측 가능해진다</strong></td></tr>
+<tr><td><strong>뒤에서 앞으로 순회</strong></td>
+    <td>배열을 <code>for (i = n-1; i &gt;= 0; --i)</code>로 돈다</td>
+    <td>배열에서 밀림 문제가 사라진다. 순서가 중요하면 못 쓴다</td></tr>
+<tr><td><strong>지연 삭제 큐</strong></td>
+    <td>삭제 요청을 큐에 넣고 안전한 시점에 비운다</td>
+    <td>여러 시스템이 서로를 죽이는 복잡한 경우의 정석</td></tr>
+<tr><td><strong>커서 후퇴 (TTT)</strong></td>
+    <td>즉시 삭제하되 반복자가 스스로 보정</td>
+    <td>즉시성이 필요할 때 우아하다. 다만 <strong>"남을 죽이는" 경우는 못 막는다</strong></td></tr>
+</tbody>
+</table>
+</div>
+<p>마지막 줄이 중요하다. TTT 방식은 <em>자기 자신을 지우는 것</em>은 안전하게 처리하지만,
+<strong>순회 중인 객체가 리스트의 다른 객체를 지우는 경우</strong>는 여전히 커서를 무효화할 수 있다.
+탄이 적을 맞히는 순간이 정확히 그 상황이다. 그래서 실무에서는 위의 "죽음 플래그 + 사후 정리"가 기본값이다.</p>
+
+
+<h2 id="s8">8. 다형성으로 루프를 단순하게, 그리고 그 대가</h2>
+
+<p>TTT의 상속 계층은 <code>CTask → CMover → { CMyShip, CEnemy, CBullet }</code>이다.
+<code>CTask</code>는 <em>풀에 들어갈 수 있음</em>을, <code>CMover</code>는 <em>화면에서 움직임</em>(위치·각도·크기·색)을 담당한다.
+덕분에 게임 루프가 이렇게 짧아진다.</p>
+
+<pre><code>for (CTaskIter i(list); i.HasNext(); ) {
+    CMover* m = static_cast&lt;CMover*&gt;(i.Next());
+    m-&gt;Move();                  // 실제로 뭐가 움직이는지 루프는 모른다
+    if (!m-&gt;Alive) i.Remove();
+}</code></pre>
+
+<p>루프는 자기가 다루는 게 함선인지 적인지 탄인지 <strong>모르고, 알 필요도 없다</strong>.
+새 적 타입을 추가해도 이 루프는 한 글자도 바뀌지 않는다.
+이것이 다형성이 실제로 값을 하는 자리다 — 교과서의 <code>Animal→Dog/Cat</code> 예제보다
+<strong>이 게임 루프가 훨씬 정직한 예시</strong>다.</p>
+
+<h3>대가 세 가지</h3>
+<ul>
+  <li><strong>간접 호출</strong> — <code>Move()</code>가 어느 함수인지 실행 시점에 표(vtable)를 뒤져서 결정한다. 포인터를 한 번 더 따라간다.</li>
+  <li><strong>인라인 불가</strong> — 컴파일러가 호출 대상을 모르니 함수 본문을 펼쳐 넣을 수 없다. 짧은 함수일수록 손해가 크다.</li>
+  <li><strong>분기 예측 실패</strong> — 매 반복마다 다른 타입이 섞여 나오면 CPU가 다음에 실행할 코드를 못 맞힌다. 이게 셋 중 제일 비싸다.</li>
+</ul>
+
+<span class="seealso">vtable이 실제로 어떻게 놓이고 호출 비용이 왜 발생하는지는
+<a href="a4-oop-memory.html">A-4 객체지향의 메모리 모델</a>에서 다룬다.</span>
+
+<div class="box why">
+<span class="box-t">그래서 요즘 엔진들은 왜 ECS로 가는가</span>
+<p>위 세 가지 대가는 <strong>객체 하나에 데이터와 동작이 붙어 있고, 서로 다른 타입이 한 리스트에 섞여 있다</strong>는
+구조에서 나온다. 대안은 발상을 뒤집는 것이다 — <strong>타입별로 모으고, 데이터만 배열로 늘어놓고,
+그 배열 전체를 한 함수가 처리한다.</strong></p>
+<p style="margin-bottom:0">그러면 가상 호출이 사라지고, 메모리 접근이 완전히 연속적이 되고, 분기 예측이 항상 맞는다.
+이것이 <strong>데이터 지향 설계(DOD)</strong>이고 Unity DOTS/ECS가 하는 일이다.
+"객체지향이 틀렸다"가 아니라, <strong>수만 개를 매 프레임 도는 상황에서는 하드웨어 사정이 설계를 바꾼다</strong>는 이야기다.
+TTT 정도의 규모(수천 개)에서는 가상 함수 방식이 여전히 합리적이다.</p>
+</div>
+
+<h3><code>static_cast</code>가 여기서 안전한 이유</h3>
+<p>리스트에서 꺼낸 <code>CTask*</code>를 <code>CMover*</code>로 <strong>검사 없이</strong> 내리꽂는다.
+안전한 유일한 근거는 <strong>"이 리스트에는 <code>CMover</code> 계열만 들어간다"는 규약</strong>뿐이다.
+언어가 보장해주는 게 아니라 <em>사람이 지키기로 한 약속</em>이다.
+누군가 <code>CMover</code>를 상속하지 않은 태스크를 같은 리스트에 넣는 순간, 조용히 깨진다.</p>
+<p>더 안전하게 가려면 <code>dynamic_cast</code>(실행 시간 검사, 비용 있음)를 쓰거나,
+애초에 <strong>리스트를 타입으로 묶는다</strong>(<code>CTaskList&lt;CMover&gt;</code> 같은 템플릿).
+템플릿 방식이 비용 0에 컴파일 타임 보장까지 얻는 정석이고, TTT가 개선될 수 있는 지점이다.</p>
+
+
+<h2 id="s9">9. 요즘은 어떻게 하는가 — 업계 표준과 Unity</h2>
+
+<p>지금까지 본 TTT는 <strong>2000년대 C++ 게임 코드의 전형</strong>이다.
+원리를 이해하는 데는 이만한 교재가 없지만, 지금 실무에서 이걸 손으로 다시 짜는 일은 거의 없다.
+같은 문제를 오늘날에는 어떻게 푸는지를 알아야 <strong>"옛날 방식을 이해했다"가 아니라
+"왜 지금 방식이 그렇게 생겼는지 안다"</strong>가 된다.</p>
+
+<h3>C++ 진영 — 손으로 짜던 것이 표준으로 들어왔다</h3>
+<p>TTT가 손으로 만든 "미리 잡아둔 버퍼에서 잘라 쓰기"는 C++17에서 <strong><code>&lt;memory_resource&gt;</code>
+(줄여서 PMR)</strong>라는 이름으로 표준에 들어왔다.</p>
+<pre><code>char buffer[1 &lt;&lt; 20];                                   // 1MB를 미리 잡아두고
+std::pmr::monotonic_buffer_resource arena{buffer, sizeof(buffer)};
+std::pmr::vector&lt;Bullet&gt; bullets{&amp;arena};              // 표준 컨테이너가 이 버퍼에서 할당받는다
+// ... 한 프레임 동안 마음껏 쓰고
+arena.release();                                       // 프레임 끝에 통째로 되돌린다 — 개별 해제 없음</code></pre>
+<p>핵심은 <code>monotonic_buffer_resource</code>가 <strong>개별 해제를 아예 하지 않는다</strong>는 점이다.
+할당은 포인터를 앞으로 밀기만 하고(그래서 <em>범프 할당자</em>라 부른다), 되돌릴 때는 통째로 되돌린다.
+게임의 "이번 프레임에만 쓸 임시 데이터"에 정확히 맞는 모양이라
+<strong>프레임 할당자(frame allocator) 또는 아레나(arena)</strong>라는 이름으로 거의 모든 상용 엔진이 갖고 있다.</p>
+<p>수명이 제각각인 객체에는 <code>std::pmr::unsynchronized_pool_resource</code>가 크기별 풀을 만들어준다
+(이름의 <em>unsynchronized</em>는 "락을 안 건다 = 한 스레드 전용"이라는 뜻이다).
+어느 쪽이든 <strong>표준 컨테이너를 그대로 쓰면서 할당처만 바꾼다</strong> —
+5절에서 본 <code>operator new</code> 바꿔치기와 목적이 같고, 방식이 더 안전하다.</p>
+
+<div class="box why">
+<span class="box-t">그다음 단계 — 풀링을 넘어 배치로</span>
+<p style="margin-bottom:0">8절에서 말한 데이터 지향 설계가 여기서 이어진다.
+풀은 <em>"객체 하나하나를 재사용"</em>하는 데서 멈추지만, ECS는 <em>"같은 종류를 배열로 모아 통째로 처리"</em>한다.
+C++ 쪽에서는 <strong>EnTT</strong>·<strong>flecs</strong>(둘 다 스파스 셋 기반), Unity 쪽에서는 <strong>DOTS/ECS</strong>가
+같은 방향이다. 풀링이 <em>할당 비용</em>을 없앤 기법이라면, ECS는 거기에 더해 <em>캐시 미스와 가상 호출까지</em> 없앤다.
+순서가 이렇다는 걸 알면 "왜 ECS가 나왔나"에 답할 수 있다.</p>
+</div>
+
+<h3>Unity — 엔진이 이미 만들어서 준다</h3>
+<p>먼저 Unity에서 <em>왜 더 절실한가</em>부터. <code>Instantiate()</code> 한 번은 C++ 쪽 네이티브 객체 생성,
+C# 래퍼 객체 생성, 컴포넌트 초기화, 씬 등록을 전부 한다. <code>Destroy()</code>는 <strong>그 자리에서 지우지도 않는다</strong> —
+현재 프레임이 끝난 뒤에 처리되고, 남은 C# 쓰레기는 나중에 GC가 치운다.
+그 GC가 도는 프레임이 통째로 튄다. <strong>1절의 "예측 불가능한 최악값" 문제가 C++보다 더 심하게 나타난다.</strong></p>
+
+<span class="seealso">Unity의 GC가 왜 특히 나쁜 방식(비세대별·비압축)인지는
+<a href="d2-gc.html">D-2 가비지 컬렉션</a>에서 다룬다.</span>
+
+<h4>1세대 — 직접 만드는 <code>SetActive</code> 풀</h4>
+<p>오랫동안 표준이었던 방식이다. 미리 <code>Instantiate</code>해서 전부 꺼두고,
+필요하면 켜고, 다 쓰면 끈다. 4절의 "판단 1"에서 말한 <strong>"객체를 미리 다 만들어두는 방식"</strong>이 이것이다.</p>
+
+<h4>2세대 — <code>UnityEngine.Pool.ObjectPool&lt;T&gt;</code> (Unity 2021 LTS 이후 내장)</h4>
+<p>직접 짤 필요가 없어졌다. 콜백 네 개만 주면 된다.</p>
+<pre><code>_pool = new ObjectPool&lt;Bullet&gt;(
+    createFunc:      () =&gt; Instantiate(prefab),     // 풀이 비었을 때 새로 만드는 법
+    actionOnGet:     b  =&gt; b.Activate(),            // 빌려줄 때
+    actionOnRelease: b  =&gt; b.Deactivate(),          // 돌려받을 때
+    actionOnDestroy: b  =&gt; Destroy(b.gameObject),   // 풀이 꽉 차서 버릴 때
+    collectionCheck: true,
+    defaultCapacity: 100,
+    maxSize:         1000);
+
+var bullet = _pool.Get();     // 대여
+_pool.Release(bullet);        // 반납</code></pre>
+
+<div class="box core">
+<span class="box-t">공식 문서에서 확인해야 할 네 가지</span>
+<ul style="margin-bottom:0">
+<li><strong><code>maxSize</code>를 넘겨 반납하면 그 객체는 파괴된다.</strong> 풀이 무한히 커지지 않게 하는 안전장치다
+    (2절 "다 찼을 때의 정책" 중 <em>거절</em>에 해당).</li>
+<li><strong><code>collectionCheck</code>는 에디터에서만 동작한다.</strong> 이미 풀에 있는 객체를 또 반납하면 예외를 던져
+    알려주는데, <em>플레이어 빌드에서는 이 검사가 아예 없다</em>. 4절의 <code>assert(Prev != NULL)</code>와 똑같은 이중 반납 탐지이고,
+    똑같이 <strong>개발 중에만 켜지는 장치</strong>다.</li>
+<li><strong>스레드 안전하지 않다.</strong> 메인 스레드에서만 호출해야 한다.</li>
+<li>컬렉션 전용 풀도 있다 — <code>ListPool&lt;T&gt;</code>, <code>HashSetPool&lt;T&gt;</code>, <code>DictionaryPool&lt;K,V&gt;</code>.
+    매 프레임 임시 <code>List</code>를 새로 만드는 코드가 만드는 쓰레기를 없애는 용도라 실전에서 의외로 이쪽이 더 자주 쓰인다.</li>
+</ul>
+</div>
+
+<h3>같은 문제, 다른 책임 분배</h3>
+<div class="table-wrap">
+<table>
+<thead><tr><th></th><th>TTT (C++ 수제 풀)</th><th>Unity <code>ObjectPool&lt;T&gt;</code></th></tr></thead>
+<tbody>
+<tr><th>메모리 소유</th><td>내가 잡은 <code>char</code> 버퍼</td><td>엔진. 신경 쓸 필요 없음</td></tr>
+<tr><th>객체 생성 시점</th><td>대여할 때 생성자가 돈다</td><td><code>createFunc</code>가 처음 한 번만</td></tr>
+<tr><th>상태 초기화</th><td><strong>생성자가 항상 보장</strong></td><td><strong>내가 직접 해야 함</strong> ← 최대 함정</td></tr>
+<tr><th>반납 누락</th><td>소멸자가 자동 처리</td><td><code>Release</code>를 안 부르면 영영 안 돌아옴</td></tr>
+<tr><th>고갈 시</th><td><code>NULL</code> 반환(결함, 아래 참고)</td><td><code>maxSize</code>까지 알아서 늘어남</td></tr>
+<tr><th>크기·정렬</th><td>내 책임 (아래 결함 ①)</td><td>생각할 일 없음</td></tr>
+<tr><th>배워야 할 것</th><td>메모리가 어떻게 도는가</td><td>객체 상태를 어떻게 되돌릴 것인가</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="box warn">
+<span class="box-t">Unity 풀링의 진짜 함정 — 더러운 상태</span>
+<p>표의 세 번째 줄이 실무에서 사고가 나는 지점이다. C++ 방식은 대여할 때마다 <strong>생성자가 돌아서
+항상 깨끗한 상태로 시작</strong>한다. Unity 방식은 <strong>같은 객체를 계속 재사용</strong>하므로
+이전 사용자가 남긴 값이 그대로 남아 있다.</p>
+<p>실제로 자주 남는 것들: <code>Rigidbody</code>의 속도·각속도, 돌던 코루틴,
+<code>TrailRenderer</code>/<code>ParticleSystem</code>의 잔상, <code>Animator</code>의 현재 상태,
+구독해둔 이벤트, 바뀐 부모·스케일, 진행 중이던 타이머.</p>
+<p style="margin-bottom:0">그래서 <code>actionOnGet</code>에 <strong>"켜기"만 쓰면 안 되고 "되돌리기"를 써야 한다</strong>.
+6절에서 본 <em>"상태를 객체 수명에 묶어 언어가 강제하게 만든다"</em>는 보장이 C#에는 없기 때문에,
+<strong>그 책임이 사람에게 넘어온 것</strong>이다. 이 한 문장이 C++ 풀과 Unity 풀의 차이 전부다.</p>
+</div>
+
+<h3>업계에서 통하는 판단 기준 — 언제 풀링을 하지 <em>않</em>는가</h3>
+<p>풀링은 공짜가 아니다. 코드가 복잡해지고, 상태 리셋이라는 새로운 버그 종류가 생기고,
+메모리를 미리 붙잡는다. Unity 공식 문서도 <strong>생성이 드물거나 가벼우면 쓰지 말라</strong>고 명시한다.</p>
+<ul>
+  <li><strong>쓴다</strong> — 탄·적·이펙트·데미지 텍스트·발소리처럼 <em>짧게 살고 자주 태어나는</em> 것</li>
+  <li><strong>안 쓴다</strong> — 스테이지에 한 번 놓이는 오브젝트, 생성 비용이 미미한 것, 개수 상한을 못 정하는 것</li>
+  <li><strong>먼저 잰다</strong> — 프로파일러로 <code>Instantiate</code>/GC가 실제 병목인지 확인하고 나서 넣는다.
+      "풀링은 무조건 좋다"는 태도 자체가 신입 티가 나는 지점이다</li>
+</ul>
+
+<div class="box iv">
+<span class="box-t">면접에서의 차이</span>
+<p style="margin-bottom:0">"오브젝트 풀링 아세요?"에 <em>"Instantiate가 비싸서 미리 만들어두고 SetActive로 껐다 켭니다"</em>라고
+답하면 딱 평균이다. 여기에 <strong>"재사용이라 이전 상태가 남는 게 실제 문제라서 Get 시점에 리셋을 명시적으로 합니다.
+2021부터는 <code>UnityEngine.Pool</code>이 내장돼 있어서 직접 안 짜고, <code>collectionCheck</code>는 에디터에서만
+도는 점을 알고 씁니다"</strong>까지 붙으면 완전히 다른 답변이 된다.</p>
+</div>
+
+
+<h2 id="s10">10. 이 코드에서 실제로 발견한 결함</h2>
+
+<p>공부용 예제라도 결함을 짚어내는 연습이 중요하다.
+아래는 실제 소스를 읽고 확인한 것들이며, 위쪽일수록 심각하다.</p>
+
+<h3>① 슬롯 크기 100이 정렬을 깨뜨린다 <span class="muted">— 가장 심각</span></h3>
+<p>세 리스트 모두 슬롯 크기를 <strong>100바이트</strong>로 잡았다. 그런데 실제로 재보면 이렇다.</p>
+<div class="table-wrap">
+<table>
+<thead><tr><th>클래스</th><th>실제 크기</th><th>정렬 요구</th><th>슬롯 100 대비</th></tr></thead>
+<tbody>
+<tr><td><code>CTask</code></td><td>24 B</td><td>8</td><td>—</td></tr>
+<tr><td><code>CMover</code> / <code>CEnemy</code></td><td>56 B</td><td>8</td><td>44 B 낭비 (44%)</td></tr>
+<tr><td><code>CMyShip</code></td><td>64 B</td><td>8</td><td>36 B 낭비 (36%)</td></tr>
+<tr><td><code>CBullet</code></td><td>72 B</td><td>8</td><td>28 B 낭비 (28%)</td></tr>
+</tbody>
+</table>
+</div>
+<p class="muted">(MSVC x64, 실제 컴파일해서 측정)</p>
+
+<div class="widget" data-widget="alignment"></div>
+<p>낭비도 문제지만 진짜 문제는 <strong>100이 8의 배수가 아니라는 것</strong>이다.
+슬롯 <span class="mono">i</span>의 주소는 <code>버퍼 + 100 × i</code>이므로,
+<strong>홀수 번째 슬롯은 전부 4바이트만큼 어긋난다.</strong>
+그 자리에 8바이트 정렬을 요구하는 포인터와 가상 함수 테이블 포인터가 놓인다.</p>
+<p>x64에서는 어긋난 접근도 동작은 하지만(느릴 뿐) 언어 규칙상 미정의 동작이고,
+SIMD 타입(<code>DirectX::XMVECTOR</code> 등, 16바이트 정렬 필요)을 멤버로 추가하는 순간
+<strong>즉시 크래시</strong>한다. 게임 수학 타입은 거의 다 그렇다.</p>
+<pre><code>// 고치는 법 — 슬롯 크기를 타입에서 뽑고, 정렬 배수로 올림한다
+CTaskList(size_t count) : TaskSize(AlignUp(sizeof(T), alignof(T))), ... </code></pre>
+<p>덧붙여, 세 리스트를 <em>타입별로 나눠놓고도</em> 크기는 셋 다 100으로 똑같이 준 것은
+분리의 이점을 절반 버린 셈이다. <code>BulletList</code>는 5000개 × 100B = 약 <strong>489KB</strong>인데,
+72B로 맞췄다면 <strong>352KB</strong>로 줄고 정렬 문제도 같이 사라진다.</p>
+
+<h3>② 아무것도 죽지 않는다</h3>
+<p>게임 루프에는 <code>if (!mover-&gt;Alive) i.Remove();</code>가 있는데,
+<strong>소스 전체에서 <code>Alive</code>를 <code>false</code>로 만드는 코드가 없다.</strong>
+생성자에서 <code>true</code>로 켜고 끝이다. 즉 이 프레임워크는
+<em>죽음 처리를 위한 자리는 다 만들어놨지만 아직 아무도 죽지 않는</em> 미완성 상태다.</p>
+
+<h3>③ 적과 탄은 만들어만 놓고 쓰지 않는다</h3>
+<p><code>EnemyList</code>와 <code>BulletList</code>는 생성만 되고 게임 루프가 손대지 않는다.
+<code>CBulletGame::Move()</code>는 <code>MyShipList</code> 하나만 돈다.
+<code>CBullet::Move()</code>와 <code>CMover::Move()</code>의 본문도 비어 있다.</p>
+
+<h3>④ 풀이 다 찼을 때 조용히 널을 반환한다</h3>
+<p><code>CTaskList::New</code>는 자리가 없으면 <code>NULL</code>을 반환한다.
+그런데 C++ 규약상 <strong><code>noexcept</code>가 붙지 않은 <code>operator new</code>는 널을 반환하면 안 된다</strong> —
+<code>std::bad_alloc</code>을 던져야 한다. 널을 돌려주는 건 <code>std::nothrow_t</code> 버전의 몫이다.</p>
+<p>그럼 실제로 무슨 일이 일어나는가? <strong>컴파일러마다 다르다</strong>는 게 정확한 답이다.
+MSVC는 옛날 코드를 배려해 <strong>기본적으로 생성자 호출 전에 널 검사를 넣어준다</strong>
+(<code>/Zc:throwingNew-</code>가 기본값). 그래서 이 코드는 크래시하지 않고
+<code>new CMyShip(5)</code>가 <strong>생성자를 건너뛴 채 <code>nullptr</code>을 반환</strong>한다.
+그런데 TTT의 호출부는 그 반환값을 받지도 검사하지도 않는다 —
+<strong>탄이 조용히 안 나가고, 아무도 이유를 모른다.</strong></p>
+<p><code>/Zc:throwingNew</code>를 켜서 최적화하거나(그러면 널 검사가 사라져 <em>진짜로</em> 널 위에서 생성자가 돈다),
+표준을 그대로 지키는 다른 컴파일러로 옮기면 <strong>같은 코드가 크래시로 바뀐다</strong>.
+"내 환경에서 잘 돌아간다"가 안전을 뜻하지 않는 전형적인 예다.</p>
+<p>고치는 방향은 둘이다. 규약대로 예외를 던지거나(<code>throw std::bad_alloc{}</code>),
+아예 <code>operator new</code>를 쓰지 않고 <strong>실패를 반환값으로 표현하는 팩토리</strong>로 바꾸는 것.
+게임에서는 후자가 대체로 낫다 — 탄 하나 못 쏘는 걸 예외로 처리할 이유가 없다.
+2절의 "다 찼을 때의 정책"이 결국 여기서 코드로 결정된다.</p>
+
+<div class="box warn">
+<span class="box-t">교차검증으로 바로잡은 서술</span>
+<p style="margin-bottom:0">이 항목은 처음에 <em>"컴파일러가 널 검사를 넣어주지 않으므로 즉시 크래시한다"</em>고
+적었다가, Microsoft 공식 문서를 확인해 고쳤다. MSVC의 기본값은 정반대다 —
+<em>"컴파일러는 이 코드가 규약을 지키지 않는 할당자와 링크될지 알 수 없기 때문에,
+기본적으로 생성자 호출 전에 널 검사를 생성한다"</em>고 명시되어 있다.
+<strong>실패 양상이 '크래시'가 아니라 '조용한 무동작'이라는 건 완전히 다른 이야기</strong>라
+그대로 뒀다면 잘못 외울 뻔했다.</p>
+</div>
+
+<h3>⑤ 리스트 소멸 시 살아있는 객체의 소멸자가 불리지 않는다</h3>
+<pre><code>CTaskList::~CTaskList() { delete[] Buffer; }   // 버퍼만 반납</code></pre>
+<p>지금은 모든 태스크가 단순한 값 멤버만 가져서 문제가 안 되지만,
+파생 클래스가 <code>std::string</code>이나 별도 힙 자원을 들고 있게 되는 순간 <strong>그대로 누수</strong>다.
+활성 리스트를 한 바퀴 돌며 <code>delete</code>한 뒤 버퍼를 반납해야 한다.</p>
+
+<h3>⑥ 봉인용 <code>operator new</code>가 값을 반환하지 않는다</h3>
+<p>5절에서 다룬 그 문제다. <code>= delete</code>로 바꾸면 컴파일 타임에 막힌다.</p>
+
+<h3>⑦ 센티넬이 생성되지 않은 메모리다</h3>
+<p>5절 마지막에서 다룬 문제. vtable 포인터가 초기화되지 않는다.
+<code>placement new</code>로 센티넬을 제대로 생성하거나,
+연결 고리만 담은 <strong>가벼운 노드 구조체를 따로 두고 <code>CTask</code>가 그것을 포함</strong>하도록 바꾸는 게 정석이다.</p>
+
+<h3>⑧ <code>main</code>의 반환 타입이 <code>void</code></h3>
+<p>실제 빌드 로그에 경고가 찍혀 있다 — <code>warning C4326: 'main'의 반환 형식이 'int'이어야 하는데 'void'입니다.</code>
+표준 위반이며, 컴파일러에 따라 아예 에러다.</p>
+
+<h3>⑨ <code>CMyShipCrash</code>는 인스턴스를 만들 수 없다</h3>
+<p><code>CMyShip</code>을 상속받아 피격 시 회전 연출을 담당하려던 클래스인데,
+부모에 기본 생성자가 없고 자신도 생성자를 정의하지 않아 <strong>만들 방법이 없다</strong>.
+설계 의도만 남고 미완성이다. (덧붙여 이런 "피격 상태"는 상속으로 표현하기보다
+상태 값이나 컴포넌트로 두는 편이 낫다 — <a href="c3-component-update.html">C-3</a> 참고.)</p>
+
+<h3>⑩ 전역 <code>MyShip</code> 포인터가 정리되지 않는다</h3>
+<p><code>CMyShip</code> 생성자가 전역 <code>MyShip = this</code>로 자기를 등록하는데,
+소멸자에서 되돌리지 않는다. 함선이 파괴되면 <strong>해제된 메모리를 가리키는 전역 포인터</strong>가 남는다.
+6절의 RAII 원칙을 여기에도 적용해야 했다.</p>
+
+<div class="box iv">
+<span class="box-t">이 목록을 면접에서 쓰는 법</span>
+<p style="margin-bottom:0">"공부한 코드에서 문제를 찾아본 적 있나요"는 자주 나오는 질문이다.
+이때 ⑧ 같은 문법 실수를 말하면 인상이 약하다. <strong>①번(정렬)</strong>을 말해야 한다 —
+"슬롯 크기가 8의 배수가 아니라서 홀수 슬롯의 포인터 정렬이 깨져 있었고,
+지금은 x64라 동작하지만 SIMD 타입을 쓰는 순간 크래시한다"는 설명은
+<strong>메모리 레이아웃을 실제로 이해하고 있다는 증거</strong>가 된다.</p>
+</div>
+
+
+<h2 id="s11">11. 정리 — 이 장을 한 문단으로</h2>
+
+<div class="box core">
+<span class="box-t">30초로 말한다면</span>
+<p style="margin-bottom:0">게임은 매 프레임 정해진 시간 안에 끝나야 하는데, <code>new</code>/<code>delete</code>는
+힙 상태에 따라 걸리는 시간이 달라져서 프레임을 튀게 만듭니다.
+그래서 필요한 만큼의 메모리를 시작할 때 한 덩어리로 잡아두고,
+런타임에는 목록에서 떼었다 붙였다 하는 포인터 조작만으로 객체를 빌려주고 돌려받습니다.
+이걸 오브젝트 풀이라고 하고, 할당 시간이 항상 일정해지는 게 핵심입니다.
+C++에서는 클래스별로 <code>operator new</code>를 재정의해서 호출부 코드를 바꾸지 않고 할당처만 풀로 바꿀 수 있고,
+등록·해제는 생성자와 소멸자에 넣어 언어가 강제하게 만듭니다.</p>
+</div>
+
+<h3>이 장에서 나온 개념들이 이어지는 곳</h3>
+<ul>
+  <li><a href="a3-allocation-cost.html">A-3 동적 할당의 진짜 비용</a> — 왜 <code>new</code>가 예측 불가능한가</li>
+  <li><a href="a4-oop-memory.html">A-4 객체지향의 메모리 모델</a> — vtable, 가상 소멸자, RAII</li>
+  <li><a href="b1-array-vs-list.html">B-1 배열 vs 연결 리스트</a> — 센티넬 패턴, 캐시 지역성</li>
+  <li><a href="c1-game-loop.html">C-1 게임 루프와 시간</a> — 왜 프레임 시간의 일정함이 목표인가</li>
+  <li><a href="c3-component-update.html">C-3 컴포넌트 구조와 업데이트 순서</a> — 상속 대신 조합, Unity 생명주기</li>
+  <li><a href="d2-gc.html">D-2 가비지 컬렉션</a> — C#/Unity에서 풀링이 필요한 또 하나의 이유</li>
+</ul>
+
+<h3>확인한 출처</h3>
+<ul class="muted" style="font-size:.86rem">
+  <li><a href="https://docs.unity3d.com/6000.4/Documentation/Manual/performance-reusable-code.html">Unity Manual — Pooling and reusing objects</a>
+      (<code>ObjectPool&lt;T&gt;</code> 콜백·<code>maxSize</code> 동작·<code>collectionCheck</code>가 에디터 전용인 점·스레드 비안전성)</li>
+  <li><a href="https://learn.microsoft.com/en-us/cpp/build/reference/zc-throwingnew-assume-operator-new-throws">Microsoft Learn — /Zc:throwingNew</a>
+      (MSVC가 기본적으로 널 검사를 생성한다는 사실 — 결함 ④를 이걸로 바로잡았다)</li>
+  <li>클래스 크기·정렬 수치는 MSVC x64로 직접 컴파일해 측정한 값이다(추정 아님).</li>
+</ul>
+
+<h3>관련 면접 질문</h3>
+<div class="box iv">
+<span class="box-t">연결 예정</span>
+<p style="margin-bottom:0">가상 소멸자 · <code>new</code>/<code>malloc</code> 차이 · 힙과 스택 · 오브젝트 풀링 ·
+반복자 무효화 · 구조체 패딩과 정렬 — 면접 섹션 이식 후 이 자리에 직접 링크한다.
+현재 원본은 <code>면접정리예제/01_C_CPP.md</code>, <code>04_자료구조_알고리즘.md</code>에 있다.</p>
+</div>
+
+<h3>직접 해보면 좋을 것</h3>
+<ol>
+  <li><code>Alive</code>를 실제로 꺼보고, 죽음 처리가 도는지 확인한다. (②번 결함)</li>
+  <li>슬롯 크기를 100에서 <code>sizeof</code> 기반으로 바꾸고 메모리 사용량 차이를 재본다. (①번)</li>
+  <li>풀을 일부러 고갈시켜 ④번 크래시를 재현해보고, 팩토리 방식으로 고쳐본다.</li>
+  <li>같은 게임을 <code>std::vector</code> + <code>new</code>로 짜서 프레임 시간 분포를 비교해본다.
+      평균이 아니라 <strong>최악값</strong>을 봐야 한다.</li>
+</ol>
+
+<div id="prev-next"></div>
+
+</main>
+</div>
+
+<div id="site-footer"></div>
+</body>
+</html>
