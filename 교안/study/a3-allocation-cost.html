@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ko">
 <head>
 <meta charset="utf-8">
@@ -6,22 +6,507 @@
 <title>A-3 동적 할당의 진짜 비용 — 게임 클라이언트 교안</title>
 <link rel="stylesheet" href="../assets/style.css">
 <script src="../assets/site.js"></script>
+<script src="../assets/widgets.js"></script>
 </head>
 <body data-root="../" data-section="study" data-chapter="a3">
+
 <div id="site-header"></div>
+
 <div class="layout">
-  <nav id="side-toc"></nav>
-  <main class="doc">
-    <p class="eyebrow">A-3</p>
-    <h1>동적 할당의 진짜 비용</h1>
-    <p class="lede">new/malloc이 실제로 하는 일 — 힙 탐색, 단편화, 정렬(alignment), 캐시 라인.</p>
-    <div class="stub-note">
-      <p><strong>아직 작성하지 않은 챕터입니다.</strong></p>
-      <p class="muted">챕터는 하나씩 확인을 받으며 작성합니다.</p>
-    </div>
-    <div id="prev-next"></div>
-  </main>
+<nav id="side-toc"></nav>
+<main class="doc">
+
+<p class="eyebrow">A-3 · 메모리와 언어 기반</p>
+<h1>동적 할당의 진짜 비용</h1>
+<p class="lede"><code>new</code> 한 줄, <code>malloc</code> 한 줄. 겨우 몇 나노초짜리 일처럼 보인다.
+실제로는 <strong>자료구조를 뒤지고, 경우에 따라 잠금을 걸고, 최악의 경우 운영체제를 부른다</strong>.
+이 장은 그 한 줄을 열어서, 왜 게임 코드가 이 한 줄을 그렇게 무서워하는지를 본다.</p>
+
+<div class="box core">
+<span class="box-t">이 장의 결론 먼저</span>
+<p>힙 할당이 비싼 이유는 <strong>"메모리를 만드는 일"이 아니라 "빈 자리를 찾는 일"</strong>이기 때문이다.
+메모리는 이미 거기 있다. 할당자가 하는 일은 <em>어디가 비었는지 기억하고 관리하는 것</em>이고,
+그 관리 비용이 전부다.</p>
+<p style="margin-bottom:0">그리고 진짜 문제는 <strong>느린 것이 아니라 얼마나 걸릴지 모른다는 것</strong>이다.
+같은 <code>new</code> 한 줄이 어떤 때는 수십 나노초, 어떤 때는 수 마이크로초가 걸린다.
+차이가 100배 넘게 나는데 <em>언제 그럴지 코드만 봐서는 알 수 없다</em> —
+매 프레임 마감이 있는 게임에서 이게 치명적이다.</p>
 </div>
+
+
+<h2 id="s1">1. 스택은 왜 공짜이고 힙은 왜 비싼가</h2>
+
+<p>둘 다 그냥 메모리다. 물리적으로 다른 부품이 아니다. 차이는 <strong>쓰는 규칙</strong>에 있다.</p>
+
+<div class="diagram">
+<svg viewBox="0 0 700 240" role="img" aria-label="스택은 포인터를 밀기만 하고 힙은 빈 자리를 찾아야 한다는 비교">
+  <text x="14" y="18" class="d-ink" font-size="13" font-weight="700">스택 — 규칙이 하나뿐이다: 마지막에 넣은 것을 먼저 뺀다</text>
+
+  <rect x="14" y="32" width="300" height="40" rx="5" class="d-fill-a d-stroke" stroke-width="1"/>
+  <rect x="14" y="32" width="180" height="40" class="d-fill-b"/>
+  <g class="d-stroke" stroke-width="1" fill="none">
+    <rect x="14" y="32" width="300" height="40" rx="5"/>
+    <line x1="74" y1="32" x2="74" y2="72"/><line x1="134" y1="32" x2="134" y2="72"/>
+    <line x1="194" y1="32" x2="194" y2="72"/>
+  </g>
+  <text x="44"  y="57" text-anchor="middle" class="d-soft" font-size="10">쓰는 중</text>
+  <text x="104" y="57" text-anchor="middle" class="d-soft" font-size="10">쓰는 중</text>
+  <text x="164" y="57" text-anchor="middle" class="d-soft" font-size="10">쓰는 중</text>
+  <text x="254" y="57" text-anchor="middle" class="d-soft" font-size="10">빈 곳</text>
+  <path d="M194 90 L194 76" class="d-stroke" stroke-width="1.4" fill="none" marker-end="url(#a3ar)"/>
+  <text x="194" y="104" text-anchor="middle" class="d-accent" font-size="10" font-weight="700">스택 포인터</text>
+
+  <text x="345" y="48" class="d-ink" font-size="11">할당 = 포인터를 오른쪽으로 민다</text>
+  <text x="345" y="66" class="d-ink" font-size="11">해제 = 포인터를 왼쪽으로 민다</text>
+  <text x="345" y="86" class="d-accent" font-size="11" font-weight="700">기계어 명령 한두 개. 끝.</text>
+
+  <text x="14" y="142" class="d-ink" font-size="13" font-weight="700">힙 — 아무 순서로나 넣고 뺀다. 그래서 관리가 필요하다</text>
+
+  <rect x="14" y="156" width="300" height="40" rx="5" class="d-fill-a d-stroke" stroke-width="1"/>
+  <rect x="14"  y="156" width="46" height="40" class="d-fill-b"/>
+  <rect x="88"  y="156" width="34" height="40" class="d-fill-b"/>
+  <rect x="152" y="156" width="70" height="40" class="d-fill-b"/>
+  <rect x="256" y="156" width="30" height="40" class="d-fill-b"/>
+  <g class="d-stroke" stroke-width="1" fill="none">
+    <rect x="14" y="156" width="300" height="40" rx="5"/>
+    <rect x="14" y="156" width="46" height="40"/><rect x="88" y="156" width="34" height="40"/>
+    <rect x="152" y="156" width="70" height="40"/><rect x="256" y="156" width="30" height="40"/>
+  </g>
+  <text x="74"  y="180" text-anchor="middle" class="d-soft" font-size="9">빈틈</text>
+  <text x="137" y="180" text-anchor="middle" class="d-soft" font-size="9">빈틈</text>
+  <text x="239" y="180" text-anchor="middle" class="d-soft" font-size="9">빈틈</text>
+
+  <text x="345" y="168" class="d-ink" font-size="11">할당 = 들어갈 만한 빈틈을 <tspan font-weight="700">찾아야</tspan> 한다</text>
+  <text x="345" y="186" class="d-ink" font-size="11">해제 = 빈틈 목록에 <tspan font-weight="700">되돌려 놓아야</tspan> 한다</text>
+  <text x="345" y="206" class="d-accent" font-size="11" font-weight="700">그래서 자료구조와 탐색이 생긴다</text>
+
+  <defs><marker id="a3ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M0 0 L10 5 L0 10 z" class="d-accent"/></marker></defs>
+</svg>
+</div>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th></th><th>스택</th><th>힙</th></tr></thead>
+<tbody>
+<tr><th>해제 순서</th><td>넣은 역순으로 강제된다</td><td>아무 순서나 가능하다</td></tr>
+<tr><th>관리 자료구조</th><td>없음 (포인터 하나)</td><td>있음 (빈 블록 목록, 크기별 분류…)</td></tr>
+<tr><th>할당 비용</th><td>사실상 0</td><td>탐색 + 갱신, 경우에 따라 잠금·시스템 콜</td></tr>
+<tr><th>크기 결정</th><td>대체로 컴파일 시점</td><td>실행 중 자유롭게</td></tr>
+<tr><th>수명</th><td>함수를 벗어나면 끝</td><td>내가 정한다</td></tr>
+<tr><th>단편화</th><td>구조상 생길 수 없다</td><td>생긴다 (3절)</td></tr>
+</tbody>
+</table>
+</div>
+
+<p><strong>핵심은 마지막 줄에서 두 번째다.</strong> 스택이 빠른 건 하드웨어가 특별해서가 아니라
+<strong>"역순으로만 해제한다"는 제약을 받아들인 대가</strong>다.
+제약을 포기하는 순간(= 힙) 관리 비용이 생긴다. 공짜 점심은 없다.</p>
+
+<div class="box why">
+<span class="box-t">그럼 전부 스택에 두면 되지 않나</span>
+<p style="margin-bottom:0">두 가지가 막는다. <strong>크기</strong> — 스택은 스레드마다 작게 잡힌다(보통 1MB 안팎).
+큰 배열을 올리면 스택 오버플로가 난다. <strong>수명</strong> — 함수가 끝나면 사라지므로,
+함수 밖으로 나가서 살아남아야 하는 것은 못 올린다. 게임 오브젝트가 정확히 그런 것들이다.
+그래서 힙이 필요하고, 힙이 필요한 순간 이 장의 이야기가 시작된다.</p>
+</div>
+
+<span class="seealso">스택 프레임이 실제로 어떻게 쌓이고 지역변수가 언제 사라지는지는
+<a href="a1-memory-layout.html">A-1 프로그램의 메모리 구조</a>에서 다룬다.</span>
+
+
+<h2 id="s2">2. 할당자를 열어보면</h2>
+
+<p><code>malloc(24)</code>를 부르면 무슨 일이 일어나는가. 구현마다 다르지만 <strong>큰 그림은 어디나 같다</strong>.
+아래는 가장 잘 문서화된 glibc 계열을 기준으로 한 설명이고,
+Windows나 게임 콘솔의 할당자도 이름과 세부만 다르지 구조는 비슷하다.</p>
+
+<h3>단계 0 — 요청한 크기를 그대로 주지 않는다</h3>
+<p>할당자는 요청 크기를 <strong>미리 정해둔 크기 등급(size class)으로 반올림</strong>한다.
+24바이트를 달라고 하면 32바이트짜리 자리를 준다. 아무 크기나 다 따로 관리하면
+빈 블록 목록이 끝없이 많아지기 때문이다.</p>
+<p>거기에 <strong>헤더</strong>가 붙는다. "이 블록은 몇 바이트인가, 앞뒤 블록은 비었는가"를 적어둬야
+나중에 해제할 때 처리할 수 있다. 보통 8~16바이트를 먹는다.</p>
+
+<div class="box warn">
+<span class="box-t">그래서 실제로 얼마를 쓰는가</span>
+<p style="margin-bottom:0"><strong>16바이트짜리 객체 하나를 <code>new</code>하면 실제 소비는 32바이트 안팎</strong>이 된다
+(헤더 + 등급 반올림). 작은 객체를 수만 개 만드는 코드에서는 이 배수가 그대로 메모리 사용량이 된다.
+"객체가 16바이트니까 10만 개면 1.6MB겠지"라는 계산이 실측과 두 배 넘게 벌어지는 이유다.</p>
+</div>
+
+<h3>단계 1~3 — 비용이 계단처럼 뛴다</h3>
+
+<div class="diagram">
+<svg viewBox="0 0 700 250" role="img" aria-label="할당 요청이 빠른 경로, 분할 경로, 운영체제 경로로 갈수록 비용이 계단식으로 뛰는 그림">
+  <text x="14" y="18" class="d-ink" font-size="13" font-weight="700">malloc(24) 요청이 지나가는 세 갈래</text>
+
+  <rect x="14" y="30" width="470" height="46" rx="6" class="d-fill-b d-stroke" stroke-width="1"/>
+  <text x="30" y="50" class="d-accent" font-size="11.5" font-weight="700">① 빠른 경로 — 맞는 크기의 빈 블록이 목록에 있다</text>
+  <text x="30" y="67" class="d-soft" font-size="10">목록에서 하나 떼어낸다. 포인터 조작 몇 번으로 끝.</text>
+  <rect x="500" y="30" width="186" height="46" rx="6" class="d-fill-a d-stroke" stroke-width="1"/>
+  <text x="593" y="52" text-anchor="middle" class="d-ink" font-size="11" font-weight="700">수십 나노초</text>
+  <text x="593" y="68" text-anchor="middle" class="d-soft" font-size="9.5">대부분의 호출이 여기</text>
+
+  <rect x="14" y="86" width="470" height="66" rx="6" class="d-fill-a d-stroke" stroke-width="1"/>
+  <text x="30" y="106" class="d-ink" font-size="11.5" font-weight="700">② 없다 — 더 큰 블록을 찾아 쪼갠다</text>
+  <text x="30" y="123" class="d-soft" font-size="10">크기별 목록을 위로 훑는다. 찾으면 둘로 나누고 남은 쪽을 목록에 되돌린다.</text>
+  <text x="30" y="140" class="d-soft" font-size="10">목록이 길수록 오래 걸린다 — 힙이 어질러져 있을수록 느려진다는 뜻이다.</text>
+  <rect x="500" y="86" width="186" height="66" rx="6" class="d-fill-a d-stroke" stroke-width="1"/>
+  <text x="593" y="112" text-anchor="middle" class="d-ink" font-size="11" font-weight="700">수백 나노초 ~</text>
+  <text x="593" y="130" text-anchor="middle" class="d-soft" font-size="9.5">힙 상태에 따라 변한다</text>
+
+  <rect x="14" y="162" width="470" height="76" rx="6" class="d-fill-a d-stroke" stroke-width="1"/>
+  <text x="30" y="182" class="d-ink" font-size="11.5" font-weight="700">③ 그것도 없다 — 운영체제에게 더 달라고 한다</text>
+  <text x="30" y="199" class="d-soft" font-size="10">시스템 콜로 커널에 들어간다. 새 페이지를 받아온다.</text>
+  <text x="30" y="216" class="d-soft" font-size="10">받은 페이지를 처음 건드리는 순간 페이지 폴트가 한 번 더 난다 —</text>
+  <text x="30" y="232" class="d-soft" font-size="10">운영체제가 그제서야 물리 메모리를 붙이고 0으로 지워준다.</text>
+  <rect x="500" y="162" width="186" height="76" rx="6" class="d-fill-b d-stroke" stroke-width="1"/>
+  <text x="593" y="190" text-anchor="middle" class="d-accent" font-size="11" font-weight="700">수 마이크로초</text>
+  <text x="593" y="208" text-anchor="middle" class="d-soft" font-size="9.5">①보다 100배 이상</text>
+  <text x="593" y="224" text-anchor="middle" class="d-soft" font-size="9.5">드물지만 반드시 온다</text>
+</svg>
+</div>
+
+<p class="muted">※ 숫자는 정확한 측정치가 아니라 <strong>자릿수 감각</strong>이다.
+중요한 건 절대값이 아니라 <strong>①과 ③ 사이가 100배 넘게 벌어진다는 것</strong>,
+그리고 <strong>어느 경로로 갈지 코드만 봐서는 알 수 없다는 것</strong>이다.</p>
+
+<h3>해제할 때 — 병합(coalescing)</h3>
+<p><code>free</code>는 "이 자리 비었음"이라고 표시하고 끝나지 않는다.
+<strong>바로 옆 블록도 비어 있으면 둘을 하나로 합친다</strong>.
+안 그러면 힙이 잘게 부서져서 큰 블록을 영영 못 만들게 되기 때문이다.
+이걸 하려고 블록의 앞뒤 양쪽에 크기 정보를 적어두는데(경계 태그, boundary tag),
+앞에서 말한 헤더가 필요한 이유가 여기에 있다.</p>
+
+<div class="box why">
+<span class="box-t">속도와 단편화의 맞바꿈이 실제 코드에 박혀 있다</span>
+<p style="margin-bottom:0">glibc는 아주 작은 블록(128바이트 이하)을 <strong>fastbin</strong>이라는 목록에 넣는데,
+<em>여기 들어간 것들은 병합하지 않는다</em>. 병합은 느리고, 작은 블록은 곧 또 쓰일 확률이 높으니
+그냥 쌓아뒀다가 그대로 돌려주는 게 빠르기 때문이다.
+<strong>속도를 얻고 단편화를 감수한 결정</strong>이 표준 라이브러리 안에 이렇게 들어 있다.
+"트레이드오프"라는 말이 추상적으로 들린다면, 이게 그 실물이다.</p>
+</div>
+
+<h3>여러 스레드가 동시에 부르면</h3>
+<p>힙은 프로세스 전체가 공유한다. 두 스레드가 동시에 빈 블록 목록을 고치면 목록 자체가 깨진다.
+그래서 <strong>잠금</strong>이 필요하고, 잠금은 경쟁이 생기면 스레드를 멈춰 세운다.
+할당이 많은 멀티스레드 프로그램에서 <em>계산은 나눠놨는데 왜 안 빨라지지</em> 싶을 때
+범인이 대체로 이것이다.</p>
+<p>현대 할당자들은 <strong>스레드마다 자기 캐시를 주는 방식</strong>으로 푼다 —
+tcmalloc(구글)의 스레드 로컬 캐시, jemalloc의 스레드별 아레나, mimalloc(마이크로소프트)의 페이지별 프리 리스트가
+전부 같은 발상이다. 대부분의 할당이 <strong>락을 건드리지 않고</strong> 자기 캐시에서 끝나게 만든다.</p>
+
+<span class="seealso">락이 왜 비싸고 경쟁이 무엇인지는
+<a href="f1-thread-sync.html">F-1 프로세스·스레드·동기화</a>에서 다룬다.</span>
+
+
+<h2 id="s3">3. 단편화 — 여유는 충분한데 할당이 실패한다</h2>
+
+<p>단편화에는 두 종류가 있고, 이름이 헷갈리기 쉬우니 정확히 구분해두자.</p>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th></th><th>외부 단편화</th><th>내부 단편화</th></tr></thead>
+<tbody>
+<tr><th>무엇이</th><td>블록 <em>사이사이</em>에 쓸 수 없는 작은 구멍이 흩어진다</td><td>블록 <em>안쪽</em>에 안 쓰는 여백이 남는다</td></tr>
+<tr><th>원인</th><td>다양한 크기를 임의 순서로 넣고 뺌</td><td>크기 등급 반올림, 헤더, 정렬 패딩</td></tr>
+<tr><th>증상</th><td><strong>총 여유는 충분한데 큰 할당이 실패</strong></td><td>메모리 사용량이 계산보다 많음</td></tr>
+<tr><th>대책</th><td>크기를 통일한다(→ <a href="c2-object-pool.html">오브젝트 풀</a>), 아레나로 통째 회수</td><td>구조체 배치 정리, 등급에 맞는 크기 선택</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>말로만 들으면 잘 안 와닿는다. 직접 만들어보는 게 빠르다.</p>
+
+<div class="widget" data-widget="fragmentation"></div>
+
+<div class="box core">
+<span class="box-t">위젯에서 봐야 할 것</span>
+<p style="margin-bottom:0"><strong>「어지럽히기」를 두세 번 누른 다음 「큰 블록 요청」을 눌러본다.</strong>
+총 여유 칸이 20칸 넘게 남아 있는데도 12칸짜리 요청이 실패한다.
+<strong>메모리가 부족한 게 아니라 연속된 자리가 없는 것</strong>이다.
+오래 켜두는 프로그램(게임 서버, 콘솔 게임)에서 "메모리는 남는데 뻗는다"는 현상이 정확히 이거다.</p>
+</div>
+
+<h3>왜 할당자는 이걸 정리하지 못하는가</h3>
+<p>위젯의 「압축해보기」를 누르면 구멍이 싹 사라진다. 그런데 <strong>실제 <code>malloc</code>은 이걸 못 한다.</strong>
+이유는 하나다 — <strong>이미 주소를 나눠줬기 때문이다.</strong>
+블록을 옮기는 순간 프로그램이 들고 있는 포인터가 전부 엉뚱한 곳을 가리키게 된다.
+할당자는 누가 그 주소를 어디에 몇 개나 복사해뒀는지 알 방법이 없다.</p>
+
+<div class="box game">
+<span class="box-t">그래서 GC 언어는 다르다 — 그리고 Unity는 또 다르다</span>
+<p>가비지 컬렉터가 있는 언어는 <em>모든 참조가 어디 있는지 런타임이 안다</em>.
+그래서 객체를 옮기고 참조를 전부 고쳐 쓸 수 있다. 이걸 <strong>압축(compaction)</strong>이라 하고,
+.NET이나 자바의 GC가 실제로 하는 일이다. 단편화가 원리적으로 해결된다.</p>
+<p style="margin-bottom:0">그런데 <strong>Unity의 GC는 압축을 하지 않는다.</strong>
+왜 그런지, 그게 무엇을 뜻하는지는 <a href="d2-gc.html">D-2 가비지 컬렉션</a>에서 다룬다.
+여기서는 이것만 기억하면 된다 — <strong>Unity에서는 C#으로 짜도 단편화 문제에서 자유롭지 않다.</strong>
+이건 대부분의 지원자가 모르는 부분이다.</p>
+</div>
+
+
+<h2 id="s4">4. 정렬(alignment) — 주소에도 규칙이 있다</h2>
+
+<p>할당자는 아무 주소나 돌려주지 않는다. <strong>특정 배수인 주소만</strong> 돌려준다. 왜일까.</p>
+
+<h3>CPU는 바이트 단위로 읽지 않는다</h3>
+<p>CPU가 메모리에서 값을 가져올 때는 <strong>정해진 크기 덩어리 단위</strong>로 읽는다.
+8바이트짜리 값이 8의 배수 주소에 있으면 한 번에 읽히지만, 어긋나 있으면
+<strong>두 덩어리에 걸쳐</strong> 있어서 두 번 읽고 붙여야 한다.
+어떤 CPU는 아예 거부하고 예외를 던진다.</p>
+<p>그래서 타입마다 <strong>"이 배수 주소에 놓여야 한다"</strong>는 요구가 있고, <code>alignof</code>로 확인할 수 있다.</p>
+
+<h3>기본 보장값 — 실제로 재본 값</h3>
+<pre><code>__STDCPP_DEFAULT_NEW_ALIGNMENT__ = 16   // new가 무조건 지켜주는 정렬
+alignof(std::max_align_t)        = 8    // 기본 타입 중 가장 큰 정렬 요구</code></pre>
+<p class="muted">(MSVC x64, <code>/std:c++17</code>로 직접 컴파일해 확인한 값)</p>
+
+<p>즉 <strong><code>new</code>로 받은 주소는 항상 16의 배수</strong>다. 대부분의 타입은 이걸로 충분하다.
+문제는 그보다 더 센 정렬을 요구하는 타입인데, 게임에서는 흔하다 —
+SIMD 벡터 타입(<code>__m128</code>, <code>DirectX::XMVECTOR</code> 등)이 16바이트,
+AVX 계열은 32바이트를 요구한다.</p>
+
+<div class="box warn">
+<span class="box-t">C++17 이전에는 이게 조용한 버그였다</span>
+<p>C++17 전의 <code>new</code>는 과대 정렬(over-aligned) 타입을 <strong>모른 척했다</strong>.
+16바이트 정렬이 필요한 타입을 <code>new</code>했는데 8의 배수 주소가 돌아오고,
+그 위에서 SIMD 명령을 쓰는 순간 크래시. 원인 찾기가 아주 어려운 종류의 버그였다.</p>
+<p style="margin-bottom:0">C++17부터는 <strong>타입의 정렬 요구가 기본 보장값보다 크면
+컴파일러가 자동으로 <code>operator new(size_t, std::align_val_t)</code>를 부른다</strong>.
+MSVC에서는 <code>/std:c++17</code> 이상이면 이 동작이 기본으로 켜져 있다.
+즉 <strong>요즘 표준으로 컴파일하고 있다면 이 문제는 이미 해결되어 있다</strong> —
+단, <em>직접 만든 할당자를 쓰고 있다면 그 규칙을 내가 지켜야 한다.</em></p>
+</div>
+
+<div class="box game">
+<span class="box-t">이걸 실제로 어긴 코드를 이미 봤다</span>
+<p style="margin-bottom:0"><a href="c2-object-pool.html#s10">C-2의 결함 ①</a>이 정확히 이 상황이다.
+직접 만든 풀이 슬롯 크기를 100바이트로 잡는 바람에 홀수 번째 슬롯의 시작 주소가 4바이트씩 어긋나 있었다.
+<strong>표준 <code>new</code>를 쓰지 않고 직접 메모리를 잘라 쓰는 순간, 정렬은 전적으로 내 책임이 된다.</strong>
+그 챕터에 슬라이더로 직접 확인해보는 위젯을 넣어뒀다.</p>
+</div>
+
+<span class="seealso">구조체 안에서 멤버 사이에 생기는 <em>패딩</em>과 <code>sizeof</code> 계산은
+<a href="a4-oop-memory.html">A-4 객체지향의 메모리 모델</a>에서 다룬다.
+(맛보기: 같은 멤버라도 <code>char, int, char, double</code> 순서면 24바이트,
+<code>double, int, char, char</code> 순서면 16바이트다. 순서만 바꿨는데 3분의 2로 줄었다.)</span>
+
+
+<h2 id="s5">5. 어디에 할당되었는가가 속도를 바꾼다</h2>
+
+<p>지금까지는 <em>할당하는 순간</em>의 비용만 봤다. 그런데 더 큰 비용이 <strong>할당한 다음</strong>에 온다.</p>
+
+<p>CPU는 메모리를 직접 읽지 않고 <strong>캐시</strong>를 거친다. 캐시는 값 하나가 아니라
+<strong>캐시 라인</strong>이라는 덩어리(보통 64바이트) 단위로 퍼 온다.
+그래서 <strong>바로 옆에 있는 데이터를 이어서 읽으면 사실상 공짜</strong>고,
+<strong>멀리 떨어진 데이터로 뛰면 매번 메모리까지 다녀와야 한다</strong>.
+그 왕복이 수십~수백 사이클이다 — 산술 연산 한 번이 1사이클 안팎인 걸 생각하면 엄청난 차이다.</p>
+
+<p>여기서 할당 이야기와 만난다. <code>new</code>를 여러 번 부르면 객체들이 힙 여기저기에 흩어져 놓인다.
+매 프레임 그 객체들을 전부 순회하는 게임 루프에서는
+<strong>할당 비용보다 순회 비용이 더 큰 문제</strong>가 되기 쉽다.
+<a href="c2-object-pool.html">오브젝트 풀</a>이 "한 덩어리 버퍼"를 고집하는 이유의 절반이 이것이다.</p>
+
+<span class="seealso">캐시 지역성이 실제로 몇 배 차이를 만드는지, 빅오가 같은데 왜 실측이 다른지는
+<a href="b1-array-vs-list.html">B-1 배열 vs 연결 리스트</a>에서 직접 재보는 위젯과 함께 다룬다.</span>
+
+
+<h2 id="s6">6. 그래서 진짜 비용은 얼마인가</h2>
+
+<p>이 질문에 숫자 하나로 답하면 그게 틀린 답이다. 정확한 답은 <strong>"분포로 봐야 한다"</strong>이다.</p>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th>보는 방법</th><th>무엇을 말해주나</th><th>게임에서의 쓸모</th></tr></thead>
+<tbody>
+<tr><td>평균 할당 시간</td><td>전체적으로 얼마나 빠른가</td><td><strong>거의 쓸모없다</strong></td></tr>
+<tr><td>최악값 (상위 0.1%)</td><td>가장 나쁜 프레임이 얼마나 나쁜가</td><td><strong>이게 눈에 보이는 끊김이다</strong></td></tr>
+<tr><td>프레임당 할당 횟수</td><td>튈 기회가 프레임마다 몇 번 있는가</td><td>줄여야 할 대상</td></tr>
+<tr><td>총 할당 바이트</td><td>단편화·GC 압력의 원인</td><td>Unity에서 특히 중요</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>60프레임이면 한 프레임 예산이 <strong>16.6밀리초</strong>다.
+평균 5밀리초에 끝나던 프레임이 어쩌다 한 번 20밀리초가 되면 사람 눈에는 <strong>게임이 걸린 것</strong>으로 보인다.
+평균이 아무리 좋아도 소용없다. <a href="c1-game-loop.html">C-1</a>에서 이 예산 이야기를 자세히 다룬다.</p>
+
+<div class="box warn">
+<span class="box-t">추측하지 말고 재라</span>
+<p style="margin-bottom:0">여기까지 읽고 나면 모든 <code>new</code>가 무서워 보이지만,
+<strong>실제로 병목인지 아닌지는 재봐야만 안다</strong>.
+로딩 중에 100번 할당하는 건 아무 문제가 없고, 매 프레임 10000번 할당하는 게 문제다.
+"할당은 나쁘다"를 원칙으로 삼고 코드를 비트는 건 <strong>측정 없이 최적화하는 전형적인 실수</strong>다.
+순서는 언제나 <em>프로파일러 → 원인 확인 → 대책</em>이다.</p>
+</div>
+
+
+<h2 id="s7">7. 요즘은 어떻게 하는가 — 업계 표준과 Unity</h2>
+
+<h3>C++ / 네이티브 진영</h3>
+<p>업계의 대응은 세 층으로 나뉜다. 아래로 갈수록 손이 많이 가고 효과가 크다.</p>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th>층</th><th>무엇을 하나</th><th>드는 노력</th></tr></thead>
+<tbody>
+<tr><td><strong>1. 할당자를 통째로 교체</strong></td>
+    <td>기본 <code>malloc</code> 대신 mimalloc·jemalloc·tcmalloc을 링크한다.
+        코드를 한 줄도 안 고치고 스레드 경쟁과 단편화가 개선된다</td>
+    <td>거의 없음</td></tr>
+<tr><td><strong>2. 용도별 할당자를 따로 둔다</strong></td>
+    <td>프레임 아레나(프레임 끝에 통째 회수), 오브젝트 풀(크기 통일), 스택 할당자.
+        C++17 <code>&lt;memory_resource&gt;</code>가 이걸 표준으로 제공한다</td>
+    <td>설계 필요</td></tr>
+<tr><td><strong>3. 게임 루프에서 할당을 없앤다</strong></td>
+    <td>필요한 것을 로딩 시점에 전부 확보한다. 런타임에는 <code>new</code>가 아예 등장하지 않는다</td>
+    <td>많음. 콘솔·모바일 상용 프로젝트의 목표선</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>상용 엔진이 예외 없이 <strong>자체 메모리 관리자</strong>를 갖는 이유가 이것이다
+(언리얼의 <code>FMemory</code>/<code>MallocBinned</code> 계열이 대표적이다).
+플랫폼마다 메모리 사정이 다르고, 어디서 얼마를 쓰는지 추적해야 하고,
+무엇보다 게임 특유의 <strong>"프레임 단위 수명"을 표준 <code>malloc</code>은 모르기 때문</strong>이다.</p>
+
+<span class="seealso">2층의 아레나·풀 할당자와 <code>std::pmr</code>의 구체적인 사용법은
+<a href="c2-object-pool.html#s9">C-2의 9절</a>에 코드와 함께 있다. 여기서 반복하지 않는다.</span>
+
+<h3>Unity / C#에서는 이 문제가 어떤 얼굴로 나타나는가</h3>
+
+<p>C#으로 짜면 <code>malloc</code>을 직접 부를 일이 없다. 그래서 이 장이 남 얘기처럼 보이지만,
+<strong>같은 문제가 이름만 바꿔서 그대로 나타난다.</strong></p>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th>C++에서의 문제</th><th>Unity/C#에서의 얼굴</th></tr></thead>
+<tbody>
+<tr><td>할당 자체의 시간 비용</td><td>상대적으로 싸다. <strong>포인터를 밀기만 하는 구조</strong>라 할당은 오히려 빠르다</td></tr>
+<tr><td>해제 비용</td><td><strong>여기로 몰린다.</strong> 내가 해제하지 않는 대신
+    GC가 나중에 한꺼번에 치운다 → 그 프레임이 통째로 튄다</td></tr>
+<tr><td>단편화</td><td>여전히 있다. <strong>Unity의 GC는 압축을 안 하기 때문</strong>(3절)</td></tr>
+<tr><td>정렬</td><td>런타임이 알아서 한다. 신경 쓸 일이 거의 없다</td></tr>
+<tr><td>캐시 지역성</td><td><strong>더 나쁘다.</strong> 참조 타입은 힙에 흩어지고,
+    클래스 배열은 값이 아니라 주소만 나란히 모여 있다</td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>그래서 Unity에서 실제로 쓰는 도구들</h4>
+<ul>
+  <li><strong>값 타입(<code>struct</code>)으로 힙 할당 자체를 피한다.</strong>
+      가장 근본적인 대책이다 — 애초에 힙에 안 올라가면 GC도 단편화도 없다.
+      대신 복사 비용과 <em>박싱</em>이라는 새 함정이 생긴다.</li>
+  <li><strong><code>Span&lt;T&gt;</code> / <code>stackalloc</code></strong> — 임시 버퍼를 힙 대신 스택에 잡는다.
+      1절의 "스택은 공짜"를 C#에서 쓰는 방법이다.</li>
+  <li><strong>Native Collections + <code>Allocator</code>(수명 지정)</strong> —
+      아래 표 참고. 이 장의 "용도별 할당자"를 API로 강제한 것이다.</li>
+  <li><strong>오브젝트 풀</strong> — <a href="c2-object-pool.html">C-2</a> 전체가 이 이야기다.</li>
+  <li><strong>Profiler의 GC Alloc 열</strong> — 어느 함수가 프레임마다 쓰레기를 만드는지 바로 보인다.
+      문자열 연결, LINQ, 일부 <code>foreach</code>, 매 프레임 <code>new List</code>가 단골 범인이다.</li>
+</ul>
+
+<div class="box core">
+<span class="box-t">Unity의 세 가지 Allocator — 수명을 타입으로 선언하게 만든다</span>
+<div class="table-wrap" style="margin:.6rem 0 0">
+<table>
+<thead><tr><th></th><th>수명</th><th>속도</th><th>특징</th></tr></thead>
+<tbody>
+<tr><td><code>Allocator.Temp</code></td><td>한 프레임</td><td>가장 빠름</td>
+    <td>프레임 끝에 <strong>통째로 버려진다</strong> — 직접 해제할 필요가 없다. 다만 잡(Job)에 넘길 수는 없다</td></tr>
+<tr><td><code>Allocator.TempJob</code></td><td>몇 프레임</td><td>중간</td>
+    <td>잡에 넘길 수 있다. <strong>4프레임 안에 해제해야 한다</strong> — 넘기면 Persistent로 밀려 느려진다</td></tr>
+<tr><td><code>Allocator.Persistent</code></td><td>내가 정한다</td><td>가장 느림</td>
+    <td>일반 힙 할당에 해당. <strong>반드시 직접 해제</strong>해야 하고, 안전장치가 실수를 잡아주지도 못한다</td></tr>
+</tbody>
+</table>
+</div>
+<p style="margin:.8rem 0 0"><code>Temp</code>의 동작을 다시 보자 —
+<strong>개별 해제 없이 프레임 끝에 통째로 되돌린다.</strong>
+이건 바로 위 C++ 표의 2층에서 말한 <em>프레임 아레나</em>와 정확히 같은 물건이다.
+<strong>같은 아이디어가 C++에서는 라이브러리로, Unity에서는 enum 값 하나로 제공되고 있을 뿐이다.</strong>
+이게 보이기 시작하면 두 진영을 따로 외울 필요가 없어진다.</p>
+</div>
+
+<h3>언제 이 모든 걸 무시해도 되는가</h3>
+<ul>
+  <li><strong>로딩·초기화 시점</strong> — 프레임 예산이 없는 구간이다. 마음껏 할당해도 된다.</li>
+  <li><strong>드물게 일어나는 일</strong> — 메뉴 열 때 한 번, 스테이지 바뀔 때 한 번.</li>
+  <li><strong>프로파일러가 병목이라고 말하지 않은 곳</strong> — 실제로는 대부분이 여기 해당한다.</li>
+</ul>
+<p>업계에서 통하는 태도는 <strong>"할당을 무서워한다"가 아니라 "할당이 어디서 얼마나 일어나는지 안다"</strong>이다.
+전자는 코드를 불필요하게 비틀고, 후자는 고쳐야 할 곳만 고친다.</p>
+
+<div class="box iv">
+<span class="box-t">면접에서의 차이</span>
+<p style="margin-bottom:0">"힙과 스택의 차이가 뭔가요"에 <em>"스택은 자동, 힙은 수동으로 관리합니다"</em>라고 답하면 딱 평균이다.
+여기에 <strong>"스택이 빠른 건 해제 순서가 역순으로 강제되어 있어서 관리 자료구조가 아예 필요 없기 때문이고,
+힙은 그 제약을 푼 대가로 빈 자리를 찾는 비용이 생긴 겁니다"</strong>까지 말하면
+원리를 이해한 사람의 답변이 된다. 여기에 3절의 "총 여유는 충분한데 실패한다"를 덧붙이면 더 좋다.</p>
+</div>
+
+
+<h2 id="s8">8. 정리 — 이 장을 한 문단으로</h2>
+
+<div class="box core">
+<span class="box-t">30초로 말한다면</span>
+<p style="margin-bottom:0">힙 할당이 비싼 건 메모리를 만들어서가 아니라
+<strong>빈 자리를 찾고 관리해야 하기 때문</strong>입니다.
+할당자는 크기별로 빈 블록 목록을 들고 있다가 맞는 걸 떼어주는데,
+없으면 큰 걸 쪼개고, 그것도 없으면 운영체제를 부릅니다.
+이 세 경로의 비용이 100배 넘게 차이 나고
+<strong>어느 쪽으로 갈지 미리 알 수 없다는 게 진짜 문제</strong>입니다 —
+매 프레임 마감이 있는 게임에서는 평균이 아니라 최악값이 곧 눈에 보이는 끊김이니까요.
+그래서 크기를 통일하거나(풀), 수명을 묶어 통째로 회수하거나(아레나),
+아예 게임 루프에서 할당을 없애는 방향으로 갑니다.
+Unity에서는 같은 문제가 GC 쓰레기라는 얼굴로 나타나고,
+<code>Allocator.Temp</code>처럼 <strong>수명을 미리 선언하게 하는 API</strong>가 같은 해법을 제공합니다.</p>
+</div>
+
+<h3>이 장에서 나온 개념들이 이어지는 곳</h3>
+<ul>
+  <li><a href="a1-memory-layout.html">A-1 프로그램의 메모리 구조</a> — 스택 프레임, 지역변수의 수명</li>
+  <li><a href="a4-oop-memory.html">A-4 객체지향의 메모리 모델</a> — 구조체 패딩과 <code>sizeof</code></li>
+  <li><a href="b1-array-vs-list.html">B-1 배열 vs 연결 리스트</a> — 캐시 지역성이 만드는 실제 차이</li>
+  <li><a href="c1-game-loop.html">C-1 게임 루프와 시간</a> — 프레임 예산이라는 개념</li>
+  <li><a href="c2-object-pool.html">C-2 오브젝트 관리와 메모리 풀</a> — 이 장의 문제에 대한 게임식 해법</li>
+  <li><a href="d1-value-reference.html">D-1 값 타입과 참조 타입</a> — C#에서 힙 할당을 피하는 법, 박싱</li>
+  <li><a href="d2-gc.html">D-2 가비지 컬렉션</a> — Unity의 GC가 압축을 안 한다는 것의 의미</li>
+  <li><a href="f1-thread-sync.html">F-1 프로세스·스레드·동기화</a> — 할당자의 잠금 경쟁</li>
+</ul>
+
+<h3>확인한 출처</h3>
+<ul class="muted" style="font-size:.86rem">
+  <li><a href="https://learn.microsoft.com/en-us/cpp/build/reference/zc-alignednew">Microsoft Learn — /Zc:alignedNew (C++17 over-aligned allocation)</a>
+      — 정렬 요구가 기본 보장값보다 크면 <code>align_val_t</code> 버전이 호출되고, <code>/std:c++17</code> 이상에서 기본으로 켜진다</li>
+  <li><a href="https://docs.unity3d.com/Packages/com.unity.collections@2.4/manual/allocator-overview.html">Unity Collections — Allocator overview</a>
+      — Temp/TempJob/Persistent의 수명, TempJob의 4프레임 제한, Temp가 프레임 끝에 통째로 해제된다는 점</li>
+  <li><a href="https://sploitfun.wordpress.com/2015/02/10/understanding-glibc-malloc/">Understanding glibc malloc</a>
+      — bin 구조, fastbin이 병합하지 않는다는 점, 경계 태그</li>
+  <li><code>__STDCPP_DEFAULT_NEW_ALIGNMENT__</code> = 16, <code>alignof(std::max_align_t)</code> = 8,
+      구조체 순서에 따른 <code>sizeof</code> 24↔16은 <strong>MSVC x64로 직접 컴파일해 측정</strong>한 값이다(추정 아님).</li>
+</ul>
+
+<h3>직접 해보면 좋을 것</h3>
+<ol>
+  <li>위 위젯에서 <strong>「어지럽히기」 → 「큰 블록 요청」</strong>을 반복해 실패를 만들어본다.
+      실패했을 때 "총 여유"와 "가장 큰 연속 여유"의 차이를 확인한다.</li>
+  <li>작은 객체를 10만 개 <code>new</code>한 뒤 작업 관리자로 실제 메모리 사용량을 보고,
+      <code>sizeof</code> × 10만과 비교해본다. 2절에서 말한 헤더·반올림이 눈에 보인다.</li>
+  <li>Unity에서 Profiler를 켜고 <strong>GC Alloc 열</strong>로 정렬해본다.
+      매 프레임 쓰레기를 만드는 자기 코드를 찾는다 — 대부분 문자열이나 임시 리스트다.</li>
+  <li>같은 반복문을 <code>List&lt;T&gt;</code>와 <code>NativeArray&lt;T&gt;(Allocator.Temp)</code>로 각각 짜고
+      프레임 시간 분포를 비교해본다. <strong>평균이 아니라 최악값</strong>을 본다.</li>
+</ol>
+
+<div id="prev-next"></div>
+
+</main>
+</div>
+
 <div id="site-footer"></div>
 </body>
 </html>

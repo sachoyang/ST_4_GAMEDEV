@@ -208,6 +208,138 @@ WIDGETS.alignment = function (host) {
 };
 
 
+/* =========================================================================
+   위젯 3 — 힙 단편화 시뮬레이터
+   가르치려는 것: "여유 메모리는 충분한데 할당이 실패한다"는 상황이 실제로 어떻게
+   만들어지는가. 그리고 왜 할당자가 이걸 정리하지 못하는가.
+   ========================================================================= */
+WIDGETS.fragmentation = function (host) {
+  const N = 60;                 // 힙 전체 칸 수
+  const BIG = 12;               // "큰 블록" 요청 크기
+  let cells, nextId, fails, log;
+
+  const ui = widgetShell(host, {
+    title: "여유는 충분한데 할당이 실패하는 순간",
+    desc: "작은 블록을 넣었다 뺐다 반복하면 <strong>구멍이 잘게 흩어진다</strong>. " +
+          "그 상태에서 <b>큰 블록 요청</b>을 눌러보면, 총 여유 칸이 넉넉한데도 실패하는 걸 볼 수 있다. " +
+          "이게 <strong>외부 단편화</strong>다."
+  });
+
+  function reset() {
+    cells = new Array(N).fill(0);   // 0 = 빈 칸, 그 외 = 블록 id
+    nextId = 1; fails = 0; log = [];
+    say("빈 힙에서 시작. 아직 구멍이 없다.", "");
+    draw();
+  }
+
+  /** 첫 번째로 들어갈 수 있는 자리를 찾는다 (first fit — 가장 단순한 전략) */
+  function firstFit(size) {
+    let run = 0;
+    for (let i = 0; i < N; i++) {
+      run = cells[i] === 0 ? run + 1 : 0;
+      if (run === size) return i - size + 1;
+    }
+    return -1;
+  }
+
+  function alloc(size, label) {
+    const at = firstFit(size);
+    if (at < 0) {
+      fails++;
+      say(`${label} ${size}칸 요청 실패 — 총 여유 ${freeTotal()}칸인데 연속 ${maxRun()}칸밖에 없다.`, "bad");
+    } else {
+      const id = nextId++;
+      for (let i = at; i < at + size; i++) cells[i] = id;
+      say(`${label} ${size}칸을 ${at}번 자리에 할당.`, "good");
+    }
+    draw();
+  }
+
+  function freeRandom() {
+    const ids = [...new Set(cells.filter(c => c !== 0))];
+    if (!ids.length) { say("해제할 블록이 없다.", ""); draw(); return; }
+    const id = ids[Math.floor(Math.random() * ids.length)];
+    cells = cells.map(c => c === id ? 0 : c);
+    say(`블록 #${id} 해제. 인접한 빈 칸끼리는 자동으로 하나로 합쳐진다(coalescing).`, "good");
+    draw();
+  }
+
+  function churn() {
+    for (let k = 0; k < 14; k++) {
+      if (Math.random() < 0.55) {
+        const s = 2 + Math.floor(Math.random() * 3);
+        const at = firstFit(s);
+        if (at >= 0) { const id = nextId++; for (let i = at; i < at + s; i++) cells[i] = id; }
+      } else {
+        const ids = [...new Set(cells.filter(c => c !== 0))];
+        if (ids.length) {
+          const id = ids[Math.floor(Math.random() * ids.length)];
+          cells = cells.map(c => c === id ? 0 : c);
+        }
+      }
+    }
+    say("작은 블록을 무작위로 넣고 뺐다. 구멍이 잘게 흩어진 상태다.", "");
+    draw();
+  }
+
+  function compact() {
+    const used = cells.filter(c => c !== 0);
+    cells = used.concat(new Array(N - used.length).fill(0));
+    say("압축 완료 — 하지만 실제 malloc은 이걸 못 한다. " +
+        "이미 나눠준 주소가 전부 무효가 되기 때문이다.", "bad");
+    draw();
+  }
+
+  const freeTotal = () => cells.filter(c => c === 0).length;
+  function maxRun() {
+    let best = 0, run = 0;
+    for (const c of cells) { run = c === 0 ? run + 1 : 0; if (run > best) best = run; }
+    return best;
+  }
+
+  function say(msg, kind) { log.unshift({ msg, kind }); log = log.slice(0, 3); }
+
+  function draw() {
+    const total = freeTotal(), run = maxRun();
+    const frag = total ? Math.round((1 - run / total) * 100) : 0;
+
+    ui.body.innerHTML = `
+      <div class="w-heap">
+        ${cells.map((c, i) => {
+          const edgeL = i === 0 || cells[i - 1] !== c;
+          const edgeR = i === N - 1 || cells[i + 1] !== c;
+          const style = c === 0 ? "" : `background:hsl(${(c * 57) % 360} 42% 60%)`;
+          return `<i class="hc ${c === 0 ? "free" : "used"} ${edgeL ? "el" : ""} ${edgeR ? "er" : ""}"
+                     style="${style}"></i>`;
+        }).join("")}
+      </div>
+      <div class="w-legend">
+        <span><i class="sw" style="background:hsl(200 42% 60%)"></i> 사용 중인 블록 (색이 다르면 다른 블록)</span>
+        <span><i class="sw free"></i> 빈 칸</span>
+      </div>`;
+
+    ui.stat.innerHTML = `
+      <div class="w-nums">
+        <span>총 여유 <b>${total}</b>칸</span>
+        <span class="${run < BIG ? "bad" : "hl"}">가장 큰 연속 여유 <b>${run}</b>칸</span>
+        <span class="${frag > 40 ? "bad" : ""}">단편화 <b>${frag}</b>%</span>
+        <span>${BIG}칸 요청 실패 <b>${fails}</b>회</span>
+      </div>
+      <ul class="w-log">${log.map(l => `<li class="${l.kind}">${l.msg}</li>`).join("")}</ul>`;
+  }
+
+  ui.ctrl.append(
+    btn("작은 블록 할당", () => alloc(2 + Math.floor(Math.random() * 3), "작은 블록"), "primary"),
+    btn("무작위 해제", freeRandom),
+    btn("어지럽히기 ×14", churn),
+    btn(`큰 블록 요청 (${BIG}칸)`, () => alloc(BIG, "큰 블록"), ""),
+    btn("압축해보기", compact, "ghost"),
+    btn("초기화", reset, "ghost")
+  );
+  reset();
+};
+
+
 /* ------------------------------------------------------------------------- */
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("[data-widget]").forEach(el => {

@@ -325,6 +325,20 @@ tbody tr:nth-child(even) td { background: color-mix(in srgb, var(--bg-soft) 45%,
 .w-legend i.sw.on   { background: var(--accent-bg); border-color: var(--accent); }
 .w-legend i.sw.next { outline: 2px dashed #3f7d58; outline-offset: 0; }
 
+/* 힙 단편화 시뮬레이터 */
+.w-heap {
+  display: flex; gap: 0; height: 2.5rem;
+  border: 1px solid var(--line); border-radius: 7px; overflow: hidden;
+  background: var(--bg-soft);
+}
+.w-heap .hc { flex: 1 1 0; display: block; height: 100%; transition: background .12s; }
+.w-heap .hc.free { background: repeating-linear-gradient(
+    45deg, transparent, transparent 3px, var(--line-soft) 3px, var(--line-soft) 6px); }
+.w-heap .hc.used.el { border-left: 1px solid rgba(0,0,0,.28); }
+.w-heap .hc.used.er { border-right: 1px solid rgba(0,0,0,.28); }
+.w-legend i.sw.free { background: repeating-linear-gradient(
+    45deg, transparent, transparent 3px, var(--line-soft) 3px, var(--line-soft) 6px); }
+
 /* 정렬 시각화 */
 .w-align { display: grid; gap: .22rem; }
 .w-arow {
