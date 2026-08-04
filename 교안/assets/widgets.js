@@ -340,6 +340,158 @@ WIDGETS.fragmentation = function (host) {
 };
 
 
+/* =========================================================================
+   위젯 4 — 객체 메모리 레이아웃 뷰어
+   가르치려는 것: 멤버 순서만 바꿔도 객체 크기가 달라진다는 것, 그 이유가 정렬 규칙이라는 것,
+   그리고 가상 함수 하나가 보이지 않는 포인터를 앞에 붙인다는 것.
+
+   배치 규칙(C/C++ 표준):
+     offset = 올림(offset, 멤버의 정렬)  →  멤버를 놓는다  →  offset += 멤버 크기
+     구조체 정렬 = 멤버 정렬의 최댓값
+     sizeof   = 올림(offset, 구조체 정렬)   ← 배열로 늘어놓을 수 있어야 하므로 뒤에도 패딩이 붙는다
+   (MSVC x64 실측값과 일치하는 것을 확인했다: char,int,char,double = 24 / double,int,char,char = 16)
+   ========================================================================= */
+WIDGETS.layout = function (host) {
+  const TYPES = {
+    bool:   { size: 1, align: 1 },
+    char:   { size: 1, align: 1 },
+    short:  { size: 2, align: 2 },
+    int:    { size: 4, align: 4 },
+    float:  { size: 4, align: 4 },
+    double: { size: 8, align: 8 },
+    "포인터": { size: 8, align: 8 }
+  };
+  const PRESET = ["char", "int", "char", "double"];   // A-3에서 예고한 그 예제
+
+  let members, hasVirtual;
+
+  const ui = widgetShell(host, {
+    title: "멤버 순서를 바꾸면 객체 크기가 달라진다",
+    desc: "멤버를 추가하고 <b>↑↓로 순서를 바꿔</b>보자. 빗금 친 칸이 <strong>패딩</strong>(아무도 안 쓰는 빈 바이트)이다. " +
+          "<b>최적 순서로</b>를 누르면 같은 멤버로 가장 작게 만든 배치를 보여준다."
+  });
+
+  function reset() { members = PRESET.slice(); hasVirtual = false; draw(); }
+
+  /** 실제 컴파일러가 쓰는 것과 같은 규칙으로 배치한다 */
+  function compute() {
+    const items = [];
+    let off = 0, structAlign = 1;
+
+    if (hasVirtual) {                       // 가상 함수가 하나라도 있으면 맨 앞에 vptr
+      items.push({ name: "(vptr)", type: "포인터", start: 0, size: 8, vptr: true });
+      off = 8; structAlign = 8;
+    }
+    members.forEach((t, i) => {
+      const { size, align } = TYPES[t];
+      const start = Math.ceil(off / align) * align;
+      if (start > off) items.push({ pad: true, start: off, size: start - off });
+      items.push({ name: t + " " + String.fromCharCode(97 + i), type: t, start, size, idx: i });
+      off = start + size;
+      structAlign = Math.max(structAlign, align);
+    });
+
+    const total = Math.max(Math.ceil(off / structAlign) * structAlign, 1);
+    if (total > off) items.push({ pad: true, start: off, size: total - off, tail: true });
+    return { items, total, structAlign };
+  }
+
+  function optimal() {
+    members.sort((a, b) => TYPES[b].align - TYPES[a].align || TYPES[b].size - TYPES[a].size);
+    draw();
+  }
+
+  function draw() {
+    const { items, total, structAlign } = compute();
+    const padBytes = items.filter(i => i.pad).reduce((s, i) => s + i.size, 0);
+    const cells = new Array(total).fill(null);
+    items.forEach(it => { for (let b = it.start; b < it.start + it.size; b++) cells[b] = it; });
+
+    const rows = [];
+    for (let r = 0; r * 8 < total; r++) rows.push(r);
+
+    ui.body.innerHTML = `
+      <div class="w-bytes">
+        ${rows.map(r => `
+          <div class="w-brow">
+            <span class="w-boff">+${r * 8}</span>
+            <div class="w-bcells">
+              ${Array.from({ length: 8 }, (_, k) => {
+                const b = r * 8 + k, it = cells[b];
+                if (b >= total) return `<i class="bc out"></i>`;
+                if (!it) return `<i class="bc pad"></i>`;
+                if (it.pad) return `<i class="bc pad" title="패딩 — 아무도 안 쓰는 칸"></i>`;
+                const hue = it.vptr ? 0 : (it.idx * 67 + 25) % 360;
+                const sat = it.vptr ? "0%" : "42%";
+                const first = b === it.start;
+                return `<i class="bc used ${first ? "first" : ""}"
+                          style="background:hsl(${hue} ${sat} ${it.vptr ? "55%" : "60%"})"
+                          title="${it.name} @${it.start}">${first ? `<b>${it.name}</b>` : ""}</i>`;
+              }).join("")}
+            </div>
+          </div>`).join("")}
+      </div>
+      <div class="w-legend">
+        <span><i class="sw" style="background:hsl(25 42% 60%)"></i> 멤버가 차지하는 칸</span>
+        <span><i class="sw free"></i> 패딩 (버려지는 칸)</span>
+        ${hasVirtual ? `<span><i class="sw" style="background:hsl(0 0% 55%)"></i> vptr — 소스에 없는 숨은 포인터</span>` : ""}
+      </div>
+      <div class="w-mem">
+        ${members.map((t, i) => `
+          <span class="w-chip">
+            <b style="color:hsl(${(i * 67 + 25) % 360} 42% 45%)">■</b> ${t}
+            <button data-up="${i}" ${i === 0 ? "disabled" : ""} title="앞으로">↑</button>
+            <button data-dn="${i}" ${i === members.length - 1 ? "disabled" : ""} title="뒤로">↓</button>
+            <button data-rm="${i}" title="삭제">✕</button>
+          </span>`).join("") || `<span class="muted">멤버가 없다. 아래에서 추가해보자.</span>`}
+      </div>`;
+
+    ui.body.querySelectorAll("[data-up]").forEach(b => b.onclick = () => {
+      const i = +b.dataset.up; [members[i - 1], members[i]] = [members[i], members[i - 1]]; draw(); });
+    ui.body.querySelectorAll("[data-dn]").forEach(b => b.onclick = () => {
+      const i = +b.dataset.dn; [members[i + 1], members[i]] = [members[i], members[i + 1]]; draw(); });
+    ui.body.querySelectorAll("[data-rm]").forEach(b => b.onclick = () => {
+      members.splice(+b.dataset.rm, 1); draw(); });
+
+    const waste = total ? Math.round(padBytes / total * 100) : 0;
+    ui.stat.innerHTML = `
+      <div class="w-nums">
+        <span class="hl">sizeof <b>${total}</b> B</span>
+        <span>alignof <b>${structAlign}</b></span>
+        <span class="${padBytes ? "bad" : ""}">패딩 <b>${padBytes}</b> B</span>
+        <span class="${waste > 25 ? "bad" : ""}">낭비 <b>${waste}</b>%</span>
+      </div>
+      <p class="w-note">${note(padBytes, total)}</p>`;
+  }
+
+  function note(pad, total) {
+    if (!members.length) return "멤버가 없어도 크기는 최소 1바이트다 — 서로 다른 객체는 주소가 달라야 하기 때문이다.";
+    if (pad === 0) return "<b>패딩이 하나도 없다.</b> 정렬 요구가 큰 멤버부터 놓으면 대체로 이렇게 된다.";
+    if (pad >= total / 3) return "<b>3분의 1 이상이 버려지고 있다.</b> 이 객체를 10만 개 만들면 그만큼이 통째로 낭비된다. " +
+      "「최적 순서로」를 눌러보자.";
+    return "빗금 친 칸은 정렬을 맞추려고 비워둔 자리다. 맨 뒤의 패딩은 <b>배열로 늘어놨을 때 다음 원소도 정렬을 지키게</b> 하려고 붙는다.";
+  }
+
+  const add = t => btn(t, () => { members.push(t); draw(); }, "ghost");
+  ui.ctrl.append(
+    Object.assign(document.createElement("span"), { className: "w-label", textContent: "멤버 추가" }),
+    ...Object.keys(TYPES).map(add)
+  );
+  const row2 = document.createElement("div");
+  row2.className = "w-ctrl";
+  const vbtn = btn("가상 함수 있음 (vptr 추가)", () => {
+    hasVirtual = !hasVirtual;
+    vbtn.classList.toggle("primary", hasVirtual);
+    vbtn.textContent = hasVirtual ? "가상 함수 있음 ✓" : "가상 함수 있음 (vptr 추가)";
+    draw();
+  });
+  row2.append(vbtn, btn("최적 순서로", optimal, "primary"), btn("초기화", reset, "ghost"));
+  ui.ctrl.after(row2);
+
+  reset();
+};
+
+
 /* ------------------------------------------------------------------------- */
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("[data-widget]").forEach(el => {

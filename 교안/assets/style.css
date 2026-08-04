@@ -339,6 +339,35 @@ tbody tr:nth-child(even) td { background: color-mix(in srgb, var(--bg-soft) 45%,
 .w-legend i.sw.free { background: repeating-linear-gradient(
     45deg, transparent, transparent 3px, var(--line-soft) 3px, var(--line-soft) 6px); }
 
+/* 객체 메모리 레이아웃 뷰어 */
+.w-bytes { display: grid; gap: .22rem; }
+.w-brow { display: grid; grid-template-columns: 2.6rem 1fr; align-items: center; gap: .5rem; }
+.w-boff { font-family: "Cascadia Mono", Consolas, monospace; font-size: .7rem; color: var(--ink-mute); text-align: right; }
+.w-bcells { display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; }
+.w-bcells .bc {
+  height: 1.9rem; border-radius: 3px; display: flex; align-items: center;
+  padding-left: .25rem; overflow: hidden; position: relative;
+}
+.w-bcells .bc.pad { background: repeating-linear-gradient(
+    45deg, transparent, transparent 3px, var(--line) 3px, var(--line) 6px);
+  border: 1px solid var(--line-soft); }
+.w-bcells .bc.out { background: none; }
+.w-bcells .bc.used b {
+  font-size: .62rem; color: rgba(0,0,0,.72); white-space: nowrap; font-weight: 700;
+}
+.w-mem { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .75rem; }
+.w-chip {
+  display: inline-flex; align-items: center; gap: .25rem;
+  border: 1px solid var(--line); border-radius: 999px; padding: .12rem .3rem .12rem .55rem;
+  font-size: .78rem; background: var(--bg-soft);
+}
+.w-chip button {
+  border: 0; background: none; color: var(--ink-mute); cursor: pointer;
+  font-family: inherit; font-size: .72rem; padding: 0 .18rem; line-height: 1;
+}
+.w-chip button:hover:not(:disabled) { color: var(--accent); }
+.w-chip button:disabled { opacity: .25; cursor: default; }
+
 /* 정렬 시각화 */
 .w-align { display: grid; gap: .22rem; }
 .w-arow {

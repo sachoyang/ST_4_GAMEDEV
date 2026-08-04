@@ -28,8 +28,8 @@ const SITE = {
           status: "done" },
         { id: "a4", num: "A-4", title: "객체지향의 메모리 모델",
           file: "a4-oop-memory.html",
-          desc: "클래스가 메모리에 놓이는 모양, vtable과 가상함수 호출 비용, RAII.",
-          status: "todo" }
+          desc: "클래스가 메모리에 놓이는 모양, vptr과 가상 함수 호출 비용, RAII.",
+          status: "done" }
       ]
     },
     {
