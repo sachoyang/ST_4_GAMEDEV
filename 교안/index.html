@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>게임 클라이언트 교안</title>
+<link rel="stylesheet" href="assets/style.css">
+<script src="assets/site.js"></script>
+</head>
+<body data-root="./" data-section="home">
+
+<div id="site-header"></div>
+
+<div class="wide">
+
+  <section class="hero">
+    <h1>원리부터 다시 쌓는<br>게임 클라이언트 교안</h1>
+    <p>국비 과정에서 만든 실습 코드를 근거로 삼되, <strong>순서를 뒤집어</strong> 정리한 자료다.
+       "내가 어디에 썼는가"에서 시작하지 않고 <strong>"왜 이런 게 필요해졌는가 → 어떤 원리로 동작하는가 →
+       그래서 게임에서 무슨 의미인가"</strong> 순서로 읽는다.</p>
+    <p class="muted">코드를 한 줄씩 해설하지 않는다. 코드를 짜는 일은 점점 도구가 대신하고,
+       남는 건 <strong>무엇을 왜 그렇게 설계했는지 설명하는 능력</strong>이기 때문이다.</p>
+  </section>
+
+  <section class="cards" style="margin-bottom:3rem">
+    <a class="card" href="study/index.html">
+      <div class="card-top"><span class="card-num">01</span></div>
+      <h3>공부하기</h3>
+      <p>6개 파트 · 20개 챕터. 개념 정의는 오직 여기에만 있다.</p>
+    </a>
+    <a class="card" href="interview/index.html">
+      <div class="card-top"><span class="card-num">02</span></div>
+      <h3>면접 질문</h3>
+      <p>204문항. 30초 답변만 두고, 원리는 해당 챕터로 링크한다.</p>
+    </a>
+    <a class="card" href="projects/index.html">
+      <div class="card-top"><span class="card-num">03</span></div>
+      <h3>내 코드</h3>
+      <p>실습 프로젝트별 사례. 개념이 실제로 어떻게 쓰였는지의 근거.</p>
+    </a>
+    <a class="card" href="quiz.html">
+      <div class="card-top"><span class="card-num">04</span></div>
+      <h3>퀴즈</h3>
+      <p>자가 점검용. 틀린 문항은 해당 챕터로 돌아간다.</p>
+    </a>
+  </section>
+
+  <h2 style="font-size:1.1rem;letter-spacing:.03em;color:var(--ink-mute)">전체 지도</h2>
+  <div id="map"></div>
+
+  <div class="box why" style="margin-top:3rem">
+    <span class="box-t">이 교안을 읽는 법</span>
+    <p>파트 A(메모리)는 나머지 전부의 전제다. 게임 쪽 이야기가 급하면 C부터 읽어도 되지만,
+       A를 건너뛴 채로 읽으면 "그래서 왜 느린가"라는 질문에 답을 못 하게 된다.</p>
+    <p style="margin-bottom:0">같은 개념이 두 챕터에 걸쳐 나오면 <strong>정의는 한 곳에만</strong> 두고
+       나머지는 <span class="mono">↪</span> 링크로 연결했다. 링크가 보이면 거기가 원본이다.</p>
+  </div>
+
+</div>
+
+<div id="site-footer"></div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const host = document.getElementById("map");
+  const prog = loadProgress();
+  host.innerHTML = SITE.parts.map(p => `
+    <section class="part">
+      <div class="part-head">
+        <span class="part-id">${p.id}</span>
+        <h2>${p.name}</h2>
+      </div>
+      <p class="part-tag">${p.tagline}</p>
+      <div class="cards">
+        ${p.chapters.map(c => {
+          const open = c.status === "done";
+          const pill = !open ? `<span class="pill todo">준비 중</span>`
+                     : prog[c.id] ? `<span class="pill read">읽음</span>`
+                     : `<span class="pill done">작성 완료</span>`;
+          return `<a class="card ${open ? "" : "todo"}" href="study/${c.file}">
+            <div class="card-top"><span class="card-num">${c.num}</span>${pill}</div>
+            <h3>${c.title}</h3>
+            <p>${c.desc}</p></a>`;
+        }).join("")}
+      </div>
+    </section>`).join("");
+});
+</script>
+</body>
+</html>

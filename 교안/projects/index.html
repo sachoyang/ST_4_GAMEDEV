@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>내 코드 — 게임 클라이언트 교안</title>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/site.js"></script>
+</head>
+<body data-root="../" data-section="projects">
+
+<div id="site-header"></div>
+
+<div class="wide">
+  <section class="hero">
+    <h1>내 코드</h1>
+    <p>교안에서 설명한 개념이 <strong>실제로 어디에 쓰였는지</strong>에 대한 근거 모음.
+       면접에서 "그거 직접 해보셨어요?"라는 질문이 나왔을 때 꺼낼 카드다.</p>
+  </section>
+
+  <div class="box why">
+    <span class="box-t">원본 자료</span>
+    <p>아래 md 파일들은 지우지 않고 <strong>리서치 원본</strong>으로 유지한다.
+       프로젝트를 처음 조사하며 남긴 상세 기록(파일 경로, 발견한 버그, 버전 히스토리)이 들어 있어
+       교안 본문보다 훨씬 구체적이다.</p>
+    <ul style="margin-bottom:0">
+      <li><a href="../../c_핵심정리.md">c_핵심정리.md</a> · <a href="../../cpp_핵심정리.md">cpp_핵심정리.md</a></li>
+      <li><a href="../../winapi_핵심정리.md">winapi_핵심정리.md</a> · <a href="../../mfc_핵심정리.md">mfc_핵심정리.md</a></li>
+      <li><a href="../../unity_핵심정리.md">unity_핵심정리.md</a> (26개 Unity 프로젝트)</li>
+    </ul>
+  </div>
+
+  <div id="map"></div>
+</div>
+
+<div id="site-footer"></div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("map").innerHTML = `
+    <section class="part">
+      <div class="part-head"><span class="part-id">P</span><h2>프로젝트</h2></div>
+      <p class="part-tag">기술 스택별 실습 프로젝트 요약. 상세 기록은 위 md 원본을 본다.</p>
+      <div class="cards">
+        ${SITE.projects.map((p, i) => `
+          <a class="card ${p.status === "done" ? "" : "todo"}" href="${p.file}">
+            <div class="card-top">
+              <span class="card-num">P-${i + 1}</span>
+              <span class="pill ${p.status}">${p.status === "done" ? "작성 완료" : "준비 중"}</span>
+            </div>
+            <h3>${p.title}</h3>
+            <p>${p.src ? "원본: <code>" + p.src.replace("../../", "") + "</code>" : "교안 C-2에서 해부한 프레임워크"}</p></a>`).join("")}
+      </div>
+    </section>`;
+});
+</script>
+</body>
+</html>

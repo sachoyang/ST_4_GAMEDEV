@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>공부하기 — 게임 클라이언트 교안</title>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/site.js"></script>
+</head>
+<body data-root="../" data-section="study">
+
+<div id="site-header"></div>
+
+<div class="wide">
+  <section class="hero">
+    <h1>공부하기</h1>
+    <p>개념의 <strong>정의와 원리는 이 섹션에만</strong> 존재한다.
+       면접 질문 페이지와 내 코드 페이지는 전부 여기로 링크를 건다.</p>
+  </section>
+
+  <div id="map"></div>
+</div>
+
+<div id="site-footer"></div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const prog = loadProgress();
+  document.getElementById("map").innerHTML = SITE.parts.map(p => `
+    <section class="part">
+      <div class="part-head"><span class="part-id">${p.id}</span><h2>${p.name}</h2></div>
+      <p class="part-tag">${p.tagline}</p>
+      <div class="cards">
+        ${p.chapters.map(c => {
+          const open = c.status === "done";
+          const pill = !open ? `<span class="pill todo">준비 중</span>`
+                     : prog[c.id] ? `<span class="pill read">읽음</span>`
+                     : `<span class="pill done">작성 완료</span>`;
+          return `<a class="card ${open ? "" : "todo"}" href="${c.file}">
+            <div class="card-top"><span class="card-num">${c.num}</span>${pill}</div>
+            <h3>${c.title}</h3><p>${c.desc}</p></a>`;
+        }).join("")}
+      </div>
+    </section>`).join("");
+});
+</script>
+</body>
+</html>
